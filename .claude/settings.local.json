@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\Admin\\\\cargo-site\" -Depth 2 | Where-Object { -not $_.FullName.Contains\\('.next'\\) -and -not $_.FullName.Contains\\('node_modules'\\) } | Select-Object FullName, PSIsContainer)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\Admin\\\\cargo-site\" -Include \"*.json\" -Exclude node_modules -Depth 1)",
+      "Bash(Select-Object FullName)"
+    ]
+  }
+}
