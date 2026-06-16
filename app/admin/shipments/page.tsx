@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic';
 
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, Suspense } from "react";
 import { supabase } from "@/lib/supabase";
 import { useSearchParams } from "next/navigation";
 import {
@@ -84,7 +84,7 @@ const emptyStats: ShipmentStats = {
   withComments: 0,
 };
 
-export default function ShipmentsPage() {
+function ShipmentsPageInner() {
   const searchParams = useSearchParams();
  const [shipments, setShipments] = useState<Shipment[]>([]);
 const [totalCount, setTotalCount] = useState(0);
@@ -1384,5 +1384,14 @@ const allVisibleSelected =
         </section>
         
          </div>
+  );
+}
+import { Suspense } from "react";
+
+export default function ShipmentsPage() {
+  return (
+    <Suspense fallback={<div>Загрузка...</div>}>
+      <ShipmentsPageInner />
+    </Suspense>
   );
 }
