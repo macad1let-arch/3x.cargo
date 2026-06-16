@@ -1386,7 +1386,7 @@ const allVisibleSelected =
          </div>
   );
 }
-import { Suspense } from "react";
+
 
 export default function ShipmentsPage() {
   return (
