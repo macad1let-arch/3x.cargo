@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { createBrowserClient } from "@supabase/ssr";
 import { Icon } from "@/lib/dashboard";
@@ -33,8 +33,6 @@ function StatusBadge({ status }: { status: string }) {
     </div>
   );
 }
-
-import { Suspense } from "react";
 
 function OrdersContent() {
   const searchParams = useSearchParams();
