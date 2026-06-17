@@ -21,8 +21,8 @@ async function sendTelegram(chatId: number, text: string) {
 
 async function sendEmail(to: string, title: string, message: string, trackingCode?: string) {
   try {
-    const { error } = await resend.emails.send({
-      from: "3X Cargo <noreply@3xcargo.kg>",
+    const { data, error } = await resend.emails.send({
+      from: "3X Cargo <noreply@send.truvelax.com>",
       to,
       subject: title || "Уведомление от 3X Cargo",
       html: `
@@ -40,8 +40,14 @@ async function sendEmail(to: string, title: string, message: string, trackingCod
         </div>
       `,
     });
-    return !error;
-  } catch {
+    if (error) {
+      console.error("Resend error:", JSON.stringify(error));
+      return false;
+    }
+    console.log("Email sent:", data);
+    return true;
+  } catch (e) {
+    console.error("Email exception:", e);
     return false;
   }
 }
