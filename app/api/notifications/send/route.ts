@@ -34,7 +34,7 @@ async function sendEmail(to: string, title: string, message: string, trackingCod
           <div style="background: #fff; border: 1px solid #e8edf2; border-radius: 16px; padding: 24px;">
             <h2 style="color: #0a1e3d; font-size: 16px; margin: 0 0 12px;">${title || "Уведомление"}</h2>
             <p style="color: #475569; font-size: 14px; line-height: 1.6; margin: 0 0 16px;">${message}</p>
-            ${trackingCode ? `<div style="background: #eff6ff; border-radius: 10px; padding: 12px 16px; font-size: 13px; color: #005eaa; font-weight: 600;">📦 Трек-код: ${trackingCode}</div>` : ""}
+            ${trackingCode ? `<div style="background: #eff6ff; border-radius: 10px; padding: 12px 16px; font-size: 13px; color: #005eaa; font-weight: 600;">Трек-код: ${trackingCode}</div>` : ""}
           </div>
           <p style="color: #94a3b8; font-size: 11px; text-align: center; margin-top: 16px;">3xcargo.kg</p>
         </div>
@@ -42,13 +42,13 @@ async function sendEmail(to: string, title: string, message: string, trackingCod
     });
     if (error) {
       console.error("Resend error:", JSON.stringify(error));
-      return false;
+      return { ok: false, error };
     }
     console.log("Email sent:", data);
-    return true;
+    return { ok: true, data };
   } catch (e) {
     console.error("Email exception:", e);
-    return false;
+    return { ok: false, error: e };
   }
 }
 
@@ -72,25 +72,22 @@ export async function POST(req: NextRequest) {
 
     const selectedChannels = channels || ["telegram", "email"];
     let telegramSent = false;
-    let emailSent = false;
+    let emailResult: { ok: boolean; error?: unknown; data?: unknown } = { ok: false };
 
-    // Telegram
     if (selectedChannels.includes("telegram") && client.telegram_chat_id) {
       const text = [
         `<b>${title || "Уведомление от 3X Cargo"}</b>`,
         "",
         message,
-        tracking_code ? `\n📦 Трек-код: <code>${tracking_code}</code>` : "",
+        tracking_code ? `\nТрек-код: <code>${tracking_code}</code>` : "",
       ].filter(Boolean).join("\n");
       telegramSent = await sendTelegram(client.telegram_chat_id, text);
     }
 
-    // Email
     if (selectedChannels.includes("email") && client.email) {
-      emailSent = await sendEmail(client.email, title, message, tracking_code);
+      emailResult = await sendEmail(client.email, title, message, tracking_code);
     }
 
-    // Сохраняем в базу
     await supabase.from("client_notifications").insert({
       client_code,
       title: title || "Уведомление",
@@ -104,9 +101,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       ok: true,
       telegram_sent: telegramSent,
-      email_sent: emailSent,
+      email_sent: emailResult.ok,
       has_telegram: !!client.telegram_chat_id,
       has_email: !!client.email,
+      email_error: emailResult.error ? JSON.stringify(emailResult.error) : null,
+      debug_email: client.email,
     });
 
   } catch (e) {
