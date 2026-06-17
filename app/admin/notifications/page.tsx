@@ -7,6 +7,7 @@ type Client = {
   full_name: string;
   first_name: string;
   email: string | null;
+  phone: string | null;
   telegram_chat_id: number | null;
 };
 
@@ -29,10 +30,10 @@ export default function AdminNotificationsPage() {
   useEffect(() => {
     async function loadClients() {
       const { data } = await supabase
-        .from("clients")
-        .select("client_code, full_name, first_name, email, telegram_chat_id")
-        .order("created_at", { ascending: false })
-        .limit(200);
+  .from("clients")
+  .select("client_code, full_name, first_name, email, phone, telegram_chat_id")
+  .order("created_at", { ascending: false })
+  .limit(200);
       if (data) setClients(data);
     }
     loadClients();
@@ -73,6 +74,9 @@ export default function AdminNotificationsPage() {
         if (channels.includes("telegram")) {
           parts.push(data.telegram_sent ? "✅ Telegram" : data.has_telegram ? "⚠️ Telegram (ошибка)" : "ℹ️ Telegram (не привязан)");
         }
+        if (channels.includes("whatsapp")) {
+         parts.push(data.whatsapp_sent ? "✅ WhatsApp" : data.has_phone ? "⚠️ WhatsApp (ошибка)" : "ℹ️ WhatsApp (нет номера)");
+         }
         if (channels.includes("email")) {
           parts.push(data.email_sent ? "✅ Email" : data.has_email ? "⚠️ Email (ошибка)" : "ℹ️ Email (нет почты)");
         }
@@ -90,9 +94,10 @@ export default function AdminNotificationsPage() {
   };
 
   const CHANNEL_OPTIONS = [
-    { key: "telegram", label: "Telegram", color: "#0088cc", bg: "#e0f2fe" },
-    { key: "email",    label: "Email",    color: "#8b5cf6", bg: "#f5f3ff" },
-  ];
+  { key: "telegram", label: "Telegram", color: "#0088cc", bg: "#e0f2fe" },
+  { key: "email",    label: "Email",    color: "#8b5cf6", bg: "#f5f3ff" },
+  { key: "whatsapp", label: "WhatsApp", color: "#25d366", bg: "#dcfce7" },
+];
 
   return (
     <div style={{ padding: "24px", maxWidth: 700 }}>
@@ -140,7 +145,12 @@ export default function AdminNotificationsPage() {
               {selectedClient.telegram_chat_id
                 ? <span style={{ fontSize: 11, background: "#e0f2fe", color: "#0088cc", padding: "3px 9px", borderRadius: 6, fontWeight: 600 }}>TG ✓</span>
                 : <span style={{ fontSize: 11, background: "#fff7ed", color: "#f97316", padding: "3px 9px", borderRadius: 6 }}>TG нет</span>
-              }
+                }
+               {selectedClient.phone
+                ? <span style={{ fontSize: 11, background: "#dcfce7", color: "#25d366", padding: "3px 9px", borderRadius: 6, fontWeight: 600 }}>WA ✓</span>
+                : <span style={{ fontSize: 11, background: "#f0f4f8", color: "#94a3b8", padding: "3px 9px", borderRadius: 6 }}>WA нет</span>
+                 }
+
               {selectedClient.email
                 ? <span style={{ fontSize: 11, background: "#f5f3ff", color: "#8b5cf6", padding: "3px 9px", borderRadius: 6, fontWeight: 600 }}>Email ✓</span>
                 : <span style={{ fontSize: 11, background: "#f0f4f8", color: "#94a3b8", padding: "3px 9px", borderRadius: 6 }}>Email нет</span>

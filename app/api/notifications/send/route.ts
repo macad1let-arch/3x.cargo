@@ -9,6 +9,8 @@ const supabase = createClient(
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN!;
 const resend = new Resend(process.env.RESEND_API_KEY!);
+const GREEN_API_ID = process.env.GREEN_API_ID!;
+const GREEN_API_TOKEN = process.env.GREEN_API_TOKEN!;
 
 async function sendTelegram(chatId: number, text: string) {
   const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
@@ -17,6 +19,29 @@ async function sendTelegram(chatId: number, text: string) {
     body: JSON.stringify({ chat_id: chatId, text, parse_mode: "HTML" }),
   });
   return res.ok;
+}
+
+async function sendWhatsApp(phone: string, message: string) {
+  try {
+    // Форматируем номер — убираем +, пробелы, добавляем @c.us
+    const cleaned = phone.replace(/\D/g, "");
+    const chatId = `${cleaned}@c.us`;
+
+    const res = await fetch(
+      `https://7107.api.greenapi.com/waInstance${GREEN_API_ID}/sendMessage/${GREEN_API_TOKEN}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chatId, message }),
+      }
+    );
+    const data = await res.json();
+    console.log("WhatsApp result:", data);
+    return res.ok && !data.error;
+  } catch (e) {
+    console.error("WhatsApp error:", e);
+    return false;
+  }
 }
 
 async function sendEmail(to: string, title: string, message: string, trackingCode?: string) {
@@ -40,15 +65,11 @@ async function sendEmail(to: string, title: string, message: string, trackingCod
         </div>
       `,
     });
-    if (error) {
-      console.error("Resend error:", JSON.stringify(error));
-      return { ok: false, error };
-    }
-    console.log("Email sent:", data);
-    return { ok: true, data };
+    if (error) { console.error("Resend error:", error); return false; }
+    return true;
   } catch (e) {
-    console.error("Email exception:", e);
-    return { ok: false, error: e };
+    console.error("Email error:", e);
+    return false;
   }
 }
 
@@ -62,7 +83,7 @@ export async function POST(req: NextRequest) {
 
     const { data: client, error } = await supabase
       .from("clients")
-      .select("telegram_chat_id, first_name, full_name, email")
+      .select("telegram_chat_id, first_name, full_name, email, phone")
       .eq("client_code", client_code)
       .single();
 
@@ -70,10 +91,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Клиент не найден" }, { status: 404 });
     }
 
-    const selectedChannels = channels || ["telegram", "email"];
+    const selectedChannels = channels || ["telegram", "email", "whatsapp"];
     let telegramSent = false;
-    let emailResult: { ok: boolean; error?: unknown; data?: unknown } = { ok: false };
+    let emailSent = false;
+    let whatsappSent = false;
 
+    // Telegram
     if (selectedChannels.includes("telegram") && client.telegram_chat_id) {
       const text = [
         `<b>${title || "Уведомление от 3X Cargo"}</b>`,
@@ -84,10 +107,23 @@ export async function POST(req: NextRequest) {
       telegramSent = await sendTelegram(client.telegram_chat_id, text);
     }
 
+    // Email
     if (selectedChannels.includes("email") && client.email) {
-      emailResult = await sendEmail(client.email, title, message, tracking_code);
+      emailSent = await sendEmail(client.email, title, message, tracking_code);
     }
 
+    // WhatsApp
+    if (selectedChannels.includes("whatsapp") && client.phone) {
+      const waMessage = [
+        `*${title || "Уведомление от 3X Cargo"}*`,
+        "",
+        message,
+        tracking_code ? `\nТрек-код: ${tracking_code}` : "",
+      ].filter(Boolean).join("\n");
+      whatsappSent = await sendWhatsApp(client.phone, waMessage);
+    }
+
+    // Сохраняем в базу
     await supabase.from("client_notifications").insert({
       client_code,
       title: title || "Уведомление",
@@ -101,11 +137,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       ok: true,
       telegram_sent: telegramSent,
-      email_sent: emailResult.ok,
+      email_sent: emailSent,
+      whatsapp_sent: whatsappSent,
       has_telegram: !!client.telegram_chat_id,
       has_email: !!client.email,
-      email_error: emailResult.error ? JSON.stringify(emailResult.error) : null,
-      debug_email: client.email,
+      has_phone: !!client.phone,
     });
 
   } catch (e) {
