@@ -3,26 +3,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { createBrowserClient } from "@supabase/ssr";
 import { Icon } from "@/lib/dashboard";
-import { getClient, getShipmentCounts, getUnreadCount, Client } from "@/lib/supabase-dashboard";
-
-const LEVELS = [
-  { key: "bronze",   label: "Бронза",   color: "#cd7f32", cashback: 1, min: 0,  max: 9   },
-  { key: "silver",   label: "Серебро",  color: "#7a8fa0", cashback: 3, min: 10, max: 24  },
-  { key: "gold",     label: "Золото",   color: "#c9a227", cashback: 5, min: 25, max: 49  },
-  { key: "platinum", label: "Платинум", color: "#6366f1", cashback: 8, min: 50, max: 999 },
-];
-
-function getLevel(orders: number) {
-  return [...LEVELS].reverse().find(l => orders >= l.min) ?? LEVELS[0];
-}
-
-function getLevelProgress(orders: number) {
-  const lvl = getLevel(orders);
-  const idx = LEVELS.indexOf(lvl);
-  const next = LEVELS[idx + 1];
-  if (!next) return 100;
-  return Math.round(((orders - lvl.min) / (next.min - lvl.min)) * 100);
-}
+import { getClient, getShipmentCounts, getUnreadCount, getLoyaltyLevel, getNextLevel, getLevelProgress, LOYALTY_LEVELS, Client } from "@/lib/supabase-dashboard";
 
 export default function DashboardHome() {
   const supabase = createBrowserClient(
@@ -54,7 +35,7 @@ export default function DashboardHome() {
 
       setCounts(shipmentCounts);
       setUnread(unreadCount);
-      setTotalOrders(shipmentCounts.china + shipmentCounts.transit + shipmentCounts.sorting + shipmentCounts.ready);
+      setTotalOrders(clientData.total_orders ?? 0);
       setLoading(false);
     }
     load();
@@ -65,10 +46,6 @@ export default function DashboardHome() {
     setCopied(true);
     setTimeout(() => setCopied(false), 1600);
   };
-
-  const currentLevel = getLevel(totalOrders);
-  const nextLevel = LEVELS[LEVELS.indexOf(currentLevel) + 1];
-  const levelProgress = getLevelProgress(totalOrders);
 
   const ORDER_TILES = [
     { key: "china",   label: "На складе в Китае", iconName: "warehouse",    color: "#f97316", bg: "#fff7ed", count: counts.china   },
@@ -152,35 +129,39 @@ export default function DashboardHome() {
         </Link>
       </div>
 
-      {/* LEVEL */}
-      <Link href="/dashboard/profile" style={{ display: "block", background: "#fff", margin: "10px 14px 0", borderRadius: 16, border: "0.5px solid #e8edf2", padding: "16px 18px", textDecoration: "none" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 12 }}>
-          {LEVELS.map((l, i) => (
-            <div key={l.key} style={{ display: "flex", alignItems: "center", flex: i < LEVELS.length - 1 ? "1 1 0" : "0 0 auto" }}>
-              <div style={{ width: l.key === currentLevel.key ? 13 : 10, height: l.key === currentLevel.key ? 13 : 10, borderRadius: "50%", background: LEVELS.indexOf(l) > LEVELS.indexOf(currentLevel) ? "#e2e8f0" : l.color, flexShrink: 0 }} />
-              {i < LEVELS.length - 1 && (
-                <div style={{ flex: 1, height: 1.5, background: LEVELS.indexOf(l) < LEVELS.indexOf(currentLevel) ? "#c9a227" : "#e2e8f0", margin: "0 4px" }} />
-              )}
-            </div>
-          ))}
+      <Link href="/dashboard/bonuses" style={{ display: "block", background: "#fff", margin: "10px 14px 0", borderRadius: 16, border: "0.5px solid #e8edf2", padding: "16px 18px", textDecoration: "none" }}>
+  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 12 }}>
+    {LOYALTY_LEVELS.map((l, i) => {
+      const current = getLoyaltyLevel(totalOrders);
+      const currentIdx = LOYALTY_LEVELS.findIndex(x => x.key === current.key);
+      const thisIdx = LOYALTY_LEVELS.findIndex(x => x.key === l.key);
+      return (
+        <div key={l.key} style={{ display: "flex", alignItems: "center", flex: i < LOYALTY_LEVELS.length - 1 ? "1 1 0" : "0 0 auto" }}>
+          <div style={{ width: l.key === current.key ? 13 : 10, height: l.key === current.key ? 13 : 10, borderRadius: "50%", background: thisIdx > currentIdx ? "#e2e8f0" : l.color, flexShrink: 0 }} />
+          {i < LOYALTY_LEVELS.length - 1 && (
+            <div style={{ flex: 1, height: 1.5, background: thisIdx < currentIdx ? l.color : "#e2e8f0", margin: "0 4px" }} />
+          )}
         </div>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 8 }}>
-          <div>
-            <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 2 }}>Ваш уровень</div>
-            <div style={{ fontSize: 18, fontWeight: 800, color: "#0a1e3d" }}>{currentLevel.label}</div>
-          </div>
-          <div style={{ textAlign: "right" }}>
-            <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 2 }}>До {nextLevel?.label ?? "Максимум"}</div>
-            <div style={{ fontSize: 18, fontWeight: 800, color: "#005eaa" }}>{levelProgress}%</div>
-          </div>
-        </div>
-        <div style={{ height: 6, background: "#f0f2f5", borderRadius: 6, overflow: "hidden", marginBottom: 6 }}>
-          <div style={{ width: `${levelProgress}%`, height: "100%", background: "#005eaa", borderRadius: 6 }} />
-        </div>
-        <div style={{ fontSize: 11, color: "#94a3b8" }}>
-          {currentLevel.cashback}% кэшбэк · {nextLevel ? `ещё ${nextLevel.min - totalOrders} заказов до ${nextLevel.label}` : "Максимальный уровень"}
-        </div>
-      </Link>
+      );
+    })}
+  </div>
+  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 8 }}>
+    <div>
+      <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 2 }}>Ваш уровень</div>
+      <div style={{ fontSize: 18, fontWeight: 800, color: "#0a1e3d" }}>{getLoyaltyLevel(totalOrders).label}</div>
+    </div>
+    <div style={{ textAlign: "right" }}>
+      <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 2 }}>До {getNextLevel(getLoyaltyLevel(totalOrders).key)?.label ?? "Максимум"}</div>
+      <div style={{ fontSize: 18, fontWeight: 800, color: "#005eaa" }}>{getLevelProgress(totalOrders, getLoyaltyLevel(totalOrders).key)}%</div>
+    </div>
+  </div>
+  <div style={{ height: 6, background: "#f0f2f5", borderRadius: 6, overflow: "hidden", marginBottom: 6 }}>
+    <div style={{ width: `${getLevelProgress(totalOrders, getLoyaltyLevel(totalOrders).key)}%`, height: "100%", background: getLoyaltyLevel(totalOrders).color, borderRadius: 6 }} />
+  </div>
+  <div style={{ fontSize: 11, color: "#94a3b8" }}>
+    {getLoyaltyLevel(totalOrders).cashback}% кэшбэк · {getNextLevel(getLoyaltyLevel(totalOrders).key) ? `ещё ${(getNextLevel(getLoyaltyLevel(totalOrders).key)?.minOrders ?? 0) - totalOrders} заказов до ${getNextLevel(getLoyaltyLevel(totalOrders).key)?.label}` : "Максимальный уровень"}
+  </div>
+</Link>
 
       {/* QUICK ACTIONS */}
       <div style={{ padding: "16px 14px 0" }}>
