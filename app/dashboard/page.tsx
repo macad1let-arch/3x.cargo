@@ -1,929 +1,282 @@
 "use client";
-export const dynamic = 'force-dynamic';
-
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { createBrowserClient } from "@supabase/ssr";
+import { Icon } from "@/lib/dashboard";
+import { getClient, getShipmentCounts, getUnreadCount, Client } from "@/lib/supabase-dashboard";
 
-
-type Branch = {
-  id: number;
-  code: string;
-  name: string;
-  address: string;
-  phone: string;
-  working_hours: string;
-};
-
-type Client = {
-  client_code: string;
-  first_name: string;
-  last_name: string;
-  phone: string;
-  email: string;
-  city: string;
-  street: string;
-  house: string;
-  pickup_point: string;
-};
-
-type Shipment = {
-  id: number;
-  client_code: string;
-  tracking_code: string;
-  status: string | null;
-  location: string | null;
-  weight: number | null;
-  created_at: string;
-};
-
-type TrackingEvent = {
-  id: number;
-  shipment_id: number;
-  tracking_code: string;
-  client_code: string;
-  batch_code: string | null;
-  status: string | null;
-  location: string | null;
-  note: string | null;
-  created_at: string;
-};
-
-const statusMap: Record<string, string> = {
-  china_warehouse: "🟡 На складе в Китае",
-  in_transit: "🔵 В пути",
-  bishkek_arrived: "🟢 В Бишкеке",
-  sorting: "🟣 На сортировке",
-  ready_pickup: "📦 Готов к выдаче",
-  completed: "✅ Выдано",
-  problem: "🔴 Проблема",
-};
-
-const activeStatuses = [
-  "china_warehouse",
-  "in_transit",
-  "bishkek_arrived",
-  "sorting",
-  "ready_pickup",
-  "problem",
+const LEVELS = [
+  { key: "bronze",   label: "Бронза",   color: "#cd7f32", cashback: 1, min: 0,  max: 9   },
+  { key: "silver",   label: "Серебро",  color: "#7a8fa0", cashback: 3, min: 10, max: 24  },
+  { key: "gold",     label: "Золото",   color: "#c9a227", cashback: 5, min: 25, max: 49  },
+  { key: "platinum", label: "Платинум", color: "#6366f1", cashback: 8, min: 50, max: 999 },
 ];
 
-export default function DashboardPage() {
-  const router = useRouter();
-
-  const [client, setClient] = useState<Client | null>(null);
-  const [shipments, setShipments] = useState<Shipment[]>([]);
-  const [trackingEvents, setTrackingEvents] = useState<TrackingEvent[]>([]);
-  const [openHistory, setOpenHistory] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [copied, setCopied] = useState("");
-  const [branches, setBranches] = useState<Branch[]>([]);
-  const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
-
-  useEffect(() => {
-    const loadDashboard = async () => {
-      const { data: authData } = await supabase.auth.getUser();
-
-      if (!authData.user) {
-        router.push("/login");
-        return;
-      }
-
-      const { data: clientData, error: clientError } = await supabase
-        .from("clients")
-        .select("*")
-        .eq("user_id", authData.user.id)
-        .single();
-
-     if (clientError || !clientData) {
-        router.push("/login");
-        return;
-      }
-
-      setClient(clientData);
-      const { data: branchesData } = await supabase
-        .from("branches")
-        .select("*")
-        .eq("country", "KG")
-        .eq("is_active", true)
-        .order("name");
-
-      setBranches(branchesData || []);
-
-      if (clientData.branch_id) {
-        const { data: currentBranch } = await supabase
-          .from("branches")
-          .select("*")
-          .eq("id", clientData.branch_id)
-          .single();
-        setSelectedBranch(currentBranch);
-      }
-
-      
-   const { data: shipmentData, error: shipmentError } = await supabase
-  .from("shipments")
-  .select("*")
-  .eq("user_id", authData.user.id)
-  .order("created_at", { ascending: false });
-
-      if (shipmentError) {
-        console.error(shipmentError);
-      }
-
-      setShipments(shipmentData || []);
-
-const { data: eventsData, error: eventsError } = await supabase
-  .from("tracking_events")
-  .select("*")
-  .eq("client_code", clientData.client_code)
-  .order("created_at", { ascending: false });
-
-if (eventsError) {
-  console.error(eventsError);
+function getLevel(orders: number) {
+  return [...LEVELS].reverse().find(l => orders >= l.min) ?? LEVELS[0];
 }
 
-setTrackingEvents(eventsData || []);
+function getLevelProgress(orders: number) {
+  const lvl = getLevel(orders);
+  const idx = LEVELS.indexOf(lvl);
+  const next = LEVELS[idx + 1];
+  if (!next) return 100;
+  return Math.round(((orders - lvl.min) / (next.min - lvl.min)) * 100);
+}
 
-setLoading(false);
-    };
-
-    loadDashboard();
-  }, [router]);
-
-  const activeShipments = useMemo(() => {
-  return shipments.filter((item) =>
-    activeStatuses.includes(item.status || "")
+export default function DashboardHome() {
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
-}, [shipments]);
 
-const historyShipments = useMemo(() => {
-  return shipments.filter((item) => item.status === "completed");
-}, [shipments]);
+  const [client, setClient] = useState<Client | null>(null);
+  const [counts, setCounts] = useState({ china: 0, transit: 0, sorting: 0, ready: 0 });
+  const [unread, setUnread] = useState(0);
+  const [totalOrders, setTotalOrders] = useState(0);
+  const [copied, setCopied] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-const getEventsByTrackingCode = (trackingCode: string) => {
-  return trackingEvents.filter(
-    (event) => event.tracking_code === trackingCode
-  );
-};
-  const copyText = async (label: string, text: string) => {
-    await navigator.clipboard.writeText(text);
-    setCopied(label);
-    setTimeout(() => setCopied(""), 1500);
-  };
+  useEffect(() => {
+    async function load() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { setLoading(false); return; }
 
-const changeBranch = async (branchId: number) => {
-    const { data: authData } = await supabase.auth.getUser();
-    if (!authData.user) return;
+      const clientData = await getClient(user.id);
+      if (!clientData) { setLoading(false); return; }
 
-    const { error } = await supabase
-      .from("clients")
-      .update({ branch_id: branchId })
-      .eq("user_id", authData.user.id);
+      setClient(clientData);
 
-    if (!error) {
-      const branch = branches.find((b) => b.id === branchId);
-      setSelectedBranch(branch || null);
+      const [shipmentCounts, unreadCount] = await Promise.all([
+        getShipmentCounts(clientData.client_code),
+        getUnreadCount(clientData.client_code),
+      ]);
+
+      setCounts(shipmentCounts);
+      setUnread(unreadCount);
+      setTotalOrders(shipmentCounts.china + shipmentCounts.transit + shipmentCounts.sorting + shipmentCounts.ready);
+      setLoading(false);
     }
+    load();
+  }, []);
+
+  const copy = (text: string) => {
+    navigator.clipboard?.writeText(text).catch(() => {});
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1600);
   };
 
-  const logout = async () => {
-    await supabase.auth.signOut();
-    router.push("/login");
-  };
+  const currentLevel = getLevel(totalOrders);
+  const nextLevel = LEVELS[LEVELS.indexOf(currentLevel) + 1];
+  const levelProgress = getLevelProgress(totalOrders);
+
+  const ORDER_TILES = [
+    { key: "china",   label: "На складе в Китае", iconName: "warehouse",    color: "#f97316", bg: "#fff7ed", count: counts.china   },
+    { key: "transit", label: "В пути",            iconName: "ship",         color: "#3b82f6", bg: "#eff6ff", count: counts.transit },
+    { key: "sorting", label: "На сортировке",     iconName: "sort",         color: "#8b5cf6", bg: "#f5f3ff", count: counts.sorting },
+    { key: "ready",   label: "Готовы к выдаче",   iconName: "check_circle", color: "#10b981", bg: "#ecfdf5", count: counts.ready   },
+  ];
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-[#f3f1ed] px-6 py-16">
-        Загрузка...
-      </main>
+      <div suppressHydrationWarning style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", background: "#f0f2f5" }}>
+        <div style={{ textAlign: "center" }}>
+          <div style={{ width: 36, height: 36, border: "3px solid #e8edf2", borderTopColor: "#005eaa", borderRadius: "50%", animation: "spin 0.8s linear infinite", margin: "0 auto 10px" }} />
+          <div style={{ fontSize: 13, color: "#94a3b8" }}>Загрузка...</div>
+        </div>
+        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+      </div>
     );
   }
-
-  if (!client) {
-    return (
-      <main className="min-h-screen bg-[#f3f1ed] px-6 py-16">
-        Профиль не найден.
-      </main>
-    );
-  }
-
-  const warehouseAddress =
-    "China, Guangzhou, Warehouse 3X Cargo, Logvinenko Client Line";
-
-  const receiver = `${client.client_code} ${client.first_name} ${client.last_name}`;
-  const fullAddress = `${warehouseAddress}. Client code: ${client.client_code}`;
-  const allMarketData = `Получатель: ${receiver}
-Телефон: ${client.phone}
-Адрес: ${fullAddress}
-Комментарий: Client code: ${client.client_code}`;
 
   return (
-    <main className="min-h-screen bg-[#f3f1ed] px-6 py-10 text-slate-900">
-      <div className="mx-auto max-w-6xl">
-        <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-3xl font-bold">Личный кабинет</h1>
+    <div suppressHydrationWarning style={{ background: "#f0f2f5", minHeight: "100vh" }}>
 
-          <button
-            onClick={logout}
-            className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white"
-          >
-            Выйти
+      {/* TOPBAR */}
+      <div style={{ background: "#fff", padding: "12px 20px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <Link href="/dashboard/profile" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
+          <div style={{ width: 38, height: 38, borderRadius: "50%", background: "#e8edf2", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <Icon name="user" size={20} color="#64748b" />
+          </div>
+          <div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: "#0a1e3d", lineHeight: 1.2 }}>
+              {client?.first_name || client?.full_name || "Клиент"}
+            </div>
+            <div style={{ fontSize: 11, color: "#005eaa", fontWeight: 500 }}>{client?.client_code}</div>
+          </div>
+          <Icon name="chevron_right" size={16} color="#cbd5e1" />
+        </Link>
+        <div style={{ display: "flex", gap: 8 }}>
+          <Link href="/dashboard/notifications" style={{ textDecoration: "none" }}>
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: "#f4f6f9", display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
+              <Icon name="bell" size={20} color="#0a1e3d" />
+              {unread > 0 && (
+                <div style={{ position: "absolute", top: 4, right: 4, minWidth: 18, height: 18, background: "#f97316", borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 5px", border: "2px solid #fff" }}>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: "#fff", lineHeight: 1 }}>{unread}</span>
+                </div>
+              )}
+            </div>
+          </Link>
+          <Link href="/dashboard/assistant" style={{ textDecoration: "none" }}>
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: "#f4f6f9", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Icon name="headphones" size={20} color="#0a1e3d" />
+            </div>
+          </Link>
+        </div>
+      </div>
+
+      {/* BALANCE */}
+      <div style={{ background: "#0a1e3d", margin: "14px 14px 0", borderRadius: 20, padding: "20px 22px", display: "flex" }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", fontWeight: 500, marginBottom: 6 }}>Баланс</div>
+          <div style={{ fontSize: 28, fontWeight: 800, color: "#fff", letterSpacing: -0.5, lineHeight: 1 }}>
+            ₸ {(client?.balance ?? 0).toLocaleString()}
+          </div>
+          <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginTop: 5 }}>Основной счёт</div>
+          <button style={{ marginTop: 10, fontSize: 11, color: "#4a9fd4", background: "rgba(0,94,170,0.2)", border: "none", borderRadius: 6, padding: "4px 10px", cursor: "pointer", fontWeight: 600 }}>
+            Пополнить
           </button>
         </div>
+        <div style={{ width: "0.5px", background: "rgba(255,255,255,0.1)", margin: "0 20px" }} />
+        <Link href="/dashboard/bonuses" style={{ flex: 1, textDecoration: "none" }}>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", fontWeight: 500, marginBottom: 6 }}>Бонусы</div>
+          <div style={{ fontSize: 28, fontWeight: 800, color: "#fff", letterSpacing: -0.5, lineHeight: 1 }}>
+            {(client?.bonus_balance ?? 0).toLocaleString()}
+          </div>
+          <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginTop: 5 }}>
+            ≈ {Math.round((client?.bonus_balance ?? 0) * 0.1).toLocaleString()} сом
+          </div>
+          <div style={{ marginTop: 10, fontSize: 10, color: "rgba(255,255,255,0.3)", display: "flex", alignItems: "center", gap: 3 }}>
+            История <Icon name="chevron_right" size={11} color="rgba(255,255,255,0.3)" />
+          </div>
+        </Link>
+      </div>
 
-        <section className="grid gap-3 md:grid-cols-5">
-          <Link href="/tracking" className="rounded-2xl bg-white p-5 shadow-sm">
-            Отследить
-          </Link>
-          <Link href="/calculator" className="rounded-2xl bg-white p-5 shadow-sm">
-            Калькулятор
-          </Link>
-          <a href="#active" className="rounded-2xl bg-white p-5 shadow-sm">
-            Мои посылки
-          </a>
-          <a href="#history" className="rounded-2xl bg-white p-5 shadow-sm">
-            История
-          </a>
-          <a href="#profile" className="rounded-2xl bg-white p-5 shadow-sm">
-            Профиль
-          </a>
-        </section>
-
-        <section className="mt-6 rounded-3xl bg-white p-8 text-center shadow-sm">
-          <p className="text-sm text-slate-500">Ваш личный код</p>
-          <h2 className="mt-3 text-5xl font-bold tracking-tight">
-            {client.client_code}
-          </h2>
-
-          <p className="mt-4 text-slate-600">
-            Используйте этот код при отправке товаров на склад в Китае.
-          </p>
-
-          <button
-            onClick={() => copyText("Код скопирован", client.client_code)}
-            className="mt-5 rounded-2xl bg-blue-600 px-6 py-3 font-semibold text-white"
-          >
-            Скопировать код
-          </button>
-
-          {copied && <p className="mt-3 text-sm text-green-600">{copied}</p>}
-        </section>
-
-        <section id="active" className="mt-6 rounded-3xl bg-white p-6 shadow-sm">
-          <h2 className="text-xl font-bold">Мои посылки</h2>
-
-          {activeShipments.length === 0 ? (
-            <p className="mt-3 text-slate-500">
-              Активных посылок пока нет.
-            </p>
-          ) : (
-            <div className="mt-5 grid gap-4">
-              {activeShipments.map((item) => (
-                <div key={item.id} className="rounded-2xl border p-5">
-                  <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-                    <div>
-                      <p className="text-sm text-slate-500">Трек-код</p>
-                      <h3 className="text-lg font-bold">{item.tracking_code}</h3>
-                    </div>
-
-                    <div className="rounded-full bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700">
-                      {item.status ? statusMap[item.status] || item.status : "Статус не указан"}
-                    </div>
-                  </div>
-
-                  <div className="mt-4 grid gap-2 text-sm text-slate-600 md:grid-cols-3">
-                    <p>Локация: {item.location || "-"}</p>
-                    <p>Вес: {item.weight ? `${item.weight} кг` : "-"}</p>
-                    <p>Код клиента: {item.client_code}</p>
-                  </div>
-                  <div className="mt-4 rounded-2xl border bg-slate-50">
-  <button
-    type="button"
-    onClick={() =>
-      setOpenHistory(
-        openHistory === item.tracking_code ? null : item.tracking_code
-      )
-    }
-    className="flex w-full items-center justify-between px-4 py-3 text-left"
-  >
-    <span className="text-sm font-semibold text-slate-700">
-      История статуса
-    </span>
-
-    <span className="text-lg text-slate-500">
-      {openHistory === item.tracking_code ? "↑" : "↓"}
-    </span>
-  </button>
-
-  {openHistory === item.tracking_code && (
-    <div className="border-t px-4 py-4">
-      {getEventsByTrackingCode(item.tracking_code).length === 0 ? (
-        <p className="text-sm text-slate-500">
-          История появится после обновления статуса.
-        </p>
-      ) : (
-        <div className="space-y-3">
-          {getEventsByTrackingCode(item.tracking_code).map((event) => (
-            <div
-              key={event.id}
-              className="flex flex-col gap-1 border-b pb-3 last:border-b-0 last:pb-0"
-            >
-              <p className="text-sm font-semibold text-slate-900">
-                {event.status ? statusMap[event.status] || event.status : "-"}
-              </p>
-
-              <p className="text-xs text-slate-500">
-                {event.created_at
-                  ? new Date(event.created_at).toLocaleString("ru-RU", {
-                      day: "2-digit",
-                      month: "2-digit",
-                      year: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })
-                  : "-"}
-              </p>
-
-              {event.location && (
-                <p className="text-xs text-slate-500">
-                  Локация: {event.location}
-                </p>
+      {/* LEVEL */}
+      <Link href="/dashboard/profile" style={{ display: "block", background: "#fff", margin: "10px 14px 0", borderRadius: 16, border: "0.5px solid #e8edf2", padding: "16px 18px", textDecoration: "none" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 12 }}>
+          {LEVELS.map((l, i) => (
+            <div key={l.key} style={{ display: "flex", alignItems: "center", flex: i < LEVELS.length - 1 ? "1 1 0" : "0 0 auto" }}>
+              <div style={{ width: l.key === currentLevel.key ? 13 : 10, height: l.key === currentLevel.key ? 13 : 10, borderRadius: "50%", background: LEVELS.indexOf(l) > LEVELS.indexOf(currentLevel) ? "#e2e8f0" : l.color, flexShrink: 0 }} />
+              {i < LEVELS.length - 1 && (
+                <div style={{ flex: 1, height: 1.5, background: LEVELS.indexOf(l) < LEVELS.indexOf(currentLevel) ? "#c9a227" : "#e2e8f0", margin: "0 4px" }} />
               )}
             </div>
           ))}
         </div>
-      )}
-    </div>
-  )}
-</div>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-
-        <section id="profile" className="mt-6 grid gap-4 md:grid-cols-2">
-          <div className="rounded-3xl bg-white p-6 shadow-sm">
-            <h2 className="text-xl font-bold">Профиль</h2>
-            <div className="mt-4 space-y-2 text-slate-700">
-              <p>Имя: {client.first_name}</p>
-              <p>Фамилия: {client.last_name}</p>
-              <p>Телефон: {client.phone}</p>
-              <p>Email: {client.email}</p>
-            </div>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 8 }}>
+          <div>
+            <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 2 }}>Ваш уровень</div>
+            <div style={{ fontSize: 18, fontWeight: 800, color: "#0a1e3d" }}>{currentLevel.label}</div>
           </div>
-
-          <div className="rounded-3xl bg-white p-6 shadow-sm">
-            <h2 className="text-xl font-bold">Адрес и пункт выдачи</h2>
-            <div className="mt-4 space-y-2 text-slate-700">
-              <p>Город: {client.city}</p>
-              <p>
-                Адрес: {client.street}, {client.house}
-              </p>
-              <p>Пункт выдачи: {client.pickup_point}</p>
-            </div>
+          <div style={{ textAlign: "right" }}>
+            <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 2 }}>До {nextLevel?.label ?? "Максимум"}</div>
+            <div style={{ fontSize: 18, fontWeight: 800, color: "#005eaa" }}>{levelProgress}%</div>
           </div>
-        </section>
+        </div>
+        <div style={{ height: 6, background: "#f0f2f5", borderRadius: 6, overflow: "hidden", marginBottom: 6 }}>
+          <div style={{ width: `${levelProgress}%`, height: "100%", background: "#005eaa", borderRadius: 6 }} />
+        </div>
+        <div style={{ fontSize: 11, color: "#94a3b8" }}>
+          {currentLevel.cashback}% кэшбэк · {nextLevel ? `ещё ${nextLevel.min - totalOrders} заказов до ${nextLevel.label}` : "Максимальный уровень"}
+        </div>
+      </Link>
 
-        <section className="mt-6 rounded-3xl bg-white p-6 shadow-sm">
-          <h2 className="text-xl font-bold">Полезная информация</h2>
-
-          <div className="mt-4 space-y-3">
-            {[
-              ["Обучение", "Поможем разобраться, как покупать и продавать товары из Китая."],
-              ["Покупка юаней", "Можно обменять юани для оплаты поставщиков."],
-              ["Запрещённые товары", "Перед отправкой уточняйте ограничения у менеджера."],
-              ["Обрешётка", "Для хрупких и ценных грузов можно заказать защитную обрешётку."],
-            ].map(([title, text]) => (
-              <details key={title} className="rounded-2xl border p-4">
-                <summary className="cursor-pointer font-semibold">{title}</summary>
-                <p className="mt-3 text-sm text-slate-600">{text}</p>
-              </details>
-            ))}
-          </div>
-        </section>
-
-        <section className="mt-6 rounded-3xl bg-white p-6 shadow-sm">
-          <h2 className="text-xl font-bold">Китай → Бишкек / Авто</h2>
-
-          <div className="mt-4 grid gap-3 text-slate-700 md:grid-cols-2">
-            <p>Срок доставки: 7–12 дней</p>
-            <p>Актуальный тариф: $2.8/кг</p>
-            <p>Адрес склада: {warehouseAddress}</p>
-            <p>Отправки: каждый день</p>
-            <p>Выходные: только Китайский Новый год</p>
-            <p>Заказов доставлено: 500 000+</p>
-          </div>
-        </section>
-
-        <section className="mt-6 rounded-3xl bg-white p-6 shadow-sm">
-  <h2 className="text-xl font-bold">Pinduoduo — как заполнить адрес</h2>
-
-  <p className="mt-2 text-sm text-slate-500">
-    Данные подставлены автоматически. Нажмите “Скопировать” и вставьте в нужное поле.
-  </p>
-
-  {copied && (
-    <p className="mt-3 rounded-xl bg-green-50 px-4 py-2 text-center text-sm font-medium text-green-700">
-      {copied}
-    </p>
-  )}
-
-  <div className="mt-5 flex justify-center">
-    <div className="relative w-full max-w-[430px] rounded-3xl bg-white shadow-sm">
-      <img
-        src="https://grrwtedzdbxtkaodfvvd.supabase.co/storage/v1/object/public/site-images/pdd.png%20(1).png"
-        alt="Pinduoduo address form"
-        className="w-full rounded-3xl"
-      />
-
-      <div className="absolute left-[96px] top-[60px] right-[24px] flex items-center justify-between gap-2">
-        <span className="max-w-[230px] bg-white text-[15px] font-medium text-slate-900">
-          {receiver}
-        </span>
-        <button
-          onClick={() => copyText("Получатель скопирован", receiver)}
-          className="rounded-lg bg-blue-600 px-2 py-1 text-[11px] font-semibold text-white"
-        >
-          Скопировать
-        </button>
-      </div>
-
-      <div className="absolute left-[96px] top-[116px] right-[24px] flex items-center justify-between gap-2">
-        <span className="bg-white text-[15px] font-medium text-slate-900">
-          +8615739538448
-        </span>
-        <button
-          onClick={() => copyText("Телефон скопирован", "+8615739538448")}
-          className="rounded-lg bg-blue-600 px-2 py-1 text-[11px] font-semibold text-white"
-        >
-          Скопировать
-        </button>
-      </div>
-
-      <div className="absolute left-[96px] top-[173px] right-[24px] flex items-center justify-between gap-2">
-  <span className="max-w-[210px] bg-white px-1 text-[14px] font-medium text-slate-900">
-    广东省 广州市 荔湾区
-  </span>
-
-  <span className="shrink-0 rounded-lg bg-orange-100 px-2 py-1 text-[11px] font-semibold text-orange-700">
-    Выберите вручную
-  </span>
-</div>
-
-      <div className="absolute left-[96px] top-[222px] right-[24px] flex items-start justify-between gap-2">
-        <span className="max-w-[225px] bg-white text-[13px] font-medium leading-snug text-slate-900">
-          环市西路宇宙鞋城D543A档口 {client.client_code}
-        </span>
-        <button
-          onClick={() =>
-            copyText(
-              "Адрес скопирован",
-              `环市西路宇宙鞋城D543A档口 ${client.client_code}`
-            )
-          }
-          className="shrink-0 rounded-lg bg-blue-600 px-2 py-1 text-[11px] font-semibold text-white"
-        >
-          Скопировать
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <div className="mt-4 flex justify-center">
-    <button
-      onClick={() =>
-        copyText(
-          "Все данные скопированы",
-          `收货人: ${receiver}
-手机号: +8615739538448
-地区: 广东省 广州市 荔湾区 站前街道
-详细地址: 环市西路宇宙鞋城D543A档口 ${client.client_code}`
-        )
-      }
-      className="w-full max-w-[430px] rounded-2xl bg-red-600 px-6 py-4 text-center font-semibold text-white"
-    >
-      Скопировать всё
-    </button>
-  </div>
-</section>
-<section className="mt-6 rounded-3xl bg-white p-6 shadow-sm">
-  <h2 className="text-xl font-bold">Taobao — как заполнить адрес</h2>
-
-  <p className="mt-2 text-sm text-slate-500">
-    В поле региона выберите адрес вручную, остальные данные можно скопировать.
-  </p>
-
-  {copied && (
-    <p className="mt-3 rounded-xl bg-green-50 px-4 py-2 text-center text-sm font-medium text-green-700">
-      {copied}
-    </p>
-  )}
-
-  <div className="mt-5 flex justify-center">
-    <div className="relative w-full max-w-[430px] rounded-3xl bg-white shadow-sm">
-      <img
-        src="https://grrwtedzdbxtkaodfvvd.supabase.co/storage/v1/object/public/site-images/taobao.png"
-        alt="Taobao address form"
-        className="w-full rounded-3xl"
-      />
-
-      <div className="absolute right-[255px] top-[44px]">
-  <span className="rounded-lg bg-orange-100 px-2 py-1 text-[11px] font-semibold text-orange-700">
-    Выберите вручную
-  </span>
-</div>
-
-      <div className="absolute left-[28px] top-[135px] right-[24px] flex items-center justify-between gap-2">
-        <span className="max-w-[250px] bg-white text-[14px] font-medium text-slate-900">
-          环市西路宇宙鞋城D543A档口 {client.client_code}
-        </span>
-        <button
-          onClick={() =>
-            copyText(
-              "Адрес скопирован",
-              `环市西路宇宙鞋城D543A档口 ${client.client_code}`
-            )
-          }
-          className="shrink-0 rounded-lg bg-blue-600 px-2 py-1 text-[11px] font-semibold text-white"
-        >
-          Скопировать
-        </button>
-      </div>
-
-      <div className="absolute left-[28px] top-[210px] right-[24px] flex items-center justify-between gap-2">
-        <span className="max-w-[250px] bg-white text-[15px] font-medium text-slate-900">
-          {receiver}
-        </span>
-        <button
-          onClick={() => copyText("Получатель скопирован", receiver)}
-          className="shrink-0 rounded-lg bg-blue-600 px-2 py-1 text-[11px] font-semibold text-white"
-        >
-          Скопировать
-        </button>
-      </div>
-
-      <div className="absolute left-[72px] top-[260px] right-[24px] flex items-center justify-between gap-2">
-        <span className="bg-white text-[15px] font-medium text-slate-900">
-          15739538448
-        </span>
-        <button
-          onClick={() => copyText("Телефон скопирован", "15739538448")}
-          className="shrink-0 rounded-lg bg-blue-600 px-2 py-1 text-[11px] font-semibold text-white"
-        >
-          Скопировать
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <div className="mt-4 flex justify-center">
-    <button
-      onClick={() =>
-        copyText(
-          "Все данные Taobao скопированы",
-          `地区: 广东省 广州市 荔湾区 站前街道
-详细地址: 环市西路宇宙鞋城D543A档口 ${client.client_code}
-收货人: ${receiver}
-手机号: 15739538448`
-        )
-      }
-      className="w-full max-w-[430px] rounded-2xl bg-orange-600 px-6 py-4 text-center font-semibold text-white"
-    >
-      Скопировать всё
-    </button>
-  </div>
-</section>
-<section className="mt-6 rounded-3xl bg-white p-6 shadow-sm">
-  <h2 className="text-xl font-bold">1688 — как заполнить адрес</h2>
-
-  <p className="mt-2 text-sm text-slate-500">
-    Регион выберите вручную, остальные данные можно скопировать и вставить в поля.
-  </p>
-
-  {copied && (
-    <p className="mt-3 rounded-xl bg-green-50 px-4 py-2 text-center text-sm font-medium text-green-700">
-      {copied}
-    </p>
-  )}
-
-  <div className="mt-5 flex justify-center">
-    <div className="relative w-full max-w-[430px] rounded-3xl bg-white shadow-sm">
-      <img
-        src="https://grrwtedzdbxtkaodfvvd.supabase.co/storage/v1/object/public/site-images/1688.png"
-        alt="1688 address form"
-        className="w-full rounded-3xl"
-      />
-
-      <div className="absolute right-[28px] top-[300px]">
-        <span className="rounded-lg bg-orange-100 px-2 py-1 text-[11px] font-semibold text-orange-700">
-          Выберите вручную
-        </span>
-      </div>
-
-      <div className="absolute left-[185px] top-[372px] right-[28px] flex items-center justify-between gap-2">
-        <span className="max-w-[190px] bg-white/95 px-1 text-[13px] font-medium leading-snug text-slate-900">
-          环市西路宇宙鞋城D543A档口 {client.client_code}
-        </span>
-        <button
-          onClick={() =>
-            copyText(
-              "Адрес скопирован",
-              `环市西路宇宙鞋城D543A档口 ${client.client_code}`
-            )
-          }
-          className="shrink-0 rounded-lg bg-blue-600 px-2 py-1 text-[10px] font-semibold text-white"
-        >
-          Скопировать
-        </button>
-      </div>
-
-      <div className="absolute left-[185px] top-[465px] right-[28px] flex items-center justify-between gap-2">
-        <span className="max-w-[190px] bg-white/95 px-1 text-[14px] font-medium text-slate-900">
-          {receiver}
-        </span>
-        <button
-          onClick={() => copyText("Получатель скопирован", receiver)}
-          className="shrink-0 rounded-lg bg-blue-600 px-2 py-1 text-[10px] font-semibold text-white"
-        >
-          Скопировать
-        </button>
-      </div>
-
-      <div className="absolute left-[228px] top-[533px] right-[8px] flex items-center justify-between gap-2">
-  <span className="bg-white/95 px-1 text-[14px] font-medium text-slate-900">
-    15739538448
-  </span>
-
-  <button
-    onClick={() => copyText("Телефон скопирован", "15739538448")}
-    className="shrink-0 rounded-lg bg-blue-600 px-2 py-1 text-[9px] font-semibold text-white"
-  >
-    Скопировать
-  </button>
-</div>
-
-      <div className="absolute left-[185px] top-[591px] right-[28px] flex items-center justify-between gap-2">
-        <span className="bg-white/95 px-1 text-[14px] font-medium text-slate-900">
-          510145
-        </span>
-        <button
-          onClick={() => copyText("Индекс скопирован", "510145")}
-          className="shrink-0 rounded-lg bg-blue-600 px-2 py-1 text-[10px] font-semibold text-white"
-        >
-          Скопировать
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <div className="mt-4 flex justify-center">
-    <button
-      onClick={() =>
-        copyText(
-          "Все данные 1688 скопированы",
-          `地区: 广东省 广州市 荔湾区 站前街道
-地址: 环市西路宇宙鞋城D543A档口 ${client.client_code}
-姓名: ${receiver}
-手机号: 15739538448
-邮政编码: 510145`
-        )
-      }
-      className="w-full max-w-[430px] rounded-2xl bg-orange-600 px-6 py-4 text-center font-semibold text-white"
-    >
-      Скопировать всё
-    </button>
-  </div>
-</section>
-<section className="mt-6 rounded-3xl bg-white p-6 shadow-sm">
-  <h2 className="text-xl font-bold">Poizon — как заполнить адрес</h2>
-
-  <p className="mt-2 text-sm text-slate-500">
-    Регион уже указан на скрине. Скопируйте получателя, телефон и детальный адрес.
-  </p>
-
-  {copied && (
-    <p className="mt-3 rounded-xl bg-green-50 px-4 py-2 text-center text-sm font-medium text-green-700">
-      {copied}
-    </p>
-  )}
-
-  <div className="mt-5 flex justify-center">
-    <div className="relative w-full max-w-[430px] rounded-3xl bg-white shadow-sm">
-      <img
-        src="https://grrwtedzdbxtkaodfvvd.supabase.co/storage/v1/object/public/site-images/poizon.png"
-        alt="Poizon address form"
-        className="w-full rounded-3xl"
-      />
-
-      <div className="absolute left-[95px] top-[67px] right-[24px] flex items-center justify-between gap-2">
-        <span className="max-w-[215px] bg-white/95 px-1 text-[14px] font-medium text-slate-900">
-          {receiver}
-        </span>
-        <button
-          onClick={() => copyText("Получатель скопирован", receiver)}
-          className="shrink-0 rounded-lg bg-blue-600 px-2 py-1 text-[10px] font-semibold text-white"
-        >
-          Скопировать
-        </button>
-      </div>
-
-      <div className="absolute left-[150px] top-[121px] right-[24px] flex items-center justify-between gap-2">
-        <span className="bg-white/95 px-1 text-[14px] font-medium text-slate-900">
-          15739538448
-        </span>
-        <button
-          onClick={() => copyText("Телефон скопирован", "15739538448")}
-          className="shrink-0 rounded-lg bg-blue-600 px-2 py-1 text-[10px] font-semibold text-white"
-        >
-          Скопировать
-        </button>
-      </div>
-
-      <div className="absolute right-[178px] top-[152px]">
-        <span className="rounded-lg bg-orange-100 px-2 py-1 text-[11px] font-semibold text-orange-700">
-          Выберите вручную
-        </span>
-      </div>
-
-      <div className="absolute left-[95px] top-[230px] right-[24px] flex items-start justify-between gap-2">
-        <span className="max-w-[215px] bg-white/95 px-1 text-[13px] font-medium leading-snug text-slate-900">
-          环市西路宇宙鞋城D543A档口 {client.client_code}
-        </span>
-        <button
-          onClick={() =>
-            copyText(
-              "Адрес скопирован",
-              `环市西路宇宙鞋城D543A档口 ${client.client_code}`
-            )
-          }
-          className="shrink-0 rounded-lg bg-blue-600 px-2 py-1 text-[10px] font-semibold text-white"
-        >
-          Скопировать
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <div className="mt-4 flex justify-center">
-    <button
-      onClick={() =>
-        copyText(
-          "Все данные Poizon скопированы",
-          `收货人: ${receiver}
-手机号: 15739538448
-所在地区: 广东省 广州市 荔湾区 站前街道
-详细地址: 环市西路宇宙鞋城D543A档口 ${client.client_code}`
-        )
-      }
-      className="w-full max-w-[430px] rounded-2xl bg-cyan-600 px-6 py-4 text-center font-semibold text-white"
-    >
-      Скопировать всё
-    </button>
-  </div>
-</section>
-
-        <section id="history" className="mt-6 rounded-3xl bg-white p-6 shadow-sm">
-          <h2 className="text-xl font-bold">История посылок</h2>
-
-          {historyShipments.length === 0 ? (
-            <p className="mt-3 text-slate-500">История пока пустая.</p>
-          ) : (
-            <div className="mt-5 grid gap-4">
-              {historyShipments.map((item) => (
-                <div key={item.id} className="rounded-2xl border p-5">
-                  <p className="font-bold">{item.tracking_code}</p>
-                  <p className="mt-2 text-sm text-slate-600">
-{item.status ? statusMap[item.status] || item.status : "-"} •{" "}
-{item.weight || "-"} кг
-                  </p>
-                  <div className="mt-4 rounded-2xl border bg-slate-50">
-  <button
-    type="button"
-    onClick={() =>
-      setOpenHistory(
-        openHistory === item.tracking_code ? null : item.tracking_code
-      )
-    }
-    className="flex w-full items-center justify-between px-4 py-3 text-left"
-  >
-    <span className="text-sm font-semibold text-slate-700">
-      История статуса
-    </span>
-
-    <span className="text-lg text-slate-500">
-      {openHistory === item.tracking_code ? "↑" : "↓"}
-    </span>
-  </button>
-
-  {openHistory === item.tracking_code && (
-    <div className="border-t px-4 py-4">
-      {getEventsByTrackingCode(item.tracking_code).length === 0 ? (
-        <p className="text-sm text-slate-500">
-          История появится после обновления статуса.
-        </p>
-      ) : (
-        <div className="space-y-3">
-          {getEventsByTrackingCode(item.tracking_code).map((event) => (
-            <div
-              key={event.id}
-              className="flex flex-col gap-1 border-b pb-3 last:border-b-0 last:pb-0"
-            >
-              <p className="text-sm font-semibold text-slate-900">
-                {event.status ? statusMap[event.status] || event.status : "-"}
-              </p>
-
-              <p className="text-xs text-slate-500">
-                {event.created_at
-                  ? new Date(event.created_at).toLocaleString("ru-RU", {
-                      day: "2-digit",
-                      month: "2-digit",
-                      year: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })
-                  : "-"}
-              </p>
-
-              {event.location && (
-                <p className="text-xs text-slate-500">
-                  Локация: {event.location}
-                </p>
-              )}
-            </div>
+      {/* QUICK ACTIONS */}
+      <div style={{ padding: "16px 14px 0" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8 }}>
+          {[
+            { iconName: "search",     label: "Отследить груз", sub: null,           href: "/dashboard/assistant" },
+            { iconName: "calculator", label: "Калькулятор",    sub: null,           href: "/dashboard/assistant" },
+            { iconName: "yuan",       label: "Купить юани",    sub: "¥1 = ₸12.45", href: "#"                    },
+          ].map((q, i) => (
+            <Link key={i} href={q.href} style={{ background: "#fff", border: "0.5px solid #e8edf2", borderRadius: 14, padding: "14px 10px", textDecoration: "none", display: "flex", flexDirection: "column", gap: 6 }}>
+              <Icon name={q.iconName} size={22} color="#005eaa" />
+              <span style={{ fontSize: 11, fontWeight: 600, color: "#0a1e3d", lineHeight: 1.3 }}>{q.label}</span>
+              {q.sub && <span style={{ fontSize: 10, color: "#005eaa", fontWeight: 600 }}>{q.sub}</span>}
+            </Link>
           ))}
         </div>
-      )}
-    </div>
-  )}
-</div>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-
-<section className="mt-6 rounded-3xl bg-white p-6 shadow-sm">
-          <h2 className="text-xl font-bold">Пункт выдачи</h2>
-
-          {selectedBranch && (
-            <div className="mt-4 rounded-2xl bg-blue-50 p-4">
-              <p className="font-semibold text-blue-900">{selectedBranch.name}</p>
-              <p className="mt-1 text-sm text-blue-700">{selectedBranch.address}</p>
-              <p className="text-sm text-blue-700">{selectedBranch.phone}</p>
-              <p className="text-sm text-blue-700">{selectedBranch.working_hours}</p>
-            </div>
-          )}
-
-          <div className="mt-4 grid gap-2">
-            {branches.map((branch) => (
-              <button
-                key={branch.id}
-                onClick={() => changeBranch(branch.id)}
-                className={`rounded-2xl border p-4 text-left transition ${
-                  selectedBranch?.id === branch.id
-                    ? "border-blue-500 bg-blue-50"
-                    : "border-slate-200 hover:border-slate-400"
-                }`}
-              >
-                <p className="font-semibold">{branch.name}</p>
-                <p className="text-sm text-slate-500">{branch.address}</p>
-              </button>
-            ))}
-          </div>
-        </section>
-
-        <section className="mt-6 rounded-3xl bg-white p-6 shadow-sm">
-          <h2 className="text-xl font-bold">Изменение данных</h2>
-
-          <div className="mt-4 grid gap-3 md:grid-cols-3">
-            <button className="rounded-2xl border px-5 py-4 font-semibold">
-              Изменить профиль
-            </button>
-            <button className="rounded-2xl border px-5 py-4 font-semibold">
-              Сменить пароль
-            </button>
-            <button className="rounded-2xl border px-5 py-4 font-semibold">
-              Сменить email / телефон
-            </button>
-          </div>
-        </section>
-
-        <section className="mt-6 rounded-3xl bg-blue-600 p-6 text-center text-white shadow-sm">
-          <h2 className="text-2xl font-bold">Нужна помощь с доставкой?</h2>
-          <p className="mt-2 text-blue-100">
-            Оставьте заявку — менеджер свяжется с вами.
-          </p>
-
-          <Link
-            href="/contact"
-            className="mt-5 inline-block rounded-2xl bg-white px-6 py-3 font-semibold text-blue-700"
-          >
-            Оставить заявку
-          </Link>
-        </section>
       </div>
-    </main>
+
+      {/* ORDERS */}
+      <div style={{ padding: "18px 14px 0" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+          <span style={{ fontSize: 16, fontWeight: 700, color: "#0a1e3d" }}>Мои заказы</span>
+          <Link href="/dashboard/orders" style={{ fontSize: 12, color: "#005eaa", fontWeight: 600, textDecoration: "none" }}>Все заказы ›</Link>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+          {ORDER_TILES.map((tile) => (
+            <Link key={tile.key} href={`/dashboard/orders?status=${tile.key}`} style={{ background: "#fff", border: "0.5px solid #e8edf2", borderRadius: 16, padding: "16px", textDecoration: "none", display: "block" }}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: tile.bg, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 10 }}>
+                <Icon name={tile.iconName} size={18} color={tile.color} />
+              </div>
+              <div style={{ fontSize: 36, fontWeight: 800, color: "#0a1e3d", lineHeight: 1, marginBottom: 4 }}>{tile.count}</div>
+              <div style={{ fontSize: 11, color: "#94a3b8", lineHeight: 1.3 }}>{tile.label}</div>
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      {/* CLIENT CODE */}
+      <div style={{ padding: "12px 14px 0" }}>
+        <button onClick={() => copy(client?.client_code ?? "")} style={{ width: "100%", background: "#0a1e3d", border: "none", borderRadius: 14, padding: "14px 18px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{ width: 34, height: 34, borderRadius: 9, background: "rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Icon name="id" size={17} color="rgba(255,255,255,0.6)" />
+            </div>
+            <div>
+              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", marginBottom: 3 }}>Ваш код клиента</div>
+              <div style={{ fontSize: 18, fontWeight: 800, color: "#fff", letterSpacing: 1.5 }}>{client?.client_code}</div>
+            </div>
+          </div>
+          <span style={{ borderRadius: 8, padding: "7px 13px", fontSize: 11, color: "#fff", fontWeight: 600, background: copied ? "#10b981" : "rgba(255,255,255,0.1)", display: "flex", alignItems: "center", gap: 5, transition: "background .2s" }}>
+            <Icon name={copied ? "check" : "copy"} size={13} color="#fff" />
+            {copied ? "Скопировано" : "Скопировать"}
+          </span>
+        </button>
+      </div>
+
+      {/* REFERRAL & DELIVERY */}
+      <div style={{ padding: "12px 14px 0" }}>
+        {[
+          { iconName: "users", iconColor: "#005eaa", iconBg: "#eff6ff", title: "Реферальная программа",            sub: "Приглашайте друзей — зарабатывайте бонусы", href: "/dashboard/profile"   },
+          { iconName: "truck", iconColor: "#10b981", iconBg: "#f0fdf4", title: "Доставка по городу и Кыргызстану", sub: "Быстро, надёжно, с отслеживанием",          href: "/dashboard/assistant" },
+        ].map((row, i) => (
+          <Link key={i} href={row.href} style={{ display: "flex", alignItems: "center", gap: 12, background: "#fff", border: "0.5px solid #e8edf2", borderRadius: 14, padding: "13px 15px", textDecoration: "none", marginBottom: 8 }}>
+            <div style={{ width: 40, height: 40, borderRadius: 11, background: row.iconBg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <Icon name={row.iconName} size={20} color={row.iconColor} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: "#0a1e3d" }}>{row.title}</div>
+              <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 1 }}>{row.sub}</div>
+            </div>
+            <Icon name="chevron_right" size={18} color="#d1d5db" />
+          </Link>
+        ))}
+      </div>
+
+      {/* NEWS */}
+      <div style={{ padding: "4px 14px 24px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+          <span style={{ fontSize: 16, fontWeight: 700, color: "#0a1e3d" }}>Новости и акции</span>
+          <button style={{ fontSize: 12, color: "#005eaa", fontWeight: 600, background: "none", border: "none", cursor: "pointer" }}>Все ›</button>
+        </div>
+        <div style={{ background: "#fff", border: "0.5px solid #e8edf2", borderRadius: 16, padding: "14px", display: "flex", gap: 12 }}>
+          <div style={{ width: 60, height: 60, borderRadius: 12, background: "#f0f4f8", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <Icon name="newspaper" size={26} color="#94a3b8" />
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 12.5, fontWeight: 600, color: "#0a1e3d", lineHeight: 1.4, marginBottom: 4 }}>Снижение цен на доставку с 1 июня</div>
+            <div style={{ fontSize: 11, color: "#94a3b8", lineHeight: 1.5, marginBottom: 8 }}>Тарифы по Кыргызстану снижены на 15%</div>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <span style={{ fontSize: 10, color: "#c4c9d4" }}>18 мая 2026</span>
+              <span style={{ fontSize: 10, background: "#eff6ff", color: "#005eaa", padding: "3px 9px", borderRadius: 20, fontWeight: 700 }}>Акция</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
   );
 }
