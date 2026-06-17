@@ -7,6 +7,7 @@ const supabase = createClient(
 );
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN!;
+const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY!;
 
 async function sendMessage(chatId: number, text: string) {
   await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
@@ -18,14 +19,96 @@ async function sendMessage(chatId: number, text: string) {
 
 async function askAI(message: string, clientCode: string | null) {
   try {
-    const res = await fetch("https://3x-cargo.vercel.app/api/ai", {
+    let context = "";
+    if (clientCode) {
+      const { data: shipments } = await supabase
+        .from("shipments")
+        .select("tracking_code, status, weight")
+        .eq("client_code", clientCode)
+        .not("status", "eq", "completed")
+        .order("created_at", { ascending: false })
+        .limit(5);
+
+      const statusMap: Record<string, string> = {
+        china_warehouse: "На складе в Китае",
+        in_transit: "В пути",
+        sorting: "На сортировке",
+        bishkek_arrived: "Прибыл в Бишкек",
+        ready_pickup: "Готов к выдаче",
+      };
+
+      if (shipments && shipments.length > 0) {
+        context = `\nАктивные заказы клиента ${clientCode}:\n` + shipments.map(s =>
+          `- Трек: ${s.tracking_code}, Статус: ${statusMap[s.status] || s.status}, Вес: ${s.weight}кг`
+        ).join("\n");
+      }
+    }
+
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message, client_code: clientCode }),
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 500,
+        system: `Ты дружелюбный AI ассистент карго компании 3X Cargo (3xcargo.kg).
+Отвечай как живой менеджер — тепло, по-человечески, на русском языке.
+На простые вопросы типа "как дела?" отвечай естественно и с юмором.
+Будь краток но информативен. Используй эмодзи умеренно.
+
+О КОМПАНИИ 3X CARGO:
+- Доставка товаров из Китая в Кыргызстан с 2019 года
+- Сайт: 3xcargo.kg
+- Телефон/WhatsApp: +996 220 343 053
+- Instagram: @3xcargo.kg
+
+ТАРИФЫ:
+- Доставка: 2.8$ за кг
+- Объёмный вес: Д×Ш×В / 6000 (если больше реального — считаем объёмный)
+
+СРОКИ:
+- Китай → Бишкек: 7-12 дней
+- Хранение на складе в Бишкеке: 7 дней бесплатно
+
+СКЛАД В КИТАЕ:
+- Адрес склада выдаётся после регистрации в личном кабинете
+- Город: Гуанчжоу
+
+ВЫДАЧА В БИШКЕКЕ:
+- Адрес: ул. Логвиненко 55А, Бишкек
+- Часы работы: Пн-Сб 10:00-18:00
+- При получении нужен код клиента (формат 3X-XXXX)
+
+ОПЛАТА:
+- Наличные при получении
+- Перевод на карту
+- Онлайн через личный кабинет
+
+ЗАПРЕЩЁННЫЕ ТОВАРЫ:
+- Оружие, наркотики, легковоспламеняющиеся жидкости
+- Поддельные брендовые товары
+- Скоропортящиеся продукты
+
+БОНУСНАЯ ПРОГРАММА:
+- Бронза (0-9 заказов): 1% кэшбэк
+- Серебро (10-24): 3% кэшбэк
+- Золото (25-49): 5% кэшбэк
+- Платинум (50+): 8% кэшбэк
+
+Если не знаешь ответа — скажи что уточнишь у менеджера: +996 220 343 053
+${context}`,
+        messages: [{ role: "user", content: message }],
+      }),
     });
+
     const data = await res.json();
-    return data.reply || "Извините, не смог обработать запрос.";
-  } catch {
+    console.log("Anthropic response:", JSON.stringify(data).slice(0, 200));
+    return data.content?.[0]?.text || "Извините, не смог обработать запрос.";
+  } catch (e) {
+    console.error("AI error:", e);
     return "Извините, произошла ошибка. Попробуйте позже.";
   }
 }
@@ -41,7 +124,6 @@ export async function POST(req: NextRequest) {
     const username: string = message.from?.username || "";
     const firstName: string = message.from?.first_name || "";
 
-    // /start
     if (text.startsWith("/start")) {
       const parts = text.split(" ");
       const clientCode = parts[1]?.trim().toUpperCase();
@@ -76,7 +158,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true });
     }
 
-    // /status
     if (text === "/status") {
       const { data: botUser } = await supabase
         .from("telegram_bot_users")
@@ -118,7 +199,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true });
     }
 
-    // /help
     if (text === "/help") {
       await sendMessage(chatId,
         `🤖 <b>Команды:</b>\n\n/start КОД — привязать аккаунт\n/status — статус заказов\n/help — помощь\n\nИли просто напишите вопрос — отвечу с AI! 💬`
@@ -126,7 +206,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true });
     }
 
-    // AI ответ
     const { data: botUser } = await supabase
       .from("telegram_bot_users")
       .select("client_code")
