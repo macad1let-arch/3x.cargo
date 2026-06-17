@@ -6,20 +6,20 @@ import { Icon } from "@/lib/dashboard";
 import { getClient, getShipments, Shipment, STATUS_MAP } from "@/lib/supabase-dashboard";
 
 const TABS = [
-  { key: "all",     label: "Все"         },
-  { key: "china",   label: "В Китае"     },
-  { key: "transit", label: "В пути"      },
-  { key: "sorting", label: "Сортировка"  },
-  { key: "ready",   label: "К выдаче"    },
-  { key: "completed", label: "Выдано"    },
+  { key: "all",       label: "Все"        },
+  { key: "china",     label: "В Китае"    },
+  { key: "transit",   label: "В пути"     },
+  { key: "sorting",   label: "Сортировка" },
+  { key: "ready",     label: "К выдаче"   },
+  { key: "completed", label: "Выдано"     },
 ];
 
 function matchTab(status: string, tab: string): boolean {
-  if (tab === "all") return true;
-  if (tab === "china")   return status === "china_warehouse" || status === "Поступила на склад в Китае";
-  if (tab === "transit") return status === "in_transit";
-  if (tab === "sorting") return status === "sorting" || status === "bishkek_arrived";
-  if (tab === "ready")   return status === "ready_pickup";
+  if (tab === "all")       return true;
+  if (tab === "china")     return status === "china_warehouse" || status === "Поступила на склад в Китае";
+  if (tab === "transit")   return status === "in_transit";
+  if (tab === "sorting")   return status === "sorting" || status === "bishkek_arrived";
+  if (tab === "ready")     return status === "ready_pickup";
   if (tab === "completed") return status === "completed";
   return false;
 }
@@ -49,6 +49,8 @@ export default function OrdersPage() {
   const [search, setSearch] = useState("");
 
   useEffect(() => {
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+
     async function load() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { setLoading(false); return; }
@@ -59,8 +61,30 @@ export default function OrdersPage() {
       const data = await getShipments(client.client_code);
       setShipments(data);
       setLoading(false);
+
+      channel = supabase
+        .channel("shipments-realtime")
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "shipments",
+            filter: `client_code=eq.${client.client_code}`,
+          },
+          async () => {
+            const updated = await getShipments(client.client_code);
+            setShipments(updated);
+          }
+        )
+        .subscribe();
     }
+
     load();
+
+    return () => {
+      if (channel) supabase.removeChannel(channel);
+    };
   }, []);
 
   const filtered = shipments.filter(s => {
@@ -143,7 +167,6 @@ export default function OrdersPage() {
 
             return (
               <div key={s.id} style={{ background: "#fff", border: "0.5px solid #e8edf2", borderRadius: 16, padding: "16px", marginBottom: 10 }}>
-                {/* TOP ROW */}
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                     <div style={{ width: 38, height: 38, borderRadius: 11, background: info.bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
@@ -157,10 +180,8 @@ export default function OrdersPage() {
                   <StatusBadge status={s.status} />
                 </div>
 
-                {/* DIVIDER */}
                 <div style={{ height: 0.5, background: "#f0f2f5", margin: "0 0 10px" }} />
 
-                {/* DETAILS */}
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6 }}>
                   <div>
                     <div style={{ fontSize: 10, color: "#94a3b8", marginBottom: 2 }}>Вес</div>
