@@ -22,7 +22,7 @@ async function sendTelegram(chatId: number, text: string) {
 async function sendEmail(to: string, title: string, message: string, trackingCode?: string) {
   try {
     const { data, error } = await resend.emails.send({
-      from: "3X Cargo <noreply@send.truvelax.com>",
+      from: "3X Cargo <noreply@truvelax.com>",
       to,
       subject: title || "Уведомление от 3X Cargo",
       html: `
