@@ -23,20 +23,24 @@ async function sendTelegram(chatId: number, text: string) {
 
 async function sendWhatsApp(phone: string, message: string) {
   try {
-    // Форматируем номер — убираем +, пробелы, добавляем @c.us
     const cleaned = phone.replace(/\D/g, "");
     const chatId = `${cleaned}@c.us`;
 
-    const res = await fetch(
-      `https://7107.api.greenapi.com/waInstance${GREEN_API_ID}/sendMessage/${GREEN_API_TOKEN}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chatId, message }),
-      }
-    );
+    console.log("WhatsApp sending to:", chatId);
+    console.log("Green API ID:", GREEN_API_ID);
+
+    const url = `https://api.green-api.com/waInstance${GREEN_API_ID}/sendMessage/${GREEN_API_TOKEN}`;
+    console.log("URL:", url);
+
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chatId, message }),
+    });
+
     const data = await res.json();
-    console.log("WhatsApp result:", data);
+    console.log("WhatsApp response status:", res.status);
+    console.log("WhatsApp response data:", JSON.stringify(data));
     return res.ok && !data.error;
   } catch (e) {
     console.error("WhatsApp error:", e);
