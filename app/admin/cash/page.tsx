@@ -88,7 +88,7 @@ function ClientSearch({ onSelect }: { onSelect: (c: Client) => void }) {
                 <div style={{ fontSize: 12, color: "#9ca3af", marginTop: 1 }}>{c.client_code}{c.phone ? ` · ${c.phone}` : ""}</div>
               </div>
               <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: "#111827" }}>₸ {(c.balance ?? 0).toLocaleString()}</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: "#111827" }}>сом {(c.balance ?? 0).toLocaleString()}</div>
                 <div style={{ fontSize: 11, color: "#9ca3af" }}>{(c.bonus_balance ?? 0).toLocaleString()} бонусов</div>
               </div>
             </div>
@@ -157,7 +157,7 @@ export default function AdminCashPage() {
 
     setClient({ ...client, balance: newBalance });
     setBalanceAmount(""); setBalanceDesc("");
-    setMsg({ type: "balance", text: `Баланс обновлён: ${delta > 0 ? "+" : ""}₸${Math.abs(delta).toLocaleString()} → ₸${newBalance.toLocaleString()}`, ok: true });
+    setMsg({ type: "balance", text: `Баланс обновлён: ${delta > 0 ? "+" : ""}сом${Math.abs(delta).toLocaleString()} → сом${newBalance.toLocaleString()}`, ok: true });
     loadHistory(client.client_code);
     setLoading(false);
   };
@@ -213,7 +213,7 @@ export default function AdminCashPage() {
               <div style={{ display: "flex", gap: 12 }}>
                 <div style={{ background: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: 10, padding: "10px 20px", textAlign: "center" }}>
                   <div style={{ fontSize: 11, color: "#0284c7", fontWeight: 600 }}>БАЛАНС</div>
-                  <div style={{ fontSize: 22, fontWeight: 800, color: "#0284c7" }}>₸ {(client.balance ?? 0).toLocaleString()}</div>
+                  <div style={{ fontSize: 22, fontWeight: 800, color: "#0284c7" }}>сом {(client.balance ?? 0).toLocaleString()}</div>
                 </div>
                 <div style={{ background: "#faf5ff", border: "1px solid #ddd6fe", borderRadius: 10, padding: "10px 20px", textAlign: "center" }}>
                   <div style={{ fontSize: 11, color: "#7c3aed", fontWeight: 600 }}>БОНУСЫ</div>
@@ -228,7 +228,7 @@ export default function AdminCashPage() {
 
             {/* Balance */}
             <div style={{ background: "#fff", border: "1px solid #e5e7eb", borderRadius: 12, padding: 20 }}>
-              <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 16 }}>Баланс (₸)</div>
+              <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 16 }}>Баланс (сом)</div>
               <div style={{ marginBottom: 12 }}>
                 <div style={{ fontSize: 12, fontWeight: 600, color: "#6b7280", marginBottom: 6 }}>Операция</div>
                 <div style={{ display: "flex", gap: 6 }}>
@@ -326,10 +326,10 @@ export default function AdminCashPage() {
                         <td style={{ padding: "10px 12px" }}>{h.type}</td>
                         <td style={{ padding: "10px 12px", color: "#374151" }}>{h.description || "—"}</td>
                         <td style={{ padding: "10px 12px", textAlign: "right", fontWeight: 700, color: isPos ? "#16a34a" : "#dc2626" }}>
-                          {isPos ? "+" : ""}{historyTab === "balance" ? "₸" : ""}{h.amount.toLocaleString()}
+                          {isPos ? "+" : ""}{historyTab === "balance" ? "сом" : ""}{h.amount.toLocaleString()}
                         </td>
                         <td style={{ padding: "10px 12px", textAlign: "right", color: "#6b7280" }}>
-                          {historyTab === "balance" ? "₸" : ""}{(h.balance_after ?? 0).toLocaleString()}
+                          {historyTab === "balance" ? "сом" : ""}{(h.balance_after ?? 0).toLocaleString()}
                         </td>
                       </tr>
                     );

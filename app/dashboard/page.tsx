@@ -107,7 +107,7 @@ export default function DashboardHome() {
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", fontWeight: 500, marginBottom: 6 }}>Баланс</div>
           <div style={{ fontSize: 28, fontWeight: 800, color: "#fff", letterSpacing: -0.5, lineHeight: 1 }}>
-            ₸ {(client?.balance ?? 0).toLocaleString()}
+            {(client?.balance ?? 0).toLocaleString()} сом
           </div>
           <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginTop: 5 }}>Основной счёт</div>
           <button style={{ marginTop: 10, fontSize: 11, color: "#4a9fd4", background: "rgba(0,94,170,0.2)", border: "none", borderRadius: 6, padding: "4px 10px", cursor: "pointer", fontWeight: 600 }}>
@@ -169,7 +169,7 @@ export default function DashboardHome() {
           {[
             { iconName: "search",     label: "Отследить груз", sub: null,           href: "/dashboard/assistant" },
             { iconName: "calculator", label: "Калькулятор",    sub: null,           href: "/dashboard/assistant" },
-            { iconName: "yuan",       label: "Купить юани",    sub: "¥1 = ₸12.45", href: "#"                    },
+            { iconName: "yuan",       label: "Купить юани",    sub: "¥1 = 12.45 сом", href: "#"                    },
           ].map((q, i) => (
             <Link key={i} href={q.href} style={{ background: "#fff", border: "0.5px solid #e8edf2", borderRadius: 14, padding: "14px 10px", textDecoration: "none", display: "flex", flexDirection: "column", gap: 6 }}>
               <Icon name={q.iconName} size={22} color="#005eaa" />

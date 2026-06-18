@@ -61,7 +61,7 @@ export default function BalancePage() {
         <div style={{ textAlign: "center", marginBottom: 20 }}>
           <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", fontWeight: 500, marginBottom: 6 }}>Основной счёт</div>
           <div style={{ fontSize: 40, fontWeight: 800, color: "#fff", letterSpacing: -1, lineHeight: 1 }}>
-            ₸ {(client?.balance ?? 0).toLocaleString()}
+            сом {(client?.balance ?? 0).toLocaleString()}
           </div>
         </div>
 
@@ -69,11 +69,11 @@ export default function BalancePage() {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
           <div style={{ background: "rgba(255,255,255,0.08)", borderRadius: 12, padding: "12px 14px" }}>
             <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 4 }}>Пополнено</div>
-            <div style={{ fontSize: 18, fontWeight: 700, color: "#10b981" }}>+ ₸ {income.toLocaleString()}</div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: "#10b981" }}>+ сом {income.toLocaleString()}</div>
           </div>
           <div style={{ background: "rgba(255,255,255,0.08)", borderRadius: 12, padding: "12px 14px" }}>
             <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 4 }}>Потрачено</div>
-            <div style={{ fontSize: 18, fontWeight: 700, color: "#f97316" }}>− ₸ {expense.toLocaleString()}</div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: "#f97316" }}>− сом {expense.toLocaleString()}</div>
           </div>
         </div>
       </div>
@@ -118,9 +118,9 @@ export default function BalancePage() {
                   </div>
                   <div style={{ textAlign: "right" }}>
                     <div style={{ fontSize: 15, fontWeight: 800, color: isPositive ? "#10b981" : "#f97316" }}>
-                      {isPositive ? "+" : ""}₸ {Math.abs(h.amount).toLocaleString()}
+                      {isPositive ? "+" : ""}сом {Math.abs(h.amount).toLocaleString()}
                     </div>
-                    <div style={{ fontSize: 11, color: "#94a3b8" }}>₸ {(h.balance_after ?? 0).toLocaleString()}</div>
+                    <div style={{ fontSize: 11, color: "#94a3b8" }}>сом {(h.balance_after ?? 0).toLocaleString()}</div>
                   </div>
                 </div>
               );
