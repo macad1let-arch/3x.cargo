@@ -129,7 +129,7 @@ const [loading, setLoading] = useState(true);
   let query = supabase
     .from("shipments")
     .select(
-      "id, client_code, tracking_code, batch_code, status, location, weight, note, created_at, updated_at",
+      "id, client_code, tracking_code, batch_code, status, location, weight, delivery_cost, note, created_at, updated_at",
       { count: "exact" }
     );
 
@@ -1182,6 +1182,7 @@ const allVisibleSelected =
                     <th className="px-4 py-2">Клиент</th>
                     <th className="px-4 py-2">Статус</th>
                     <th className="px-4 py-2">Вес</th>
+                    <th className="px-4 py-2">Цена</th>
                     <th className="px-4 py-2">Партия</th>
                     <th className="px-4 py-2">Локация</th>
                     <th className="px-4 py-2">Изменить статус</th>
@@ -1269,6 +1270,10 @@ const allVisibleSelected =
                       <td className="px-4 py-4 font-semibold text-slate-700">
                         {item.weight ? `${item.weight} кг` : "-"}
                       </td>
+
+                      <td className="px-4 py-4 font-semibold text-slate-700">
+                     {(item as any).delivery_cost > 0 ? `${(item as any).delivery_cost.toLocaleString()} с` : "-"}
+                         </td>
 
                       <td className="px-4 py-4 text-slate-600">
                         {item.batch_code || "-"}

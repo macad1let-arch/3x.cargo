@@ -58,6 +58,7 @@ type EditForm = {
   weight: string;
   location: string;
   note: string;
+  delivery_cost: string;
 };
 
 const statusOptions = [
@@ -137,6 +138,7 @@ export default function AdminShipmentPage() {
     weight: "",
     location: "",
     note: "",
+    delivery_cost: "",
   });
 
   const currentStatusStyle = useMemo(
@@ -159,7 +161,7 @@ export default function AdminShipmentPage() {
       supabase
         .from("shipments")
         .select(
-          "id, client_code, tracking_code, batch_code, status, location, weight, note, created_at, updated_at"
+          "id, client_code, tracking_code, batch_code, status, location, weight, delivery_cost, final_amount, note, created_at, updated_at"
         )
         .eq("tracking_code", trackingCode)
         .maybeSingle(),
@@ -203,6 +205,7 @@ export default function AdminShipmentPage() {
             : "",
         location: shipmentData.location || "",
         note: shipmentData.note || "",
+        delivery_cost: (shipmentData as any).delivery_cost !== null ? String((shipmentData as any).delivery_cost) : "",
       });
     }
 
@@ -301,6 +304,7 @@ export default function AdminShipmentPage() {
     const cleanedNote = editForm.note.trim() || null;
     const cleanedStatus = editForm.status || "china_warehouse";
     const weightValue = editForm.weight ? Number(editForm.weight) : null;
+    const deliveryCostValue = editForm.delivery_cost ? Number(editForm.delivery_cost) : null;
     const now = new Date().toISOString();
 
     const { error } = await supabase
@@ -311,6 +315,8 @@ export default function AdminShipmentPage() {
         batch_code: cleanedBatchCode,
         status: cleanedStatus,
         weight: weightValue,
+        delivery_cost: deliveryCostValue,
+        final_amount: deliveryCostValue,
         location: cleanedLocation,
         note: cleanedNote,
         updated_at: now,
@@ -674,21 +680,30 @@ return (
               </div>
 
               <div>
-                <label className="text-sm font-bold text-slate-600">
-                  Вес, кг
-                </label>
-                <input
-                  type="number"
-                  value={editForm.weight}
-                  onChange={(event) =>
-                    setEditForm({
-                      ...editForm,
-                      weight: event.target.value,
-                    })
-                  }
-                  className="mt-2 h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm outline-none transition focus:border-blue-600"
-                />
-              </div>
+  <label className="text-sm font-bold text-slate-600">
+    Вес, кг
+  </label>
+  <input
+    type="number"
+    value={editForm.weight}
+    onChange={(event) => {
+      const w = event.target.value;
+      const cost = w ? Math.round(parseFloat(w) * 2.8 * 88) : 0;
+      setEditForm({ ...editForm, weight: w, delivery_cost: cost > 0 ? String(cost) : "" });
+    }}
+    className="mt-2 h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm outline-none transition focus:border-blue-600"
+  />
+</div>
+
+              <div>
+  <label className="text-sm font-bold text-slate-600">Стоимость (сом)</label>
+  <input
+    type="number"
+    value={editForm.delivery_cost}
+    onChange={(event) => setEditForm({ ...editForm, delivery_cost: event.target.value })}
+    className="mt-2 h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm outline-none transition focus:border-blue-600"
+  />
+</div>
 
               <div>
                 <label className="text-sm font-bold text-slate-600">

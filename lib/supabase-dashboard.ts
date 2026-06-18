@@ -41,6 +41,7 @@ export type Shipment = {
   delivery_cost: number;
   final_amount: number;
   created_at: string;
+  updated_at: string;
   location: string;
   client_code: string;
 };
@@ -181,7 +182,7 @@ export async function getClient(userId: string): Promise<Client | null> {
 export async function getShipments(clientCode: string): Promise<Shipment[]> {
   const { data, error } = await supabase
     .from("shipments")
-    .select("id, tracking_code, status, weight, chargeable_weight, delivery_cost, final_amount, created_at, location, client_code")
+    .select("id, tracking_code, status, weight, chargeable_weight, delivery_cost, final_amount, created_at, updated_at, location, client_code")
     .eq("client_code", clientCode)
     .order("created_at", { ascending: false });
 

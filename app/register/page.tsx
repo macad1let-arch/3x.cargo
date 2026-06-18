@@ -121,6 +121,21 @@ function RegisterContent() {
       }
     }
 
+    // Начисляем 100 бонусов новому клиенту за регистрацию по рефералке
+if (refCode) {
+  await supabase.from("clients").update({
+    bonus_balance: 100,
+  }).eq("client_code", client_code);
+
+  await supabase.from("bonus_transactions").insert({
+    client_code: client_code,
+    type: "referral",
+    amount: 100,
+    description: "Приветственный бонус за регистрацию по реферальной ссылке",
+    balance_after: 100,
+  });
+}
+
     await fetch("/api/telegram", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
