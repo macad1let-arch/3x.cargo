@@ -161,9 +161,11 @@ export default function ProfilePage() {
       {/* REFERRAL */}
       <div style={{ margin: "14px 14px 0", background: "#fff", borderRadius: 16, border: "0.5px solid #e8edf2", padding: "16px" }}>
         <div style={{ fontSize: 13, fontWeight: 600, color: "#0a1e3d", marginBottom: 10 }}>Реферальный код</div>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "#f4f6f9", borderRadius: 10, padding: "12px 16px" }}>
-          <span style={{ fontSize: 18, fontWeight: 800, color: "#0a1e3d", letterSpacing: 2 }}>{(client as any)?.referral_code || "—"}</span>
-          <button onClick={() => copy((client as any)?.referral_code || "")}
+       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "#f4f6f9", borderRadius: 10, padding: "12px 16px" }}>
+  <span style={{ fontSize: 13, fontWeight: 600, color: "#005eaa", wordBreak: "break-all" as const }}>
+    3x-cargo.vercel.app/register?ref={(client as any)?.referral_code || "—"}
+  </span>
+  <button onClick={() => copy(`https://3xcargo.kg/register?ref=${(client as any)?.referral_code || ""}`)}
             style={{ background: copied ? "#10b981" : "#005eaa", border: "none", borderRadius: 8, padding: "7px 14px", color: "#fff", fontSize: 12, fontWeight: 600, cursor: "pointer", transition: "background .2s" }}>
             {copied ? "Скопировано" : "Скопировать"}
           </button>
