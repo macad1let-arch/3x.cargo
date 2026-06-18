@@ -37,7 +37,7 @@ export default function ReferralPage() {
   }, []);
 
   const copy = () => {
-    navigator.clipboard?.writeText(client?.referral_code ?? "").catch(() => {});
+    navigator.clipboard?.writeText(`https://3xcargo.kg/register?ref=${client?.referral_code ?? ""}`).catch(() => {});
     setCopied(true);
     setTimeout(() => setCopied(false), 1600);
   };
@@ -94,7 +94,9 @@ export default function ReferralPage() {
           <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 14 }}>Поделитесь кодом с друзьями</div>
 
           <div style={{ background: "#f4f6f9", borderRadius: 12, padding: "16px", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-            <span style={{ fontSize: 24, fontWeight: 800, color: "#0a1e3d", letterSpacing: 3 }}>{client?.referral_code || "—"}</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: "#005eaa", wordBreak: "break-all" as const }}>
+  3xcargo.kg/register?ref={client?.referral_code || "—"}
+</span>
             <button onClick={copy} style={{ background: copied ? "#10b981" : "#005eaa", border: "none", borderRadius: 8, padding: "8px 16px", color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer", transition: "background .2s" }}>
               {copied ? "Скопировано ✓" : "Скопировать"}
             </button>
