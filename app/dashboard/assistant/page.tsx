@@ -4,10 +4,7 @@ import { createBrowserClient } from "@supabase/ssr";
 import { Icon } from "@/lib/dashboard";
 import { getClient } from "@/lib/supabase-dashboard";
 
-type Message = {
-  role: "user" | "assistant";
-  text: string;
-};
+type Message = { role: "user" | "assistant"; text: string };
 
 export default function AssistantPage() {
   const supabase = createBrowserClient(
@@ -16,12 +13,13 @@ export default function AssistantPage() {
   );
 
   const [messages, setMessages] = useState<Message[]>([
-    { role: "assistant", text: "Привет! 👋 Я AI помощник 3X Cargo. Могу ответить на любые вопросы о доставке, тарифах и ваших заказах. Чем могу помочь?" }
+    { role: "assistant", text: "Здравствуйте! Я ассистент 3X Cargo. Чем могу помочь?" }
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [clientCode, setClientCode] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const messagesRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     async function load() {
@@ -35,16 +33,14 @@ export default function AssistantPage() {
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, loading]);
 
   const send = async () => {
     if (!input.trim() || loading) return;
-
     const userMsg = input.trim();
     setInput("");
     setMessages(prev => [...prev, { role: "user", text: userMsg }]);
     setLoading(true);
-
     try {
       const res = await fetch("/api/ai", {
         method: "POST",
@@ -52,23 +48,25 @@ export default function AssistantPage() {
         body: JSON.stringify({ message: userMsg, client_code: clientCode }),
       });
       const data = await res.json();
-      setMessages(prev => [...prev, { role: "assistant", text: data.reply || "Извините, не смог обработать запрос." }]);
+      setMessages(prev => [...prev, { role: "assistant", text: data.reply || "Не смог обработать запрос." }]);
     } catch {
       setMessages(prev => [...prev, { role: "assistant", text: "Произошла ошибка. Попробуйте позже." }]);
     }
-
     setLoading(false);
   };
 
-  const QUICK = [
-    "Сколько стоит доставка?",
-    "Где мои заказы?",
-    "Адрес склада в Китае?",
-    "Адрес выдачи в Бишкеке?",
-  ];
+  const QUICK = ["Сколько стоит доставка?", "Где мои заказы?", "Адрес склада в Китае?", "Адрес выдачи в Бишкеке?"];
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100dvh", background: "#f0f2f5", touchAction: "manipulation", paddingBottom: "env(safe-area-inset-bottom)" }}>
+    <div style={{
+      position: "fixed",
+      top: 0, left: 0, right: 0,
+      bottom: 64,
+      display: "flex",
+      flexDirection: "column",
+      background: "#f0f2f5",
+      touchAction: "manipulation",
+    }}>
 
       {/* HEADER */}
       <div style={{ background: "#fff", padding: "12px 20px", borderBottom: "0.5px solid #e8edf2", display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
@@ -85,16 +83,14 @@ export default function AssistantPage() {
       </div>
 
       {/* MESSAGES */}
-      <div style={{ flex: 1, overflowY: "auto", padding: "14px 14px 0" }}>
-
-        {/* Quick questions */}
+      <div ref={messagesRef} style={{ flex: 1, overflowY: "auto", padding: "14px 14px 0", WebkitOverflowScrolling: "touch" } as React.CSSProperties}>
         {messages.length === 1 && (
           <div style={{ marginBottom: 16 }}>
             <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 8, textAlign: "center" }}>Частые вопросы</div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6, justifyContent: "center" }}>
               {QUICK.map((q, i) => (
-                <button key={i} onClick={() => { setInput(q); }}
-                  style={{ padding: "7px 13px", borderRadius: 20, fontSize: 12, background: "#fff", border: "0.5px solid #e2e8f0", color: "#005eaa", cursor: "pointer", fontWeight: 500 }}>
+                <button key={i} onClick={() => setInput(q)}
+                  style={{ padding: "7px 13px", borderRadius: 20, fontSize: 13, background: "#fff", border: "0.5px solid #e2e8f0", color: "#005eaa", cursor: "pointer", fontWeight: 500 }}>
                   {q}
                 </button>
               ))}
@@ -110,12 +106,12 @@ export default function AssistantPage() {
               </div>
             )}
             <div style={{
-              maxWidth: "75%", padding: "10px 14px", borderRadius: m.role === "user" ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
+              maxWidth: "75%", padding: "10px 14px",
+              borderRadius: m.role === "user" ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
               background: m.role === "user" ? "#005eaa" : "#fff",
               color: m.role === "user" ? "#fff" : "#0a1e3d",
               fontSize: 15, lineHeight: 1.6,
               border: m.role === "assistant" ? "0.5px solid #e8edf2" : "none",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
             }}>
               {m.text}
             </div>
@@ -128,18 +124,15 @@ export default function AssistantPage() {
               <Icon name="headphones" size={15} color="#005eaa" />
             </div>
             <div style={{ background: "#fff", border: "0.5px solid #e8edf2", borderRadius: "16px 16px 16px 4px", padding: "12px 16px", display: "flex", gap: 4, alignItems: "center" }}>
-              {[0, 1, 2].map(i => (
-                <div key={i} style={{ width: 6, height: 6, borderRadius: "50%", background: "#94a3b8", animation: `bounce 1s ${i * 0.2}s infinite` }} />
-              ))}
+              {[0,1,2].map(i => <div key={i} style={{ width: 6, height: 6, borderRadius: "50%", background: "#94a3b8", animation: `bounce 1s ${i*0.2}s infinite` }} />)}
             </div>
           </div>
         )}
-
-        <div ref={bottomRef} />
+        <div ref={bottomRef} style={{ height: 14 }} />
       </div>
 
       {/* INPUT */}
-      <div style={{ background: "#fff", borderTop: "0.5px solid #e8edf2", padding: "12px 14px 12px", flexShrink: 0, marginTop: "auto" }}>
+      <div style={{ background: "#fff", borderTop: "0.5px solid #e8edf2", padding: "12px 14px", flexShrink: 0 }}>
         <div style={{ display: "flex", gap: 8, alignItems: "flex-end" }}>
           <textarea
             value={input}
@@ -147,31 +140,16 @@ export default function AssistantPage() {
             onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
             placeholder="Напишите вопрос..."
             rows={1}
-            style={{
-              flex: 1, padding: "10px 14px", borderRadius: 12,
-              border: "0.5px solid #e2e8f0", fontSize: 16, outline: "none",
-              resize: "none", fontFamily: "inherit", lineHeight: 1.5,
-              maxHeight: 100, overflowY: "auto",
-            }}
+            style={{ flex: 1, padding: "10px 14px", borderRadius: 12, border: "0.5px solid #e2e8f0", fontSize: 16, outline: "none", resize: "none", fontFamily: "inherit", lineHeight: 1.5, maxHeight: 100, overflowY: "auto" }}
           />
           <button onClick={send} disabled={!input.trim() || loading}
-            style={{
-              width: 42, height: 42, borderRadius: 12, flexShrink: 0,
-              background: !input.trim() || loading ? "#e2e8f0" : "#005eaa",
-              border: "none", cursor: !input.trim() || loading ? "not-allowed" : "pointer",
-              display: "flex", alignItems: "center", justifyContent: "center",
-            }}>
+            style={{ width: 42, height: 42, borderRadius: 12, flexShrink: 0, background: !input.trim() || loading ? "#e2e8f0" : "#005eaa", border: "none", cursor: !input.trim() || loading ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <Icon name="chevron_right" size={20} color="#fff" />
           </button>
         </div>
       </div>
 
-      <style>{`
-        @keyframes bounce {
-          0%, 60%, 100% { transform: translateY(0); }
-          30% { transform: translateY(-6px); }
-        }
-      `}</style>
+      <style>{`@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}`}</style>
     </div>
   );
 }
