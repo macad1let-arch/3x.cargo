@@ -1,20 +1,22 @@
 "use client";
 export const dynamic = 'force-dynamic';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
 type FormKey = "first_name" | "last_name" | "phone" | "email" | "password" | "confirm" | "city" | "street" | "house" | "pickup_point" | "telegram_username" | "source" | "offer_accepted";
 
-export default function RegisterPage() {
+function RegisterContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
   const [errors, setErrors] = useState<Partial<Record<FormKey, string>>>({});
+  const [refCode, setRefCode] = useState<string | null>(null);
 
   const [form, setForm] = useState<Record<FormKey, string | boolean>>({
     first_name: "", last_name: "", phone: "+996", email: "",
@@ -22,6 +24,11 @@ export default function RegisterPage() {
     house: "", pickup_point: "Логвиненко 55", telegram_username: "",
     source: "", offer_accepted: false,
   });
+
+  useEffect(() => {
+    const ref = searchParams.get("ref");
+    if (ref) setRefCode(ref);
+  }, []);
 
   const getValue = (key: FormKey) => String(form[key] || "").trim();
 
@@ -65,22 +72,63 @@ export default function RegisterPage() {
     if (signUpError || !signUpData.user) { setLoading(false); setMsg("Ошибка регистрации. Проверьте email или пароль."); return; }
 
     const client_code = `3X-${Math.floor(1000 + Math.random() * 9000)}`;
+    const referral_code = `REF-${client_code.replace("3X-", "")}`;
+
     const { error: insertError } = await supabase.from("clients").insert([{
-      user_id: signUpData.user.id, client_code,
-      first_name: getValue("first_name"), last_name: getValue("last_name"),
-      phone: getValue("phone"), email: getValue("email"),
-      city: getValue("city"), street: getValue("street"),
-      house: getValue("house"), pickup_point: getValue("pickup_point"),
+      user_id: signUpData.user.id,
+      client_code,
+      first_name: getValue("first_name"),
+      last_name: getValue("last_name"),
+      phone: getValue("phone"),
+      email: getValue("email"),
+      city: getValue("city"),
+      street: getValue("street"),
+      house: getValue("house"),
+      pickup_point: getValue("pickup_point"),
       telegram_username: getValue("telegram_username"),
       source: getValue("source"),
       offer_accepted: form.offer_accepted,
+      referred_by: refCode || null,
+      referral_code,
+      loyalty_level: "newbie",
+      total_orders: 0,
+      bonus_balance: 0,
     }]);
+
     if (insertError) { setLoading(false); setMsg("Ошибка сохранения профиля."); return; }
+
+    // Начисляем 100 бонусов рефереру если есть реф код
+    if (refCode) {
+      const { data: referer } = await supabase
+        .from("clients")
+        .select("client_code, bonus_balance, referral_bonus_earned")
+        .eq("referral_code", refCode)
+        .single();
+
+      if (referer) {
+        await supabase.from("clients").update({
+          bonus_balance: (referer.bonus_balance ?? 0) + 100,
+          referral_bonus_earned: (referer.referral_bonus_earned ?? 0) + 100,
+        }).eq("client_code", referer.client_code);
+
+        await supabase.from("bonus_transactions").insert({
+          client_code: referer.client_code,
+          type: "referral",
+          amount: 100,
+          description: `Реферал: ${getValue("first_name")} ${getValue("last_name")}`,
+          balance_after: (referer.bonus_balance ?? 0) + 100,
+        });
+      }
+    }
 
     await fetch("/api/telegram", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: `${getValue("first_name")} ${getValue("last_name")}`, phone: getValue("phone"), message: `Новая регистрация клиента: ${client_code}` }),
+      body: JSON.stringify({
+        name: `${getValue("first_name")} ${getValue("last_name")}`,
+        phone: getValue("phone"),
+        message: `Новая регистрация клиента: ${client_code}${refCode ? ` (реферал: ${refCode})` : ""}`,
+      }),
     });
 
     setLoading(false);
@@ -97,6 +145,11 @@ export default function RegisterPage() {
         <div style={{ marginBottom: 24, textAlign: "center" }}>
           <div style={{ fontSize: 24, fontWeight: 900, color: "#0d1a2e", letterSpacing: "-0.03em", marginBottom: 6 }}>Регистрация</div>
           <div style={{ fontSize: 13, color: "#7a8fa8", fontWeight: 500 }}>Заполните данные, чтобы получить личный код для доставки</div>
+          {refCode && (
+            <div style={{ marginTop: 10, background: "#ecfdf5", border: "1px solid #86efac", borderRadius: 10, padding: "8px 16px", fontSize: 13, color: "#15803d", fontWeight: 600 }}>
+              Реферальный код применён: {refCode} — вы получите 100 бонусов после первого заказа!
+            </div>
+          )}
         </div>
 
         <div style={{ background: "#fff", borderRadius: 20, boxShadow: "0 4px 24px rgba(0,0,0,.07)", padding: "24px 20px", width: "100%", maxWidth: 400, display: "flex", flexDirection: "column", gap: 12 }}>
@@ -204,8 +257,15 @@ export default function RegisterPage() {
   );
 }
 
-// ── Стили ──────────────────────────────────────────────────────────
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<div />}>
+      <RegisterContent />
+    </Suspense>
+  );
+}
 
+// ── Стили ──────────────────────────────────────────────────────────
 const inputStyle: React.CSSProperties = {
   flex: 1, border: "none", outline: "none", fontSize: 14, fontWeight: 500,
   color: "#0d1a2e", fontFamily: "Geologica, sans-serif", background: "transparent", minWidth: 0,
@@ -217,8 +277,6 @@ const primaryBtnStyle: React.CSSProperties = {
 const iconBtnStyle: React.CSSProperties = {
   background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center",
 };
-
-// ── Field ──────────────────────────────────────────────────────────
 
 function Field({ label, icon, suffix, error, children }: {
   label: React.ReactNode; icon: React.ReactNode; suffix?: React.ReactNode;
@@ -234,8 +292,6 @@ function Field({ label, icon, suffix, error, children }: {
     </div>
   );
 }
-
-// ── Иконки ──────────────────────────────────────────────────────────
 
 const IconEmail    = () => (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9fb3d0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>);
 const IconLock     = () => (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9fb3d0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>);
