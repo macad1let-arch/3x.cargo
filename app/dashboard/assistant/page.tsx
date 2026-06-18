@@ -68,7 +68,7 @@ export default function AssistantPage() {
   ];
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 64px)", background: "#f0f2f5", touchAction: "manipulation" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100dvh", background: "#f0f2f5", touchAction: "manipulation", paddingBottom: "env(safe-area-inset-bottom)" }}>
 
       {/* HEADER */}
       <div style={{ background: "#fff", padding: "12px 20px", borderBottom: "0.5px solid #e8edf2", display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
