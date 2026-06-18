@@ -68,7 +68,7 @@ export default function AssistantPage() {
   ];
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100vh", background: "#f0f2f5" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 64px)", background: "#f0f2f5", touchAction: "manipulation" }}>
 
       {/* HEADER */}
       <div style={{ background: "#fff", padding: "12px 20px", borderBottom: "0.5px solid #e8edf2", display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
@@ -113,7 +113,7 @@ export default function AssistantPage() {
               maxWidth: "75%", padding: "10px 14px", borderRadius: m.role === "user" ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
               background: m.role === "user" ? "#005eaa" : "#fff",
               color: m.role === "user" ? "#fff" : "#0a1e3d",
-              fontSize: 13, lineHeight: 1.5,
+              fontSize: 15, lineHeight: 1.6,
               border: m.role === "assistant" ? "0.5px solid #e8edf2" : "none",
               boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
             }}>
@@ -149,7 +149,7 @@ export default function AssistantPage() {
             rows={1}
             style={{
               flex: 1, padding: "10px 14px", borderRadius: 12,
-              border: "0.5px solid #e2e8f0", fontSize: 14, outline: "none",
+              border: "0.5px solid #e2e8f0", fontSize: 16, outline: "none",
               resize: "none", fontFamily: "inherit", lineHeight: 1.5,
               maxHeight: 100, overflowY: "auto",
             }}
