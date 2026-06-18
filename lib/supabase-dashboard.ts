@@ -25,6 +25,11 @@ export type Client = {
   referral_bonus_earned: number;
   user_id: string;
   status: string;
+  telegram_username: string;
+  city: string;
+  street: string;
+  house: string;
+  pickup_point: string;
 };
 
 export type Shipment = {
@@ -146,7 +151,7 @@ export function getLevelProgress(orders: number, currentKey: string): number {
   if (!current || !next) return 100;
   const range = next.minOrders - current.minOrders;
   const progress = orders - current.minOrders;
-  return Math.min(100, Math.round((progress / range) * 100));
+  return Math.min(100, Math.max(5, Math.round((progress / range) * 100)));
 }
 
 // ── СТАТУСЫ ЗАКАЗОВ ───────────────────────────────────────────────────────────
@@ -165,7 +170,7 @@ export const STATUS_MAP: Record<string, { label: string; iconName: string; color
 export async function getClient(userId: string): Promise<Client | null> {
   const { data, error } = await supabase
     .from("clients")
-    .select("id, client_code, first_name, last_name, full_name, phone, email, balance, bonus_balance, total_bonus_earned, total_bonus_used, total_orders, loyalty_level, referral_code, referred_by, referral_bonus_earned, user_id, status")
+    .select("id, client_code, first_name, last_name, full_name, phone, email, balance, bonus_balance, total_bonus_earned, total_bonus_used, total_orders, loyalty_level, referral_code, referred_by, referral_bonus_earned, user_id, status, telegram_username, city, street, house, pickup_point")
     .eq("user_id", userId)
     .single();
 
