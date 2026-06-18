@@ -139,7 +139,7 @@ export default function AssistantPage() {
       </div>
 
       {/* INPUT */}
-      <div style={{ background: "#fff", borderTop: "0.5px solid #e8edf2", padding: "12px 14px", flexShrink: 0 }}>
+      <div style={{ background: "#fff", borderTop: "0.5px solid #e8edf2", padding: "12px 14px 12px", flexShrink: 0, marginTop: "auto" }}>
         <div style={{ display: "flex", gap: 8, alignItems: "flex-end" }}>
           <textarea
             value={input}
@@ -163,9 +163,6 @@ export default function AssistantPage() {
             }}>
             <Icon name="chevron_right" size={20} color="#fff" />
           </button>
-        </div>
-        <div style={{ fontSize: 10, color: "#c4c9d4", textAlign: "center", marginTop: 6 }}>
-          AI может ошибаться · Для срочных вопросов: +996 220 343 053
         </div>
       </div>
 
