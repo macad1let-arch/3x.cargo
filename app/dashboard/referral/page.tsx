@@ -37,7 +37,7 @@ export default function ReferralPage() {
   }, []);
 
   const copy = () => {
-    navigator.clipboard?.writeText(`https://3xcargo.kg/register?ref=${client?.referral_code ?? ""}`).catch(() => {});
+    navigator.clipboard?.writeText(`https://3x-cargo.vercel.app/register?ref=${client?.referral_code ?? ""}`).catch(() => {});
     setCopied(true);
     setTimeout(() => setCopied(false), 1600);
   };
@@ -47,7 +47,7 @@ export default function ReferralPage() {
       navigator.share({
         title: "3X Cargo",
         text: `Присоединяйся к 3X Cargo! Используй мой код ${client?.referral_code} при регистрации — оба получим по 100 бонусов.`,
-        url: `https://3xcargo.kg/register?ref=${client?.referral_code}`,
+        url: `https://3x-cargo.vercel.app/register?ref=${client?.referral_code}`,
       });
     } else {
       copy();
