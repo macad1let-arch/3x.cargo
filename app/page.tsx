@@ -654,7 +654,7 @@ useEffect(() => {
   <span style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,.7)", letterSpacing: ".04em" }}>Китай → Бишкек</span>
 </div>
 <div style={{ fontSize: 24, fontWeight: 900, color: "#fff", letterSpacing: "-0.03em", lineHeight: 1.05, marginBottom: 10, textShadow: "0 2px 12px rgba(0,0,0,.5)" }}>
-  Пиндодошки тут?
+  
 </div>
 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
   <span style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,.9)", background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 8, padding: "5px 10px" }}>2.8$/кг</span>
@@ -946,7 +946,357 @@ useEffect(() => {
 </div>
       </section>
 
+      {/* ══ CALCULATOR ══ */}
 
+<section style={{ padding: "20px 16px", background: "#f0f4f8" }} id="calculator">
+
+  <div style={{ background: "#fff", borderRadius: 20, overflow: "hidden", maxWidth: 480, margin: "0 auto", boxShadow: "0 4px 24px rgba(0,0,0,.07)" }}>
+
+
+
+    {/* Шапка */}
+
+    <div style={{ background: "#1a3a6e", padding: "16px 20px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+
+      <div>
+
+        <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", letterSpacing: "-0.02em", marginBottom: 5 }}>Калькулятор доставки</div>
+
+        <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.5)" strokeWidth="2" strokeLinecap="round"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>
+
+          <span style={{ fontSize: 12, color: "rgba(255,255,255,.5)", fontWeight: 500 }}>Китай → Бишкек</span>
+
+        </div>
+
+      </div>
+
+      <div style={{ border: "1.5px solid rgba(255,255,255,0.25)", borderRadius: 10, padding: "7px 14px", textAlign: "center" }}>
+
+  <div style={{ fontSize: 15, fontWeight: 900, color: "#fff", letterSpacing: "-0.02em" }}>$2.8/кг</div>
+
+  <div style={{ fontSize: 10, color: "rgba(255,255,255,.4)", fontWeight: 500, marginTop: 2 }}>тариф</div>
+
+</div>
+
+    </div>
+
+
+
+    <div style={{ padding: "20px", display: "flex", flexDirection: "column", gap: 14 }}>
+
+
+
+      {/* Вес */}
+
+      <div>
+
+        <div style={{ fontSize: 13, fontWeight: 700, color: "#4a6080", marginBottom: 8 }}>Вес товара</div>
+
+        <div style={{ position: "relative" }}>
+
+          <input type="number" placeholder="Введите вес" min="0" step="0.1" value={weight}
+
+            onChange={e => setWeight(e.target.value === "" ? "" : +e.target.value)}
+
+            style={{ width: "100%", height: 50, padding: "0 48px 0 16px", border: "1.5px solid #e8edf5", borderRadius: 12, fontSize: 14, fontWeight: 500, color: "#0d1a2e", fontFamily: "inherit", outline: "none", background: "#fff", boxSizing: "border-box" as const }} />
+
+          <span style={{ position: "absolute", right: 16, top: "50%", transform: "translateY(-50%)", fontSize: 13, fontWeight: 600, color: "#9fb3d0" }}>кг</span>
+
+        </div>
+
+      </div>
+
+
+
+      {/* Размеры */}
+
+      <div>
+
+        <div style={{ fontSize: 13, fontWeight: 700, color: "#4a6080", marginBottom: 8 }}>
+
+          Размеры коробки <span style={{ color: "#9fb3d0", fontWeight: 500 }}>(для объёмных товаров)</span>
+
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+
+          {[{ ph: "Длина", val: length, set: setLength }, { ph: "Ширина", val: width, set: setWidth }, { ph: "Высота", val: height, set: setHeight }].map(({ ph, val, set }) => (
+
+            <div key={ph} style={{ position: "relative" }}>
+
+              <input type="number" placeholder={ph} min="0" step="1" value={val}
+
+                onChange={e => set(e.target.value)}
+
+                style={{ width: "100%", height: 50, padding: "0 28px 0 12px", border: "1.5px solid #e8edf5", borderRadius: 12, fontSize: 13, fontWeight: 500, color: "#0d1a2e", fontFamily: "inherit", outline: "none", background: "#fff", boxSizing: "border-box" as const }} />
+
+              <span style={{ position: "absolute", right: 9, top: "50%", transform: "translateY(-50%)", fontSize: 10, fontWeight: 700, color: "#9fb3d0" }}>см</span>
+
+            </div>
+
+          ))}
+
+        </div>
+
+        </div>
+
+
+
+     {/* Результаты */}
+
+{pw > 0 && (
+
+  <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 14 }}>
+
+
+
+    {/* Блок веса */}
+
+    <div style={{ border: "1.5px solid #e8edf5", borderRadius: 14, padding: "12px 14px", background: "#f7faff" }}>
+
+  {isVol ? (
+
+    <>
+
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+
+        <div>
+
+          <div style={{ fontSize: 11, color: "#7a8fa8", fontWeight: 500, marginBottom: 2 }}>Объёмный вес</div>
+
+          <div style={{ fontSize: 18, fontWeight: 800, color:"#0d1a2e" }}>{vw.toFixed(2)} кг</div>
+
+        </div>
+
+        <div style={{ textAlign: "right" }}>
+
+          <div style={{ fontSize: 11, color: "#7a8fa8", fontWeight: 500, marginBottom: 2 }}>Фактический вес</div>
+
+          <div style={{ fontSize: 18, fontWeight: 800, color: "#9fb3d0" }}>{pw.toFixed(2)} кг</div>
+
+        </div>
+
+      </div>
+
+      <div style={{ fontSize: 11, color: "#005eaa", fontWeight: 600, background: "#e8f2fb", borderRadius: 7, padding: "4px 8px", marginBottom: 8, display: "inline-block" }}>
+
+        Расчёт по объёмному весу
+
+      </div>
+
+      <details>
+
+        <summary style={{ fontSize: 12, fontWeight: 600, color: "#4a6080", cursor: "pointer", listStyle: "none", display: "flex", justifyContent: "space-between", alignItems: "center", padding: "7px 10px", background: "#fff", border: "1.5px solid #e8edf5", borderRadius: 10 }}>
+
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+
+            <span>Почему объёмный вес?</span>
+
+          </div>
+
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9fb3d0" strokeWidth="2.5" strokeLinecap="round"><path d="M6 9l6 6 6-6"/></svg>
+
+        </summary>
+
+        <div style={{ padding: "10px 12px", fontSize: 12, color: "#7a8fa8", lineHeight: 1.6, background: "#fffbeb", border: "1.5px solid #fcd34d", borderTop: "none", borderRadius: "0 0 10px 10px" }}>
+
+          Груз занимает больше места, чем соответствует его весу. По стандарту карго считается объёмный вес:<br/>
+
+          <strong style={{ color: "#92400e" }}>({parseFloat(length)} × {parseFloat(width)} × {parseFloat(height)}) ÷ 6000 = {vw.toFixed(2)} кг</strong><br/>
+
+        </div>
+
+      </details>
+
+    </>
+
+  ) : (
+
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+
+      <span style={{ fontSize: 13, fontWeight: 600, color: "#4a6080" }}>Фактический вес</span>
+
+      <span style={{ fontSize: 20, fontWeight: 900, color: "#0d1a2e" }}>{pw.toFixed(2)} кг</span>
+
+    </div>
+
+  )}
+
+</div>
+
+
+
+    {/* Итого */}
+
+    <div style={{ background: "#1a3a6e", padding: "12px 16px", borderRadius: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+
+      <div>
+
+        <div style={{ fontSize: 12, color: "rgba(255,255,255,.5)", marginBottom: 2 }}>Итого к оплате</div>
+
+        <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+
+          <span style={{ fontSize: 22, fontWeight: 900, color: "#fff", letterSpacing: "-0.03em" }}>${price}</span>
+
+          <span style={{ fontSize: 11, color: "rgba(255,255,255,.4)" }}>≈ {Math.round(parseFloat(price || "0") * 90).toLocaleString()} сом</span>
+
+        </div>
+
+      </div>
+
+      <div style={{ textAlign: "right" }}>
+
+        <div style={{ fontSize: 10, color: "rgba(255,255,255,.4)", marginBottom: 2 }}>Срок доставки</div>
+
+        <div style={{ fontSize: 15, fontWeight: 800, color: "#fff" }}>7–12 дней</div>
+
+      </div>
+
+    </div>
+
+
+
+  </div>
+
+)}
+
+
+
+      {/* Подсказка */}
+
+      <div style={{ display: "flex", alignItems: "center", gap: 7, padding: "7px 10px", background: "#f0f6ff", border: "1px solid #dce8f5", borderRadius: 8 }}>
+
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4a85c2" strokeWidth="2.5" strokeLinecap="round" style={{ flexShrink: 0 }}><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+
+  <span style={{ fontSize: 11, color: "#5a7fa8", fontWeight: 500 }}>Точная цена подтверждается на складе в Китае</span>
+
+</div>
+
+    </div>
+
+  </div>
+
+{/* Спец тариф */}
+<div
+  style={{
+    marginTop: 12,
+    border: "1.5px solid #e8edf5",
+    borderRadius: 14,
+    padding: "14px",
+    background: "#f7faff",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: 14,
+    flexWrap: "wrap"
+  }}
+>
+  <div style={{ flex: 1, minWidth: 180 }}>
+    <div
+      style={{
+        display: "inline-block",
+        padding: "4px 8px",
+        borderRadius: 7,
+        background: "#e8f2fb",
+        color: "#005eaa",
+        fontSize: 11,
+        fontWeight: 700,
+        marginBottom: 6
+      }}
+    >
+      Спецпредложение
+    </div>
+
+    <div
+      style={{
+        fontSize: 17,
+        fontWeight: 900,
+        color: "#0d1a2e",
+        marginBottom: 4
+      }}
+    >
+      от <span style={{ color: "#1a3a6e" }}>$0.80/кг</span>
+    </div>
+
+    <div
+      style={{
+        fontSize: 12,
+        color: "#6b7d96",
+        lineHeight: 1.55
+      }}
+    >
+      Для крупных партий и тяжёлых грузов действует индивидуальный тариф.
+      Напишите нам для расчёта стоимости.
+    </div>
+  </div>
+
+  <div
+    style={{
+      display: "flex",
+      gap: 10,
+      alignItems: "center"
+    }}
+  >
+    {/* WhatsApp */}
+    <a
+      href="https://wa.me/996XXXXXXXXX"
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{
+        width: 46,
+        height: 46,
+        borderRadius: 12,
+        background: "#25D366",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        textDecoration: "none",
+        boxShadow: "0 3px 10px rgba(0,0,0,.08)"
+      }}
+    >
+      <svg
+        width="23"
+        height="23"
+        viewBox="0 0 32 32"
+        fill="white"
+      >
+        <path d="M16 3C8.8 3 3 8.7 3 15.8c0 2.5.7 4.8 2 6.8L3 29l6.6-1.9c1.9 1 4.1 1.6 6.4 1.6 7.2 0 13-5.7 13-12.8C29 8.7 23.2 3 16 3zm7.5 18.3c-.3.8-1.7 1.5-2.4 1.6-.6.1-1.3.2-2.2-.1-.5-.2-1.2-.4-2-.8-3.5-1.5-5.8-5.1-6-5.3-.2-.3-1.4-1.9-1.4-3.6s.9-2.5 1.2-2.9c.3-.4.7-.5.9-.5h.7c.2 0 .5 0 .7.6.3.7.9 2.4 1 2.5.1.2.1.4 0 .6-.1.2-.2.4-.4.6l-.5.6c-.2.2-.4.5-.2.9.2.4 1 1.7 2.2 2.7 1.5 1.3 2.7 1.7 3.1 1.9.4.2.6.2.9-.1l1.1-1.3c.3-.4.6-.4 1-.2.4.1 2.4 1.1 2.8 1.3.5.2.8.3.9.5.1.1.1.8-.2 1.6z"/>
+      </svg>
+    </a>
+
+    {/* Telegram */}
+    <a
+      href="https://t.me/USERNAME"
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{
+        width: 46,
+        height: 46,
+        borderRadius: 12,
+        background: "#229ED9",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        textDecoration: "none",
+        boxShadow: "0 3px 10px rgba(0,0,0,.08)"
+      }}
+    >
+      <svg
+        width="22"
+        height="22"
+        viewBox="0 0 24 24"
+        fill="white"
+      >
+        <path d="M22 3.8L18.7 20c-.2 1.1-.8 1.4-1.6.9l-4.5-3.3-2.2 2.1c-.2.2-.4.4-.8.4l.3-4.6 8.4-7.6c.4-.3-.1-.5-.6-.2L7.4 14 3 12.6c-1-.3-1-.9.2-1.4L20.8 4c.8-.3 1.5.2 1.2 1.8z"/>
+      </svg>
+    </a>
+  </div>
+</div>
+</section>
 {/* ══ FAQ ══ */}
 <section style={{ padding: "20px 16px", background: "#f7f9fc" }} id="faq">
   <div className="wrap">
