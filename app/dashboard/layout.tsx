@@ -7,7 +7,7 @@ import { Home, Package, BookOpen, Gift, User } from "lucide-react";
 const navItems = [
   { href: "/dashboard",           label: "Главная",    icon: Home     },
   { href: "/dashboard/orders",    label: "Заказы",     icon: Package  },
-  { href: "/dashboard/assistant", label: "Инструкция", icon: BookOpen },
+  { href: "/dashboard/instructions", label: "Инструкция", icon: BookOpen },
   { href: "/dashboard/bonuses",   label: "Бонусы",     icon: Gift     },
   { href: "/dashboard/profile",   label: "Профиль",    icon: User     },
 ];
