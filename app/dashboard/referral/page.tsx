@@ -47,7 +47,7 @@ export default function ReferralPage() {
       navigator.share({
         title: "3X Cargo",
         text: `Присоединяйся к 3X Cargo! Используй мой код ${client?.referral_code} при регистрации — оба получим по 100 бонусов.`,
-        url: `https://3x-cargo.vercel.app/register?ref=${client?.referral_code}`,
+        url: `https://3/register?ref=${client?.referral_code}`,
       });
     } else {
       copy();

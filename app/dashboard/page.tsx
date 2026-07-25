@@ -255,31 +255,6 @@ export default function DashboardHome() {
   </svg>
 </div>
 
-{/* QUICK ACTIONS */}
-<div style={{ background: "#fff", borderRadius: 16, border: "1px solid #e8edf5", marginBottom: 12, padding: "16px 0" }}>
-  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr" }}>
-    {[
-      {
-        icon: <svg width="28" height="28" viewBox="0 0 24 24" fill="#1e3a8a"><path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/></svg>,
-        label: "Обучение", href: "/"
-      },
-      {
-        icon: <svg width="28" height="28" viewBox="0 0 24 24" fill="#1e3a8a"><path d="M21 5c-1.11-.35-2.33-.5-3.5-.5-1.95 0-4.05.4-5.5 1.5-1.45-1.1-3.55-1.5-5.5-1.5S2.45 4.9 1 6v14.65c0 .25.25.5.5.5.1 0 .15-.05.25-.05C3.1 20.45 5.05 20 6.5 20c1.95 0 4.05.4 5.5 1.5 1.35-.85 3.8-1.5 5.5-1.5 1.65 0 3.35.3 4.75 1.05.1.05.15.05.25.05.25 0 .5-.25.5-.5V6c-.6-.45-1.25-.75-2-1zm0 13.5c-1.1-.35-2.3-.5-3.5-.5-1.7 0-4.15.65-5.5 1.5V8c1.35-.85 3.8-1.5 5.5-1.5 1.2 0 2.4.15 3.5.5v11.5z"/></svg>,
-        label: "Инструкции", href: "/dashboard/instructions"
-      },
-      {
-        icon: <svg width="28" height="28" viewBox="0 0 24 24" fill="#1e3a8a"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z"/></svg>,
-        label: "Награды", href: "/dashboard/bonuses"
-      },
-    ].map((q, i) => (
-      <Link key={i} href={q.href} style={{ textDecoration: "none", display: "flex", flexDirection: "column", alignItems: "center", gap: 10, padding: "8px 0", borderRight: i < 2 ? "1px solid #e8edf5" : "none" }}>
-        {q.icon}
-        <div style={{ fontSize: 12, fontWeight: 600, color: "#0f172a" }}>{q.label}</div>
-      </Link>
-    ))}
-  </div>
-</div>
-
 {/* MY ORDERS */}
 <div style={{ marginBottom: 12 }}>
   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
@@ -334,6 +309,31 @@ export default function DashboardHome() {
       </div>
     </Link>
 
+  </div>
+</div>
+
+{/* QUICK ACTIONS */}
+<div style={{ background: "#fff", borderRadius: 16, border: "1px solid #e8edf5", marginBottom: 12, padding: "16px 0" }}>
+  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr" }}>
+    {[
+      {
+        icon: <svg width="28" height="28" viewBox="0 0 24 24" fill="#1e3a8a"><path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/></svg>,
+        label: "Обучение", href: "/"
+      },
+      {
+        icon: <svg width="28" height="28" viewBox="0 0 24 24" fill="#1e3a8a"><path d="M21 5c-1.11-.35-2.33-.5-3.5-.5-1.95 0-4.05.4-5.5 1.5-1.45-1.1-3.55-1.5-5.5-1.5S2.45 4.9 1 6v14.65c0 .25.25.5.5.5.1 0 .15-.05.25-.05C3.1 20.45 5.05 20 6.5 20c1.95 0 4.05.4 5.5 1.5 1.35-.85 3.8-1.5 5.5-1.5 1.65 0 3.35.3 4.75 1.05.1.05.15.05.25.05.25 0 .5-.25.5-.5V6c-.6-.45-1.25-.75-2-1zm0 13.5c-1.1-.35-2.3-.5-3.5-.5-1.7 0-4.15.65-5.5 1.5V8c1.35-.85 3.8-1.5 5.5-1.5 1.2 0 2.4.15 3.5.5v11.5z"/></svg>,
+        label: "Инструкции", href: "/dashboard/instructions"
+      },
+      {
+        icon: <svg width="28" height="28" viewBox="0 0 24 24" fill="#1e3a8a"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z"/></svg>,
+        label: "Награды", href: "/dashboard/bonuses"
+      },
+    ].map((q, i) => (
+      <Link key={i} href={q.href} style={{ textDecoration: "none", display: "flex", flexDirection: "column", alignItems: "center", gap: 10, padding: "8px 0", borderRight: i < 2 ? "1px solid #e8edf5" : "none" }}>
+        {q.icon}
+        <div style={{ fontSize: 12, fontWeight: 600, color: "#0f172a" }}>{q.label}</div>
+      </Link>
+    ))}
   </div>
 </div>
 
