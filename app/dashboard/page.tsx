@@ -1,387 +1,1344 @@
 "use client";
-import { useState, useEffect } from "react";
+
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { createBrowserClient } from "@supabase/ssr";
-import { getClient, getShipmentCounts, getUnreadCount, getLoyaltyLevel, getNextLevel, getLevelProgress, Client } from "@/lib/supabase-dashboard";
-import { Icon } from "@/lib/dashboard";
+import { FaPhone, FaTelegram, FaWhatsapp } from "react-icons/fa6";
+import {
+  Client,
+  getClient,
+  getShipmentCounts,
+  getUnreadCount,
+} from "@/lib/supabase-dashboard";
+
+// Р•РґРёРЅР°СЏ РїР°Р»РёС‚СЂР°: РѕРґРёРЅ Р°РєС†РµРЅС‚ (NAVY), GREEN вЂ” С‚РѕР»СЊРєРѕ РєР°Рє СЃРµРјР°РЅС‚РёС‡РµСЃРєРёР№ СЃРёРіРЅР°Р»
+// "РЅСѓР¶РЅРѕ РґРµР№СЃС‚РІРёРµ" (РіРѕС‚РѕРІРѕ Рє РІС‹РґР°С‡Рµ). РќРёРєР°РєРѕРіРѕ СЃС‚Р°С‚СѓСЃ-СЂР°РґСѓР¶РЅРѕРіРѕ РєРѕРґРёСЂРѕРІР°РЅРёСЏ,
+// РЅРёРєР°РєРёС… РіСЂР°РґРёРµРЅС‚РѕРІ вЂ” РїР»РѕСЃРєРёРµ РїРѕРІРµСЂС…РЅРѕСЃС‚Рё, СЂР°Р·РЅРёС†Р° С‚РѕР»СЊРєРѕ РІ РЅР°СЃС‹С‰РµРЅРЅРѕСЃС‚Рё С„РѕРЅР°.
+const NAVY = "#123B9F";
+const TEXT = "#0A1E3D";
+const MUTED = "#64748B";
+const RED = "#F2384A";
+const BLUE = "#1769E8";
+const GREEN = "#08A66A";
+const VIOLET = "#7047EB";
+const BORDER = "#E5EAF2";
+const TINT = "#EEF3FF"; // СЃРІРµС‚Р»Р°СЏ Р·Р°Р»РёРІРєР° РїРѕРґ Р°РєС†РµРЅС‚РЅС‹Рµ Р±Р»РѕРєРё
+const WAREHOUSE_PHONE = "18745081507";
+const WAREHOUSE_REGION = "е№їдёњзњЃ е№їе·ћеё‚ иЌ”ж№ѕеЊє";
+const WAREHOUSE_LOCATION = "з«™е‰Ќи·Їе®‡е®™йћ‹еџЋDеЊє512-жЎЈеЏЈ";
+
+type ClientWithAmount = Client & { amount_due?: number };
+
+function CopyIcon({ size = 22 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <rect x="8" y="8" width="12" height="12" rx="2" />
+      <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" />
+    </svg>
+  );
+}
+
+function Chevron({ size = 22 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="m9 18 6-6-6-6" />
+    </svg>
+  );
+}
+
+function ReadyIcon({ size = 46 }: { size?: number }) {
+  return (
+    <img
+      src="/icons/dashboard/ready.svg"
+      alt=""
+      width={size}
+      height={size}
+      aria-hidden="true"
+    />
+  );
+}
+
+function ChinaIcon() {
+  return <img src="/icons/dashboard/china.svg" alt="" aria-hidden="true" />;
+}
+
+function TruckIcon() {
+  return <img src="/icons/dashboard/truck.svg" alt="" aria-hidden="true" />;
+}
+
+function IssuedIcon() {
+  return <img src="/icons/dashboard/issued.svg" alt="" aria-hidden="true" />;
+}
+
+function readyText(count: number) {
+  const lastTwo = count % 100;
+  const last = count % 10;
+
+  if (lastTwo >= 11 && lastTwo <= 14) {
+    return `${count} РїРѕСЃС‹Р»РѕРє РіРѕС‚РѕРІС‹ Рє РІС‹РґР°С‡Рµ`;
+  }
+
+  if (last === 1) {
+    return `${count} РїРѕСЃС‹Р»РєР° РіРѕС‚РѕРІР° Рє РІС‹РґР°С‡Рµ`;
+  }
+
+  if (last >= 2 && last <= 4) {
+    return `${count} РїРѕСЃС‹Р»РєРё РіРѕС‚РѕРІС‹ Рє РІС‹РґР°С‡Рµ`;
+  }
+
+  return `${count} РїРѕСЃС‹Р»РѕРє РіРѕС‚РѕРІС‹ Рє РІС‹РґР°С‡Рµ`;
+}
 
 export default function DashboardHome() {
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  const supabase = useMemo(
+    () =>
+      createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      ),
+    []
   );
 
-  const [client, setClient] = useState<Client | null>(null);
-  const [counts, setCounts] = useState({ china: 0, transit: 0, sorting: 0, ready: 0 });
+  const [client, setClient] = useState<ClientWithAmount | null>(null);
+  const [counts, setCounts] = useState({
+    china: 0,
+    transit: 0,
+    sorting: 0,
+    ready: 0,
+  });
   const [unread, setUnread] = useState(0);
   const [totalOrders, setTotalOrders] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [copied, setCopied] = useState<"code" | "address" | null>(null);
 
   useEffect(() => {
+    let active = true;
+
     async function load() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { setLoading(false); return; }
-      const clientData = await getClient(user.id);
-      if (!clientData) { setLoading(false); return; }
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!active) return;
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
+      const clientData = (await getClient(user.id)) as ClientWithAmount | null;
+      if (!active) return;
+      if (!clientData) {
+        setLoading(false);
+        return;
+      }
+
       setClient(clientData);
+
       const [shipmentCounts, unreadCount] = await Promise.all([
         getShipmentCounts(clientData.client_code),
         getUnreadCount(clientData.client_code),
       ]);
+
+      if (!active) return;
       setCounts(shipmentCounts);
       setUnread(unreadCount);
       setTotalOrders(clientData.total_orders ?? 0);
       setLoading(false);
     }
-    load();
-  }, []);
 
-  const loyaltyLevel = getLoyaltyLevel(totalOrders);
-  const nextLevel = getNextLevel(loyaltyLevel.key);
-  const progress = getLevelProgress(totalOrders, loyaltyLevel.key);
-  const totalActive = counts.china + counts.transit + counts.sorting + counts.ready;
-  const ORDER_TILES = [
-    {
-      key: "china",
-      label: "В Китае",
-      count: counts.china,
-      bg: "#eff6ff",
-      icon: (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round">
-          <path d="M3 7h18v10H3z" />
-          <path d="M3 7l9 5 9-5" />
-        </svg>
-      ),
-    },
-    {
-      key: "transit",
-      label: "В пути",
-      count: counts.transit,
-      bg: "#eff6ff",
-      icon: (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" strokeWidth="2" strokeLinecap="round">
-          <path d="M3 16h15" />
-          <path d="M5 16v-5a4 4 0 0 1 8 0v5" />
-          <path d="M19 16h2v3h-2z" />
-          <circle cx="7" cy="19" r="2" />
-          <circle cx="17" cy="19" r="2" />
-        </svg>
-      ),
-    },
-    {
-      key: "sorting",
-      label: "Сортировка",
-      count: counts.sorting,
-      bg: "#ede9fe",
-      icon: (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" strokeWidth="2" strokeLinecap="round">
-          <path d="M6 9h12" />
-          <path d="M6 13h8" />
-          <path d="M6 17h4" />
-          <path d="M18 5l3 3-3 3" />
-        </svg>
-      ),
-    },
-    {
-      key: "ready",
-      label: "Готово",
-      count: counts.ready,
-      bg: "#dcfce7",
-      icon: (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2" strokeLinecap="round">
-          <path d="M20 6L9 17l-5-5" />
-        </svg>
-      ),
-    },
-  ];
-  const firstName = client?.first_name || client?.full_name?.split(" ")[0] || "Клиент";
+    load();
+    return () => {
+      active = false;
+    };
+  }, [supabase]);
+
+  const firstName =
+    client?.first_name || client?.full_name?.split(" ")[0] || "РљР»РёРµРЅС‚";
+
+  const issuedCount = Math.max(
+    totalOrders -
+      (counts.china + counts.transit + counts.sorting + counts.ready),
+    0
+  );
+
+  const amountDue = client?.amount_due ?? 0;
+  const clientCode = client?.client_code || "вЂ”";
+  const warehouseRecipient = `йѕ™з”џ ${clientCode}`;
+  const warehouseAddress = `${warehouseRecipient}\n${WAREHOUSE_PHONE}\n${WAREHOUSE_REGION}\n${WAREHOUSE_LOCATION} ${clientCode}`;
+
+  async function copyText(value: string, type: "code" | "address") {
+    if (!value) return;
+    await navigator.clipboard.writeText(value);
+    setCopied(type);
+    window.setTimeout(() => setCopied(null), 1500);
+  }
 
   if (loading) {
     return (
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", background: "#f4f6f9" }}>
-        <div style={{ width: 32, height: 32, border: "3px solid #e8edf2", borderTopColor: "#005eaa", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
-        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-      </div>
+      <main className="loading">
+        <div />
+        <style jsx>{`
+          .loading {
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            background: #fff;
+          }
+          .loading div {
+            width: 32px;
+            height: 32px;
+            border: 3px solid #e8edf2;
+            border-top-color: ${NAVY};
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+          }
+          @keyframes spin {
+            to {
+              transform: rotate(360deg);
+            }
+          }
+        `}</style>
+      </main>
     );
   }
 
   return (
-    <div style={{ background: "#f4f6f9", minHeight: "100vh", paddingBottom: 80 }}>
-
-{/* TOPBAR */}
-<div style={{ background: "#fff", padding: "12px 18px 14px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-  {/* Левая часть: аватар + имя + код */}
-  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-    <div style={{
-      width: 46, height: 46, borderRadius: "50%",
-      background: "#0a1e3d",
-      display: "flex", alignItems: "center", justifyContent: "center",
-      fontSize: 16, fontWeight: 800, color: "#fff", flexShrink: 0,
-      letterSpacing: 0.5
-    }}>
-      {(firstName[0] || "").toUpperCase()}{(client?.last_name?.[0] || client?.full_name?.split(" ")[1]?.[0] || "").toUpperCase()}
-    </div>
-    <div>
-      <div style={{ fontSize: 20, fontWeight: 800, color: "#0a1e3d", lineHeight: 1.1 }}>{firstName}</div>
-      <div style={{ fontSize: 13, color: "#94a3b8", marginTop: 2, fontWeight: 500 }}>{client?.client_code}</div>
-    </div>
-  </div>
-
-  {/* Правая часть: колокол, язык, луна */}
-  <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-    {/* Колокол */}
-    <Link href="/dashboard/notifications" style={{ textDecoration: "none", display: "flex", flexDirection: "column", alignItems: "center", position: "relative" }}>
-      <div style={{ position: "relative" }}>
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0a1e3d" strokeWidth="2" strokeLinecap="round">
-          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-          <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-        </svg>
-        {unread > 0 && (
-          <div style={{ position: "absolute", top: -2, right: -2, width: 8, height: 8, background: "#ef4444", borderRadius: "50%", border: "2px solid #fff" }} />
-        )}
-      </div>
-    </Link>
-
-    {/* Язык */}
-<div style={{ cursor: "pointer" }}>
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0a1e3d" strokeWidth="2" strokeLinecap="round">
-    <circle cx="12" cy="12" r="10"/>
-    <line x1="2" y1="12" x2="22" y2="12"/>
-    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-  </svg>
-</div>
-
-    {/* Тема */}
-    <div style={{ cursor: "pointer" }}>
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0a1e3d" strokeWidth="2" strokeLinecap="round">
-        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-      </svg>
-    </div>
-  </div>
-</div>
-
-<div style={{ padding: "12px 14px 0" }}>
-
-<div style={{ background: "linear-gradient(135deg, #1B2B6B 0%, #0F1A45 100%)", borderRadius: 24, marginBottom: 12, padding: "20px 16px", boxSizing: "border-box" as const }}>
-  <div style={{ display: "flex", alignItems: "flex-start" }}>
-
-    {/* Баланс */}
-    <div style={{ flex: "0 0 30%", paddingRight: 14, display: "flex", flexDirection: "column", gap: 6 }}>
-      <div style={{ fontSize: 11, color: "rgba(255,255,255,.6)" }}>Баланс</div>
-      <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
-        <span style={{ fontSize: 22, fontWeight: 700, color: "#fff", lineHeight: 1 }}>{(client?.balance ?? 0).toLocaleString()}</span>
-        <span style={{ fontSize: 11, color: "rgba(255,255,255,.4)" }}>сом</span>
-      </div>
-      <Link href="/dashboard/balance" style={{ textDecoration: "none", marginTop: 4, display: "inline-flex", alignItems: "center", gap: 5, background: "rgba(255,255,255,.1)", border: "1px solid rgba(255,255,255,.15)", borderRadius: 8, padding: "6px 10px", width: "fit-content" }}>
-        <span style={{ fontSize: 14, color: "#fff", lineHeight: 1 }}>+</span>
-        <span style={{ fontSize: 11, color: "#fff", whiteSpace: "nowrap" as const }}>Пополнить</span>
-      </Link>
-    </div>
-
-    <div style={{ width: 1, alignSelf: "stretch", background: "rgba(255,255,255,.1)" }} />
-
-    {/* Бонусы */}
-    <Link href="/dashboard/bonuses" style={{ textDecoration: "none", flex: "0 0 28%", padding: "0 14px", display: "flex", flexDirection: "column", gap: 6 }}>
-      <div style={{ fontSize: 11, color: "rgba(255,255,255,.6)", whiteSpace: "nowrap" as const }}>Бонусы</div>
-      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-        <span style={{ fontSize: 22, fontWeight: 700, color: "#fff", lineHeight: 1 }}>{(client?.bonus_balance ?? 0).toLocaleString()}</span>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="#F59E0B"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-      </div>
-      <div style={{ fontSize: 11, fontWeight: 600, whiteSpace: "nowrap" as const, color:
-        loyaltyLevel.key === "bronze" ? "#f59e0b"
-        : loyaltyLevel.key === "silver" ? "#94a3b8"
-        : loyaltyLevel.key === "gold" ? "#f59e0b"
-        : loyaltyLevel.key === "platinum" ? "#8b5cf6"
-        : "rgba(255,255,255,.4)"
-      }}>Кэшбэк {loyaltyLevel.cashback}%</div>
-    </Link>
-
-    <div style={{ width: 1, alignSelf: "stretch", background: "rgba(255,255,255,.1)" }} />
-
-    {/* Уровень */}
-    <Link href="/dashboard/bonuses" style={{ textDecoration: "none", flex: 1, paddingLeft: 14, display: "flex", flexDirection: "column", gap: 6 }}>
-      <div style={{ fontSize: 11, color: "rgba(255,255,255,.6)", whiteSpace: "nowrap" as const }}>Уровень</div>
-      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <div style={{ height: 32, display: "flex", alignItems: "center", gap: 8 }}>
-    {loyaltyLevel.key === "newbie"   && <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>}
-    {loyaltyLevel.key === "bronze"   && <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2.5" strokeLinecap="round"><path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7z"/></svg>}
-    {loyaltyLevel.key === "silver"   && <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="2.5" strokeLinecap="round"><path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7z"/></svg>}
-    {loyaltyLevel.key === "gold"     && <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2.5" strokeLinecap="round"><path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7z"/></svg>}
-    {loyaltyLevel.key === "platinum" && <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" strokeWidth="2.5" strokeLinecap="round"><path d="M6.5 2h11L21 8l-9 14L3 8l3.5-6z"/></svg>}
-    </div>
-        <span style={{ fontSize: 20, fontWeight: 700, color: "#fff", lineHeight: 1 }}>{loyaltyLevel.label}</span>
-      </div>
-      {nextLevel ? (
-        <div style={{ display: "flex", flexDirection: "column", gap: 5, marginTop: 2 }}>
-          <div style={{ height: 5, borderRadius: 999, background: "rgba(255,255,255,.1)", overflow: "hidden" }}>
-            <div style={{ height: "100%", borderRadius: 999, width: `${progress}%`, background: "linear-gradient(90deg, #4F6FE8 0%, #6366f1 100%)" }} />
+    <main className="page">
+      <div className="screen">
+        {/* РҐРµРґРµСЂ вЂ” РѕС‚РґРµР»СЊРЅРѕ СЃРІРµСЂС…Сѓ, Р±РµР· РєР°СЂС‚РѕС‡РєРё Рё Р±РµР· РіСЂР°РґРёРµРЅС‚Р° */}
+        <header className="header">
+          <div className="user">
+            <div className="avatar">{(firstName[0] || "A").toUpperCase()}</div>
+            <div>
+              <p>Р—РґСЂР°РІСЃС‚РІСѓР№С‚Рµ</p>
+              <h1>{firstName}</h1>
+            </div>
           </div>
-          <div style={{ fontSize: 10, color: "rgba(255,255,255,.55)", whiteSpace: "nowrap" as const }}>До {nextLevel.label}: {nextLevel.minOrders - totalOrders} заказов</div>
+
+          <Link href="/dashboard/notifications" className="bell" aria-label="РЈРІРµРґРѕРјР»РµРЅРёСЏ">
+            <svg viewBox="0 0 32 32" aria-hidden="true">
+              <path d="M24 13a8 8 0 0 0-16 0c0 9-4 11-4 11h24s-4-2-4-11Z" />
+              <path d="M19 28a3.5 3.5 0 0 1-6 0M16 5V3" />
+            </svg>
+            {unread > 0 && <i />}
+          </Link>
+        </header>
+
+        <section className="clientCode">
+          <span>Р’Р°С€ РєР»РёРµРЅС‚СЃРєРёР№ РєРѕРґ</span>
+          <div>
+            <strong>{clientCode}</strong>
+            <button
+              type="button"
+              onClick={() => copyText(client?.client_code || "", "code")}
+              aria-label="РЎРєРѕРїРёСЂРѕРІР°С‚СЊ РєР»РёРµРЅС‚СЃРєРёР№ РєРѕРґ"
+            >
+              <CopyIcon size={22} />
+            </button>
+          </div>
+        </section>
+
+        {counts.ready > 0 && (
+          <Link href="/dashboard/orders?status=ready" className="ready">
+            <div className="readyIcon">
+              <ReadyIcon />
+            </div>
+            <div>
+              <strong>{readyText(counts.ready)}</strong>
+              <p>
+                Рљ РѕРїР»Р°С‚Рµ
+                <b>{amountDue.toLocaleString("ru-RU")} СЃРѕРј</b>
+              </p>
+            </div>
+            <Chevron size={18} />
+          </Link>
+        )}
+
+        <div className="search">
+          <svg viewBox="0 0 32 32" aria-hidden="true">
+            <circle cx="14" cy="14" r="10" />
+            <path d="m22 22 7 7" />
+          </svg>
+          <input
+            type="text"
+            placeholder="Р’РІРµРґРёС‚Рµ С‚СЂРµРє-РєРѕРґ"
+            aria-label="Р’РІРµРґРёС‚Рµ С‚СЂРµРє-РєРѕРґ"
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                window.location.href = "/dashboard/orders";
+              }
+            }}
+          />
+          <button
+            type="button"
+            onClick={() => {
+              window.location.href = "/dashboard/orders";
+            }}
+          >
+            РќР°Р№С‚Рё
+          </button>
         </div>
-      ) : <div />}
-    </Link>
 
-  </div>
-</div>
-  
-{/* READY PICKUP BANNER */}
-{counts.ready > 0 && (
-  <Link href="/dashboard/orders?status=ready" style={{ textDecoration: "none", display: "block", background: "#16a34a", borderRadius: 16, padding: "14px 16px", marginBottom: 12 }}>
-    <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-      <div style={{ width: 44, height: 44, borderRadius: 12, background: "rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round">
-          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-        </svg>
+        <section className="orders">
+          <div className="sectionTitle">
+            <h2>Р’Р°С€Рё Р·Р°РєР°Р·С‹</h2>
+            <Link href="/dashboard/orders">
+              Р’СЃРµ Р·Р°РєР°Р·С‹ <Chevron size={18} />
+            </Link>
+          </div>
+
+          <div className="orderGrid">
+            <Link href="/dashboard/orders?status=china" className="orderCard china">
+              <div>
+                <strong>{counts.china}</strong>
+                <span>Р’ РљРёС‚Р°Рµ</span>
+              </div>
+              <div className="orderIcon">
+                <ChinaIcon />
+              </div>
+            </Link>
+
+            <Link href="/dashboard/orders?status=transit" className="orderCard transit">
+              <div>
+                <strong>{counts.transit}</strong>
+                <span>Р’ РїСѓС‚Рё</span>
+              </div>
+              <div className="orderIcon">
+                <TruckIcon />
+              </div>
+            </Link>
+
+            <Link href="/dashboard/orders?status=ready" className="orderCard readyOrder">
+              <div>
+                <strong>{counts.ready}</strong>
+                <span>Р“РѕС‚РѕРІРѕ Рє РІС‹РґР°С‡Рµ</span>
+              </div>
+              <div className="orderIcon">
+                <ReadyIcon size={30} />
+              </div>
+            </Link>
+
+            <Link href="/dashboard/orders?status=issued" className="orderCard issued">
+              <div>
+                <strong>{issuedCount}</strong>
+                <span>Р’С‹РґР°РЅРѕ</span>
+              </div>
+              <div className="orderIcon">
+                <IssuedIcon />
+              </div>
+            </Link>
+          </div>
+
+          <div className="storage">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M12 11v6M12 7h.01" />
+            </svg>
+            <span>Р‘РµСЃРїР»Р°С‚РЅРѕРµ С…СЂР°РЅРµРЅРёРµ вЂ” 7 РґРЅРµР№</span>
+          </div>
+        </section>
+
+        <section className="warehouse">
+          <div className="warehouseHead">
+            <div className="warehouseTitle">
+              <div className="pin">
+                <svg viewBox="0 0 32 38" aria-hidden="true">
+                  <path d="M29 15c0 9-13 20-13 20S3 24 3 15a13 13 0 1 1 26 0Z" />
+                  <circle cx="16" cy="15" r="4" />
+                </svg>
+              </div>
+              <h2>РђРґСЂРµСЃ СЃРєР»Р°РґР°</h2>
+            </div>
+            <button
+              type="button"
+              className="copyAddressIcon"
+              onClick={() => copyText(warehouseAddress, "address")}
+              aria-label={
+                copied === "address" ? "РђРґСЂРµСЃ СЃРєРѕРїРёСЂРѕРІР°РЅ" : "РЎРєРѕРїРёСЂРѕРІР°С‚СЊ Р°РґСЂРµСЃ СЃРєР»Р°РґР°"
+              }
+              title={copied === "address" ? "РђРґСЂРµСЃ СЃРєРѕРїРёСЂРѕРІР°РЅ" : "РЎРєРѕРїРёСЂРѕРІР°С‚СЊ Р°РґСЂРµСЃ"}
+            >
+              <CopyIcon size={18} />
+            </button>
+          </div>
+
+          <div className="warehouseBody">
+            <div className="addrRow">
+              <span className="addrLabel">РџРѕР»СѓС‡Р°С‚РµР»СЊ</span>
+              <span className="addrValue">{warehouseRecipient}</span>
+            </div>
+            <div className="addrRow">
+              <span className="addrLabel">РўРµР»РµС„РѕРЅ</span>
+              <span className="addrValue">{WAREHOUSE_PHONE}</span>
+            </div>
+            <div className="addrRow">
+              <span className="addrLabel">РђРґСЂРµСЃ</span>
+              <span className="addrValue">
+                {WAREHOUSE_REGION}
+                <br />
+                {WAREHOUSE_LOCATION} <b>{clientCode}</b>
+              </span>
+            </div>
+          </div>
+
+          <Link href="/dashboard/instructions#warehouse-address" className="addressGuide">
+            РљР°Рє Р·Р°РїРѕР»РЅРёС‚СЊ Р°РґСЂРµСЃ
+            <Chevron size={15} />
+          </Link>
+        </section>
+
+        <section className="contactSection" aria-label="РљРѕРЅС‚Р°РєС‚С‹">
+          <div className="contacts">
+            <a href={process.env.NEXT_PUBLIC_WHATSAPP_URL || "/dashboard/support"}>
+              <FaWhatsapp className="whatsapp" aria-hidden="true" />
+              <span>WhatsApp</span>
+            </a>
+            <a href={process.env.NEXT_PUBLIC_TELEGRAM_URL || "/dashboard/support"}>
+              <FaTelegram className="telegram" aria-hidden="true" />
+              <span>Telegram</span>
+            </a>
+            <a href={process.env.NEXT_PUBLIC_PHONE_URL || "/dashboard/support"}>
+              <FaPhone className="phone" aria-hidden="true" />
+              <span>РџРѕР·РІРѕРЅРёС‚СЊ</span>
+            </a>
+          </div>
+        </section>
       </div>
-      <div style={{ flex: 1 }}>
-        <div style={{ fontSize: 15, fontWeight: 700, color: "#fff", lineHeight: 1.2 }}>{counts.ready} {counts.ready === 1 ? "посылка готова" : "посылки готовы"} к выдаче</div>
-        <div style={{ fontSize: 12, color: "rgba(255,255,255,0.8)", marginTop: 3 }}>Сегодня до 19:00</div>
-      </div>
-      <div style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-      </div>
-    </div>
-  </Link>
-)}
 
-{/* TRACK */}
-<div style={{ background: "#fff", borderRadius: 14, padding: "12px 16px", marginBottom: 12, display: "flex", alignItems: "center", gap: 10, border: "1px solid #f0f2f5" }}>
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-  <input placeholder="Введите трек-код" style={{ flex: 1, border: "none", outline: "none", fontSize: 14, color: "#0a1e3d", background: "transparent", fontFamily: "inherit" }}
-    onKeyDown={e => { if (e.key === "Enter") window.location.href = "/dashboard/orders"; }} />
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round">
-    <path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/>
-    <path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/>
-  </svg>
-</div>
-
-{/* MY ORDERS */}
-<div style={{ marginBottom: 12 }}>
-  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-    <span style={{ fontSize: 15, fontWeight: 700, color: "#0a1e3d" }}>Мои заказы</span>
-    <Link href="/dashboard/orders" style={{ fontSize: 13, color: "#3b82f6", fontWeight: 600, textDecoration: "none", display: "flex", alignItems: "center", gap: 4 }}>
-      Все заказы
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-    </Link>
-  </div>
-  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-
-    {/* В Китае */}
-    <Link href="/dashboard/orders?status=china" style={{ textDecoration: "none", background: "#fff", borderRadius: 16, padding: "14px", border: "1px solid #f0f2f5", display: "flex", flexDirection: "column", gap: 10 }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ fontSize: 28, fontWeight: 800, color: "#f97316", lineHeight: 1 }}>{counts.china}</div>
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="2" strokeLinecap="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-      </div>
-      <div style={{ fontSize: 12, fontWeight: 500, color: "#64748b" }}>В Китае</div>
-    </Link>
-
-    {/* В пути */}
-    <Link href="/dashboard/orders?status=transit" style={{ textDecoration: "none", background: "#fff", borderRadius: 16, padding: "14px", border: "1px solid #f0f2f5", display: "flex", flexDirection: "column", gap: 10 }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ fontSize: 28, fontWeight: 800, color: "#3b82f6", lineHeight: 1 }}>{counts.transit}</div>
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
-      </div>
-      <div style={{ fontSize: 12, fontWeight: 500, color: "#64748b" }}>В пути</div>
-    </Link>
-
-    {/* На сортировке */}
-    <Link href="/dashboard/orders?status=sorting" style={{ textDecoration: "none", background: "#fff", borderRadius: 16, padding: "14px", border: "1px solid #f0f2f5", display: "flex", flexDirection: "column", gap: 10 }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ fontSize: 28, fontWeight: 800, color: "#8b5cf6", lineHeight: 1 }}>{counts.sorting}</div>
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" strokeWidth="2" strokeLinecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-      </div>
-      <div style={{ fontSize: 12, fontWeight: 500, color: "#64748b" }}>На сортировке</div>
-    </Link>
-
-    {/* Готово к выдаче */}
-    <Link href="/dashboard/orders?status=ready" style={{
-      textDecoration: "none", background: "#fff", borderRadius: 16, padding: "14px",
-      border: counts.ready > 0 ? "1.5px solid #16a34a" : "1px solid #f0f2f5",
-      display: "flex", flexDirection: "column", gap: 10
-    }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ fontSize: 28, fontWeight: 800, color: "#16a34a", lineHeight: 1 }}>{counts.ready}</div>
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2" strokeLinecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-      </div>
-      <div>
-        <div style={{ fontSize: 12, fontWeight: 500, color: "#64748b" }}>Готово к выдаче</div>
-        {counts.ready > 0 && <div style={{ fontSize: 11, color: "#16a34a", fontWeight: 600, marginTop: 3 }}>Заберите сегодня</div>}
-      </div>
-    </Link>
-
-  </div>
-</div>
-
-{/* QUICK ACTIONS */}
-<div style={{ background: "#fff", borderRadius: 16, border: "1px solid #e8edf5", marginBottom: 12, padding: "16px 0" }}>
-  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr" }}>
-    {[
-      {
-        icon: <svg width="28" height="28" viewBox="0 0 24 24" fill="#1e3a8a"><path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/></svg>,
-        label: "Обучение", href: "/"
-      },
-      {
-        icon: <svg width="28" height="28" viewBox="0 0 24 24" fill="#1e3a8a"><path d="M21 5c-1.11-.35-2.33-.5-3.5-.5-1.95 0-4.05.4-5.5 1.5-1.45-1.1-3.55-1.5-5.5-1.5S2.45 4.9 1 6v14.65c0 .25.25.5.5.5.1 0 .15-.05.25-.05C3.1 20.45 5.05 20 6.5 20c1.95 0 4.05.4 5.5 1.5 1.35-.85 3.8-1.5 5.5-1.5 1.65 0 3.35.3 4.75 1.05.1.05.15.05.25.05.25 0 .5-.25.5-.5V6c-.6-.45-1.25-.75-2-1zm0 13.5c-1.1-.35-2.3-.5-3.5-.5-1.7 0-4.15.65-5.5 1.5V8c1.35-.85 3.8-1.5 5.5-1.5 1.2 0 2.4.15 3.5.5v11.5z"/></svg>,
-        label: "Инструкции", href: "/dashboard/instructions"
-      },
-      {
-        icon: <svg width="28" height="28" viewBox="0 0 24 24" fill="#1e3a8a"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z"/></svg>,
-        label: "Награды", href: "/dashboard/bonuses"
-      },
-    ].map((q, i) => (
-      <Link key={i} href={q.href} style={{ textDecoration: "none", display: "flex", flexDirection: "column", alignItems: "center", gap: 10, padding: "8px 0", borderRight: i < 2 ? "1px solid #e8edf5" : "none" }}>
-        {q.icon}
-        <div style={{ fontSize: 12, fontWeight: 600, color: "#0f172a" }}>{q.label}</div>
-      </Link>
-    ))}
-  </div>
-</div>
-
-{/* REFERRAL BANNER */}
-<div style={{ background: "#0f172a", borderRadius: 16, padding: "16px 16px", marginBottom: 12, display: "flex", alignItems: "center", justifyContent: "space-between", overflow: "hidden", position: "relative" }}>
-  <div style={{ position: "absolute", left: 0, bottom: 0, top: 0, width: 90, overflow: "hidden" }}>
-    <svg viewBox="0 0 90 80" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ position: "absolute", bottom: 0, left: -10 }}>
-      <ellipse cx="30" cy="75" rx="18" ry="18" fill="#1e293b"/>
-      <rect x="18" y="35" width="24" height="40" rx="4" fill="#334155"/>
-      <ellipse cx="30" cy="33" rx="10" ry="10" fill="#475569"/>
-      <ellipse cx="60" cy="78" rx="15" ry="15" fill="#1e293b"/>
-      <rect x="50" y="42" width="20" height="36" rx="4" fill="#1d4ed8"/>
-      <ellipse cx="60" cy="40" rx="8" ry="8" fill="#3b82f6"/>
-      <path d="M25 50 Q35 44 45 50" stroke="#60a5fa" strokeWidth="1.5" fill="none"/>
-    </svg>
-  </div>
-  <div style={{ paddingLeft: 88 }}>
-    <div style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>Пригласите друга</div>
-    <div style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", marginTop: 2 }}>и получите +200 бонусов</div>
-  </div>
-  <Link href="/dashboard/referral" style={{ background: "#fff", borderRadius: 20, padding: "9px 18px", textDecoration: "none", flexShrink: 0 }}>
-    <span style={{ fontSize: 13, fontWeight: 700, color: "#0f172a" }}>Пригласить</span>
-  </Link>
-</div>
-
-{/* NEWS */}
-<div style={{ marginBottom: 12 }}>
-  <div style={{ fontSize: 15, fontWeight: 700, color: "#0a1e3d", marginBottom: 10 }}>Новости и полезное</div>
-  <div style={{ background: "#fff", borderRadius: 16, overflow: "hidden", border: "1px solid #f0f2f5" }}>
-    {[
-      { icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>, bg: "#eff6ff", text: "Новый маршрут: Урумчи", right: "20 июня", rightColor: "#64748b" },
-      { icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>, bg: "#fef2f2", text: "Скидка на доставку с 1 июня", right: "Подробнее", rightColor: "#3b82f6" },
-      { icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2" strokeLinecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>, bg: "#f0fdf4", text: "Курс юаня: 1 ¥ = 12.14 сом", right: "+0.12 (0.99%) ↑", rightColor: "#16a34a" },
-    ].map((item, i, arr) => (
-      <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 14px", borderBottom: i < arr.length - 1 ? "1px solid #f0f2f5" : "none" }}>
-        <div style={{ width: 36, height: 36, borderRadius: 10, background: item.bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-          {item.icon}
+      {copied && (
+        <div className="toast" role="status">
+          {copied === "code" ? "РљРѕРґ СЃРєРѕРїРёСЂРѕРІР°РЅ" : "РђРґСЂРµСЃ СЃРєРѕРїРёСЂРѕРІР°РЅ"}
         </div>
-        <span style={{ flex: 1, fontSize: 13, color: "#0a1e3d", fontWeight: 500 }}>{item.text}</span>
-        <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
-          <span style={{ fontSize: 12, color: item.rightColor, fontWeight: 600 }}>{item.right}</span>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="2" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
-      </div>
-    ))}
-  </div>
-</div>
-</div>
-  </div>
+      )}
+
+      <style jsx global>{`
+        * {
+          box-sizing: border-box;
+        }
+
+        html,
+        body {
+          margin: 0;
+          min-height: 100%;
+          overflow-x: clip;
+          background: #f6f8fb;
+          -webkit-font-smoothing: antialiased;
+          text-rendering: optimizeLegibility;
+        }
+
+        button,
+        input,
+        a {
+          font: inherit;
+        }
+
+        button,
+        a {
+          -webkit-tap-highlight-color: transparent;
+        }
+
+        button:focus-visible,
+        a:focus-visible,
+        input:focus-visible {
+          outline: 3px solid rgba(11, 49, 140, 0.2);
+          outline-offset: 2px;
+        }
+
+        .page {
+          min-height: 100%;
+          display: flex;
+          justify-content: center;
+          background: #f6f8fb;
+          color: ${TEXT};
+          font-family: Inter, ui-sans-serif, system-ui, -apple-system,
+            BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        .screen {
+          width: 100%;
+          max-width: 430px;
+          padding: max(14px, env(safe-area-inset-top)) 16px 18px;
+          background: #fff;
+        }
+
+        /* ===== Header ===== */
+
+        .header {
+          min-height: 46px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        }
+
+        .user {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .avatar {
+          width: 44px;
+          height: 44px;
+          display: grid;
+          flex: 0 0 auto;
+          place-items: center;
+          border-radius: 50%;
+          background: ${TINT};
+          color: ${NAVY};
+          font-size: 21px;
+          font-weight: 600;
+        }
+
+        .user p,
+        .user h1 {
+          margin: 0;
+        }
+
+        .user p {
+          color: ${MUTED};
+          font-size: 13px;
+          line-height: 18px;
+        }
+
+        .user h1 {
+          margin-top: 1px;
+          color: ${TEXT};
+          font-size: 20px;
+          line-height: 24px;
+          font-weight: 700;
+        }
+
+        .bell {
+          width: 44px;
+          height: 44px;
+          position: relative;
+          display: grid;
+          place-items: center;
+          border-radius: 50%;
+          background: #f3f4f7;
+          color: ${MUTED};
+        }
+
+        .bell svg {
+          width: 22px;
+          height: 22px;
+          fill: none;
+          stroke: currentColor;
+          stroke-width: 1.8;
+          stroke-linecap: round;
+          stroke-linejoin: round;
+        }
+
+        .bell i {
+          width: 7px;
+          height: 7px;
+          position: absolute;
+          top: 6px;
+          right: 7px;
+          border-radius: 50%;
+          background: ${NAVY};
+        }
+
+        /* ===== Client code вЂ” РµРґРёРЅСЃС‚РІРµРЅРЅС‹Р№ "hero" Р°РєС†РµРЅС‚РЅС‹Р№ Р±Р»РѕРє, РїР»РѕСЃРєР°СЏ Р·Р°Р»РёРІРєР° ===== */
+
+        .clientCode {
+          margin-top: 14px;
+          padding: 16px;
+          border-radius: 16px;
+          background: ${TINT};
+          text-align: center;
+        }
+
+        .clientCode > span {
+          display: block;
+          color: ${NAVY};
+          opacity: 0.75;
+          font-size: 13px;
+          line-height: 18px;
+        }
+
+        .clientCode > div {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          margin-top: 4px;
+        }
+
+        .clientCode strong {
+          overflow: hidden;
+          color: ${NAVY};
+          font-size: clamp(32px, 9vw, 36px);
+          line-height: 40px;
+          font-weight: 700;
+          letter-spacing: 0.2px;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .clientCode button {
+          width: 38px;
+          height: 38px;
+          display: grid;
+          flex: 0 0 auto;
+          place-items: center;
+          padding: 0;
+          border: 0;
+          border-radius: 10px;
+          background: transparent;
+          color: ${NAVY};
+          cursor: pointer;
+        }
+
+        /* ===== Ready-to-collect banner вЂ” РµРґРёРЅСЃС‚РІРµРЅРЅС‹Р№ СЃРµРјР°РЅС‚РёС‡РµСЃРєРёР№ (РЅРµ-Р°РєС†РµРЅС‚РЅС‹Р№) С†РІРµС‚ ===== */
+
+        .ready {
+          min-height: 66px;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          margin-top: 12px;
+          padding: 12px 14px;
+          border-radius: 14px;
+          background: #f2faf5;
+          color: ${TEXT};
+          text-decoration: none;
+        }
+
+        .readyIcon {
+          width: 40px;
+          height: 40px;
+          flex: 0 0 auto;
+          display: grid;
+          place-items: center;
+          color: ${GREEN};
+        }
+
+        .readyIcon img {
+          width: 40px;
+          height: 40px;
+          display: block;
+        }
+
+        .ready strong {
+          display: block;
+          color: ${TEXT};
+          font-size: 14px;
+          line-height: 19px;
+          font-weight: 600;
+        }
+
+        .ready p {
+          display: flex;
+          align-items: baseline;
+          gap: 8px;
+          margin: 3px 0 0;
+          color: ${MUTED};
+          font-size: 13px;
+        }
+
+        .ready b {
+          color: ${GREEN};
+          font-size: 14px;
+          font-weight: 700;
+        }
+
+        .ready > svg {
+          width: 16px;
+          height: 16px;
+          flex: 0 0 auto;
+          margin-left: auto;
+          fill: none;
+          stroke: ${MUTED};
+          stroke-width: 2;
+          stroke-linecap: round;
+          stroke-linejoin: round;
+        }
+
+        /* ===== Search ===== */
+
+        .search {
+          height: 54px;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin-top: 12px;
+          padding: 0 6px 0 14px;
+          border: 0.5px solid ${BORDER};
+          border-radius: 14px;
+          background: #fff;
+        }
+
+        .search > svg {
+          width: 20px;
+          height: 20px;
+          flex: 0 0 auto;
+          fill: none;
+          stroke: ${MUTED};
+          stroke-width: 1.8;
+          stroke-linecap: round;
+        }
+
+        .search input {
+          min-width: 0;
+          height: 100%;
+          flex: 1;
+          border: 0;
+          outline: 0;
+          background: transparent;
+          color: ${TEXT};
+          font-size: 14px;
+        }
+
+        .search input::placeholder {
+          color: ${MUTED};
+          opacity: 1;
+        }
+
+        .search button {
+          height: 42px;
+          min-width: 82px;
+          padding: 0 15px;
+          border: 0;
+          border-radius: 10px;
+          background: ${NAVY};
+          color: #fff;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+        }
+
+        /* ===== Orders ===== */
+
+        .orders {
+          margin-top: 18px;
+        }
+
+        .sectionTitle {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 12px;
+        }
+
+        .sectionTitle h2 {
+          margin: 0;
+          color: ${TEXT};
+          font-size: 18px;
+          line-height: 24px;
+          font-weight: 700;
+        }
+
+        .sectionTitle a {
+          display: flex;
+          align-items: center;
+          gap: 2px;
+          color: ${NAVY};
+          min-height: 40px;
+          margin: -8px -4px -8px 0;
+          padding: 0 4px;
+          font-size: 13px;
+          font-weight: 600;
+          text-decoration: none;
+        }
+
+        .orderGrid {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 10px;
+        }
+
+        .orderCard {
+          min-height: 84px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 12px 14px;
+          border-radius: 12px;
+          border: 1px solid transparent;
+          text-decoration: none;
+        }
+
+        .orderCard > div:first-child {
+          min-width: 0;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+
+        .orderCard strong {
+          font-size: 26px;
+          line-height: 1;
+          font-weight: 700;
+        }
+
+        .orderCard span {
+          color: ${MUTED};
+          font-size: 13px;
+          font-weight: 500;
+          white-space: nowrap;
+        }
+
+        .orderIcon {
+          width: 40px;
+          height: 40px;
+          flex: 0 0 auto;
+          display: grid;
+          place-items: center;
+          border-radius: 10px;
+        }
+
+        .orderIcon img {
+          width: 28px;
+          height: 28px;
+          display: block;
+        }
+
+        .china {
+          border-color: #f9e4e6;
+          background: #fff8f8;
+        }
+
+        .china strong {
+          color: ${RED};
+        }
+
+        .china .orderIcon {
+          background: #fff0f1;
+        }
+
+        .transit {
+          border-color: #e2eaf8;
+          background: #f7f9ff;
+        }
+
+        .transit strong {
+          color: ${BLUE};
+        }
+
+        .transit .orderIcon {
+          background: #edf3ff;
+        }
+
+        .readyOrder {
+          border-color: #dfeee6;
+          background: #f5fbf8;
+        }
+
+        .readyOrder strong {
+          color: ${GREEN};
+        }
+
+        .readyOrder .orderIcon {
+          background: #eaf7f0;
+        }
+
+        .issued {
+          border-color: #ece7fa;
+          background: #faf8ff;
+        }
+
+        .issued strong {
+          color: ${VIOLET};
+        }
+
+        .issued .orderIcon {
+          background: #f2eeff;
+        }
+
+        .storage {
+          min-height: 34px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          margin-top: 4px;
+          color: ${MUTED};
+        }
+
+        .storage svg {
+          width: 16px;
+          height: 16px;
+          flex: 0 0 auto;
+          fill: none;
+          stroke: currentColor;
+          stroke-width: 1.8;
+          stroke-linecap: round;
+        }
+
+        .storage span {
+          color: ${MUTED};
+          font-size: 12.5px;
+        }
+
+        /* ===== Warehouse address ===== */
+
+        .warehouse {
+          margin-top: 16px;
+          padding: 14px;
+          border: 0.5px solid ${BORDER};
+          border-radius: 14px;
+          background: #fff;
+        }
+
+        .warehouseHead {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          min-height: 34px;
+        }
+
+        .warehouseTitle {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+
+        .pin {
+          width: 18px;
+          height: 20px;
+          display: grid;
+          place-items: center;
+          color: ${NAVY};
+        }
+
+        .pin svg {
+          width: 16px;
+          height: 19px;
+          fill: none;
+          stroke: currentColor;
+          stroke-width: 2.2;
+          stroke-linecap: round;
+          stroke-linejoin: round;
+        }
+
+        .warehouse h2 {
+          margin: 0;
+          color: ${TEXT};
+          font-size: 15px;
+          line-height: 20px;
+          font-weight: 600;
+        }
+
+        .copyAddressIcon {
+          width: 32px;
+          height: 32px;
+          display: grid;
+          place-items: center;
+          padding: 0;
+          border: 0;
+          border-radius: 9px;
+          background: ${TINT};
+          color: ${NAVY};
+          cursor: pointer;
+          transition: background 0.15s ease, transform 0.15s ease;
+        }
+
+        .copyAddressIcon:hover {
+          background: #e2eaff;
+        }
+
+        .copyAddressIcon:active {
+          transform: scale(0.96);
+        }
+
+        .warehouseBody {
+          margin-top: 8px;
+          padding-top: 8px;
+          border-top: 0.5px solid ${BORDER};
+        }
+
+        .addrRow {
+          display: grid;
+          grid-template-columns: 84px minmax(0, 1fr);
+          gap: 8px;
+          padding: 5px 0;
+          font-size: 13.5px;
+          line-height: 1.6;
+        }
+
+        .addrRow + .addrRow {
+          border-top: 0.5px solid #f0f1f4;
+        }
+
+        .addrLabel {
+          color: ${MUTED};
+        }
+
+        .addrValue {
+          color: ${TEXT};
+          overflow-wrap: anywhere;
+        }
+
+        .addrValue b {
+          font-weight: 700;
+        }
+
+        /* РљРЅРѕРїРєР°-РїРѕРґСЃРєР°Р·РєР° РѕСЃС‚Р°С‘С‚СЃСЏ Р’РќРЈРўР Р РєР°СЂС‚РѕС‡РєРё Р°РґСЂРµСЃР° вЂ” С‚Р°Рє РѕРЅР° РіР°СЂР°РЅС‚РёСЂРѕРІР°РЅРЅРѕ
+           РїРѕРїР°РґР°РµС‚ РІ РїРµСЂРІС‹Р№ СЌРєСЂР°РЅ РІРјРµСЃС‚Рµ СЃ Р°РґСЂРµСЃРѕРј, Р° РЅРµ С‚РµСЂСЏРµС‚СЃСЏ РіРґРµ-С‚Рѕ РЅРёР¶Рµ */
+        .addressGuide {
+          width: 100%;
+          min-height: 40px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 5px;
+          margin-top: 10px;
+          padding: 9px 12px;
+          border: 0;
+          border-radius: 10px;
+          background: ${TINT};
+          color: ${NAVY};
+          font-size: 13px;
+          line-height: 18px;
+          font-weight: 600;
+          text-decoration: none;
+          transition: background 0.15s ease;
+        }
+
+        .addressGuide:hover {
+          background: #e2eaff;
+          text-decoration: none;
+        }
+
+        /* ===== Contacts ===== */
+
+        .contactSection {
+          margin-top: 10px;
+          margin-bottom: 0;
+        }
+
+        .contacts {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 8px;
+        }
+
+        .contacts a {
+          height: 50px;
+          min-width: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          border: 0.5px solid ${BORDER};
+          border-radius: 12px;
+          background: #fff;
+          color: ${TEXT};
+          text-decoration: none;
+          transition: border-color 0.15s ease, background 0.15s ease;
+        }
+
+        .contacts a:hover {
+          border-color: #c3cddc;
+          background: #fbfcff;
+        }
+
+        .contacts svg {
+          width: 20px;
+          height: 20px;
+          flex: 0 0 auto;
+          display: block;
+        }
+
+        /* Р‘СЂРµРЅРґРѕРІС‹Рµ С†РІРµС‚Р° РјРµСЃСЃРµРЅРґР¶РµСЂРѕРІ вЂ” РµРґРёРЅСЃС‚РІРµРЅРЅРѕРµ РѕСЃРѕР·РЅР°РЅРЅРѕРµ РёСЃРєР»СЋС‡РµРЅРёРµ РёР·
+           РµРґРёРЅРѕРіРѕ Р°РєС†РµРЅС‚Р°: СЌС‚Рѕ СѓР·РЅР°РІР°РµРјС‹Рµ Р»РѕРіРѕС‚РёРїС‹, Р° РЅРµ СЃС‚Р°С‚СѓСЃ-РёРЅРґРёРєР°С†РёСЏ */
+        .contacts .whatsapp {
+          color: #25d366;
+        }
+
+        .contacts .telegram {
+          color: #229ed9;
+        }
+
+        .contacts .phone {
+          color: ${NAVY};
+        }
+
+        .contacts span {
+          overflow: hidden;
+          font-size: 13px;
+          font-weight: 500;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .chat-widget,
+        .chatWidget,
+        #chat-widget,
+        [data-chat-widget],
+        [data-support-widget],
+        .chat-widget-button,
+        .support-chat-button,
+        .floating-chat-button,
+        .chat-toggle,
+        button[aria-label*="С‡Р°С‚" i],
+        button[title*="С‡Р°С‚" i],
+        button[aria-label*="СЃРѕРѕР±С‰" i],
+        button[title*="СЃРѕРѕР±С‰" i],
+        button[aria-label*="support" i] {
+          display: none !important;
+        }
+
+        /* ===== Р¤РёРЅР°Р»СЊРЅР°СЏ РєРѕРјРїРѕР·РёС†РёСЏ РїРѕ СѓС‚РІРµСЂР¶РґС‘РЅРЅРѕРјСѓ РјР°РєРµС‚Сѓ ===== */
+        .page { background: #f7f9fc; }
+        .screen {
+          max-width: 430px;
+          padding: max(20px, env(safe-area-inset-top)) 18px
+            calc(104px + env(safe-area-inset-bottom));
+          background: #fff;
+        }
+        .header { min-height: 54px; }
+        .user { gap: 13px; }
+        .avatar {
+          width: 52px; height: 52px;
+          background: #edf3ff;
+          font-size: 25px; font-weight: 650;
+        }
+        .user p {
+          font-size: 14px; line-height: 18px; letter-spacing: -0.1px;
+        }
+        .user h1 {
+          margin-top: 2px;
+          font-size: 23px; line-height: 27px;
+          font-weight: 700; letter-spacing: -0.45px;
+        }
+        .bell {
+          width: 48px; height: 48px;
+          background: #f5f7fb; color: #52627a;
+        }
+        .bell svg { width: 25px; height: 25px; stroke-width: 1.75; }
+        .bell i {
+          width: 8px; height: 8px; top: 5px; right: 6px;
+          box-shadow: 0 0 0 3px #f5f7fb;
+        }
+        .clientCode {
+          min-height: 112px;
+          display: flex; flex-direction: column; justify-content: center;
+          margin-top: 20px; padding: 15px 18px 17px;
+          border: 1px solid #d8e3f7;
+          border-radius: 20px; background: #eef3ff;
+        }
+        .clientCode > span {
+          color: ${NAVY}; opacity: 1;
+          font-size: 14px; line-height: 19px; font-weight: 450;
+        }
+        .clientCode > div { gap: 9px; margin-top: 3px; }
+        .clientCode strong {
+          font-size: clamp(38px, 11vw, 48px);
+          line-height: 52px; font-weight: 750; letter-spacing: 0.35px;
+        }
+        .clientCode button { width: 36px; height: 40px; border-radius: 9px; }
+        .ready {
+          min-height: 64px; margin-top: 14px; padding: 11px 15px;
+          border: 1px solid #dcefe5;
+          border-radius: 16px; background: #f6fbf8;
+        }
+        .search {
+          height: 60px; gap: 12px; margin-top: 16px;
+          padding: 0 7px 0 16px;
+          border: 1px solid ${BORDER}; border-radius: 17px;
+        }
+        .search > svg {
+          width: 24px; height: 24px;
+          stroke: #64748b; stroke-width: 1.7;
+        }
+        .search input { font-size: 15.5px; letter-spacing: -0.1px; }
+        .search button {
+          height: 48px; min-width: 94px; padding: 0 20px;
+          border-radius: 13px; font-size: 15px; font-weight: 650;
+        }
+        .orders { margin-top: 24px; }
+        .sectionTitle { margin-bottom: 12px; }
+        .sectionTitle h2 {
+          font-size: 18px; line-height: 24px;
+          font-weight: 650; letter-spacing: -0.2px;
+        }
+        .sectionTitle a {
+          gap: 3px; font-size: 14px; font-weight: 650;
+        }
+        .orderGrid { gap: 12px; }
+        .orderCard {
+          min-height: 100px; padding: 15px;
+          border-radius: 18px;
+        }
+        .orderCard > div:first-child { gap: 7px; }
+        .orderCard strong {
+          font-size: 32px; line-height: 34px;
+          font-weight: 700; letter-spacing: -0.7px;
+        }
+        .orderCard span {
+          max-width: 94px; color: #52627a;
+          font-size: 13.5px; line-height: 17px;
+          font-weight: 600; white-space: normal;
+        }
+        .orderIcon {
+          width: 44px; height: 44px; border-radius: 13px;
+        }
+        .orderIcon img { width: 30px; height: 30px; }
+        .china { border-color: #f8dfe2; background: #fff9f9; }
+        .china .orderIcon { background: #fff1f2; }
+        .transit { border-color: #dce6f7; background: #f8faff; }
+        .transit .orderIcon { background: #edf3ff; }
+        .readyOrder { border-color: #d8eee3; background: #f7fcf9; }
+        .readyOrder .orderIcon { background: #eaf8f1; }
+        .issued { border-color: #e9e1fb; background: #faf9ff; }
+        .issued .orderIcon { background: #f2eeff; }
+        .storage {
+          min-height: 42px; justify-content: center;
+          gap: 8px; margin-top: 10px; padding: 0 12px;
+          border: 1px solid #dfe8fa; border-radius: 13px;
+          background: #f5f8ff; color: ${BLUE};
+        }
+        .storage svg {
+          width: 18px; height: 18px;
+          stroke: ${BLUE}; stroke-width: 1.9;
+        }
+        .storage span {
+          color: #344054; font-size: 13px;
+          line-height: 18px; font-weight: 500;
+        }
+        .warehouse {
+          margin-top: 20px; padding: 16px;
+          border: 1px solid ${BORDER}; border-radius: 20px;
+        }
+        .warehouseHead { min-height: 40px; }
+        .warehouseTitle { gap: 9px; }
+        .pin { width: 22px; height: 26px; }
+        .pin svg { width: 20px; height: 24px; stroke-width: 2; }
+        .warehouse h2 {
+          font-size: 18px; line-height: 24px;
+          font-weight: 700; letter-spacing: -0.25px;
+        }
+        .copyAddressIcon {
+          width: 40px; height: 40px; border-radius: 12px;
+        }
+        .warehouseBody {
+          margin-top: 11px; padding-top: 12px;
+          border-top: 1px solid ${BORDER};
+        }
+        .addrRow {
+          grid-template-columns: 88px minmax(0, 1fr);
+          gap: 12px; padding: 8px 0;
+          font-size: 14px; line-height: 1.55;
+        }
+        .addrRow + .addrRow { border-top: 0; }
+        .addrLabel { color: #718096; }
+        .addrValue { color: #111827; font-weight: 450; }
+        .addressGuide {
+          min-height: 52px; gap: 6px;
+          margin-top: 13px; padding: 12px 14px;
+          border-radius: 14px;
+          font-size: 14px; line-height: 20px; font-weight: 650;
+        }
+        .contactSection { margin-top: 14px; }
+
+        .toast {
+          position: fixed;
+          bottom: calc(76px + env(safe-area-inset-bottom));
+          left: 50%;
+          z-index: 20;
+          padding: 10px 14px;
+          transform: translateX(-50%);
+          border-radius: 10px;
+          background: ${TEXT};
+          color: #fff;
+          font-size: 13px;
+          font-weight: 600;
+          white-space: nowrap;
+        }
+
+        @media (max-width: 370px) {
+          .screen {
+            padding-right: 12px;
+            padding-left: 12px;
+          }
+
+          .clientCode strong {
+            font-size: 28px;
+          }
+
+          .orderGrid {
+            gap: 8px;
+          }
+
+          .orderCard {
+            padding: 10px 12px;
+          }
+
+          .orderIcon {
+            width: 34px;
+            height: 34px;
+          }
+
+          .contacts {
+            gap: 6px;
+          }
+
+          .contacts span {
+            font-size: 12px;
+          }
+        }
+
+        @media (max-width: 430px) and (max-height: 760px) {
+          .screen {
+            padding-top: max(10px, env(safe-area-inset-top));
+            padding-bottom: 12px;
+          }
+
+          .clientCode {
+            margin-top: 8px;
+            padding: 12px 14px;
+          }
+
+          .ready {
+            margin-top: 10px;
+          }
+
+          .search {
+            margin-top: 10px;
+          }
+
+          .orders {
+            margin-top: 14px;
+          }
+
+          .warehouse {
+            margin-top: 12px;
+            padding: 12px 14px;
+          }
+
+          .contactSection {
+            margin-top: 8px;
+          }
+        }
+
+        @media (min-width: 431px) {
+          .screen {
+            box-shadow: none;
+          }
+        }
+      `}</style>
+    </main>
   );
 }
