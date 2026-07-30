@@ -3,7 +3,20 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { createBrowserClient } from "@supabase/ssr";
-import { FaPhone, FaTelegram, FaWhatsapp } from "react-icons/fa6";
+import {
+  Bell,
+  Check,
+  ChevronRight,
+  Clock3,
+  Copy,
+  Info,
+  MapPin,
+  Phone,
+  Search,
+  Truck,
+  Warehouse,
+} from "lucide-react";
+import { FaTelegram, FaWhatsapp } from "react-icons/fa6";
 import {
   Client,
   getClient,
@@ -11,103 +24,13 @@ import {
   getUnreadCount,
 } from "@/lib/supabase-dashboard";
 
-// Р•РґРёРЅР°СЏ РїР°Р»РёС‚СЂР°: РѕРґРёРЅ Р°РєС†РµРЅС‚ (NAVY), GREEN вЂ” С‚РѕР»СЊРєРѕ РєР°Рє СЃРµРјР°РЅС‚РёС‡РµСЃРєРёР№ СЃРёРіРЅР°Р»
-// "РЅСѓР¶РЅРѕ РґРµР№СЃС‚РІРёРµ" (РіРѕС‚РѕРІРѕ Рє РІС‹РґР°С‡Рµ). РќРёРєР°РєРѕРіРѕ СЃС‚Р°С‚СѓСЃ-СЂР°РґСѓР¶РЅРѕРіРѕ РєРѕРґРёСЂРѕРІР°РЅРёСЏ,
-// РЅРёРєР°РєРёС… РіСЂР°РґРёРµРЅС‚РѕРІ вЂ” РїР»РѕСЃРєРёРµ РїРѕРІРµСЂС…РЅРѕСЃС‚Рё, СЂР°Р·РЅРёС†Р° С‚РѕР»СЊРєРѕ РІ РЅР°СЃС‹С‰РµРЅРЅРѕСЃС‚Рё С„РѕРЅР°.
-const NAVY = "#123B9F";
-const TEXT = "#0A1E3D";
-const MUTED = "#64748B";
-const RED = "#F2384A";
-const BLUE = "#1769E8";
-const GREEN = "#08A66A";
-const VIOLET = "#7047EB";
-const BORDER = "#E5EAF2";
-const TINT = "#EEF3FF"; // СЃРІРµС‚Р»Р°СЏ Р·Р°Р»РёРІРєР° РїРѕРґ Р°РєС†РµРЅС‚РЅС‹Рµ Р±Р»РѕРєРё
 const WAREHOUSE_PHONE = "18745081507";
-const WAREHOUSE_REGION = "е№їдёњзњЃ е№їе·ћеё‚ иЌ”ж№ѕеЊє";
-const WAREHOUSE_LOCATION = "з«™е‰Ќи·Їе®‡е®™йћ‹еџЋDеЊє512-жЎЈеЏЈ";
+const WAREHOUSE_REGION = "广东省 广州市 荔湾区";
+const WAREHOUSE_LOCATION = "站前路宇宙鞋城D区512-档口";
+const PICKUP_MAP_URL = "https://2gis.kg/bishkek/geo/15763234351117645";
 
 type ClientWithAmount = Client & { amount_due?: number };
-
-function CopyIcon({ size = 22 }: { size?: number }) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <rect x="8" y="8" width="12" height="12" rx="2" />
-      <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" />
-    </svg>
-  );
-}
-
-function Chevron({ size = 22 }: { size?: number }) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="m9 18 6-6-6-6" />
-    </svg>
-  );
-}
-
-function ReadyIcon({ size = 46 }: { size?: number }) {
-  return (
-    <img
-      src="/icons/dashboard/ready.svg"
-      alt=""
-      width={size}
-      height={size}
-      aria-hidden="true"
-    />
-  );
-}
-
-function ChinaIcon() {
-  return <img src="/icons/dashboard/china.svg" alt="" aria-hidden="true" />;
-}
-
-function TruckIcon() {
-  return <img src="/icons/dashboard/truck.svg" alt="" aria-hidden="true" />;
-}
-
-function IssuedIcon() {
-  return <img src="/icons/dashboard/issued.svg" alt="" aria-hidden="true" />;
-}
-
-function readyText(count: number) {
-  const lastTwo = count % 100;
-  const last = count % 10;
-
-  if (lastTwo >= 11 && lastTwo <= 14) {
-    return `${count} РїРѕСЃС‹Р»РѕРє РіРѕС‚РѕРІС‹ Рє РІС‹РґР°С‡Рµ`;
-  }
-
-  if (last === 1) {
-    return `${count} РїРѕСЃС‹Р»РєР° РіРѕС‚РѕРІР° Рє РІС‹РґР°С‡Рµ`;
-  }
-
-  if (last >= 2 && last <= 4) {
-    return `${count} РїРѕСЃС‹Р»РєРё РіРѕС‚РѕРІС‹ Рє РІС‹РґР°С‡Рµ`;
-  }
-
-  return `${count} РїРѕСЃС‹Р»РѕРє РіРѕС‚РѕРІС‹ Рє РІС‹РґР°С‡Рµ`;
-}
+type CopyTarget = "code" | "address" | null;
 
 export default function DashboardHome() {
   const supabase = useMemo(
@@ -128,13 +51,14 @@ export default function DashboardHome() {
   });
   const [unread, setUnread] = useState(0);
   const [totalOrders, setTotalOrders] = useState(0);
+  const [trackCode, setTrackCode] = useState("");
+  const [copied, setCopied] = useState<CopyTarget>(null);
   const [loading, setLoading] = useState(true);
-  const [copied, setCopied] = useState<"code" | "address" | null>(null);
 
   useEffect(() => {
     let active = true;
 
-    async function load() {
+    async function loadDashboard() {
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -166,51 +90,54 @@ export default function DashboardHome() {
       setLoading(false);
     }
 
-    load();
+    loadDashboard();
     return () => {
       active = false;
     };
   }, [supabase]);
 
   const firstName =
-    client?.first_name || client?.full_name?.split(" ")[0] || "РљР»РёРµРЅС‚";
-
+    client?.first_name || client?.full_name?.split(" ")[0] || "Adilet";
+  const clientCode = client?.client_code || "3X-4198";
   const issuedCount = Math.max(
     totalOrders -
       (counts.china + counts.transit + counts.sorting + counts.ready),
     0
   );
-
-  const amountDue = client?.amount_due ?? 0;
-  const clientCode = client?.client_code || "вЂ”";
-  const warehouseRecipient = `йѕ™з”џ ${clientCode}`;
+  const warehouseRecipient = `龙生 ${clientCode}`;
   const warehouseAddress = `${warehouseRecipient}\n${WAREHOUSE_PHONE}\n${WAREHOUSE_REGION}\n${WAREHOUSE_LOCATION} ${clientCode}`;
 
-  async function copyText(value: string, type: "code" | "address") {
-    if (!value) return;
+  async function copyText(value: string, target: Exclude<CopyTarget, null>) {
     await navigator.clipboard.writeText(value);
-    setCopied(type);
+    setCopied(target);
     window.setTimeout(() => setCopied(null), 1500);
+  }
+
+  function findShipment() {
+    const value = trackCode.trim();
+    window.location.href = value
+      ? `/dashboard/orders?tracking=${encodeURIComponent(value)}`
+      : "/dashboard/orders";
   }
 
   if (loading) {
     return (
       <main className="loading">
-        <div />
+        <span />
         <style jsx>{`
           .loading {
-            min-height: 100vh;
+            min-height: 100dvh;
             display: grid;
             place-items: center;
             background: #fff;
           }
-          .loading div {
+          .loading span {
             width: 32px;
             height: 32px;
-            border: 3px solid #e8edf2;
-            border-top-color: ${NAVY};
+            border: 3px solid #e5ebf4;
+            border-top-color: #123b9f;
             border-radius: 50%;
-            animation: spin 0.8s linear infinite;
+            animation: spin 0.75s linear infinite;
           }
           @keyframes spin {
             to {
@@ -225,213 +152,255 @@ export default function DashboardHome() {
   return (
     <main className="page">
       <div className="screen">
-        {/* РҐРµРґРµСЂ вЂ” РѕС‚РґРµР»СЊРЅРѕ СЃРІРµСЂС…Сѓ, Р±РµР· РєР°СЂС‚РѕС‡РєРё Рё Р±РµР· РіСЂР°РґРёРµРЅС‚Р° */}
         <header className="header">
-          <div className="user">
-            <div className="avatar">{(firstName[0] || "A").toUpperCase()}</div>
-            <div>
-              <p>Р—РґСЂР°РІСЃС‚РІСѓР№С‚Рµ</p>
-              <h1>{firstName}</h1>
-            </div>
-          </div>
+          <Link href="/dashboard/profile" className="profileLink">
+            <span className="avatar">{(firstName[0] || "A").toUpperCase()}</span>
+            <span className="profileText">
+              <small>Здравствуйте</small>
+              <strong>
+                {firstName}
+                <ChevronRight size={17} strokeWidth={2.1} />
+              </strong>
+            </span>
+          </Link>
 
-          <Link href="/dashboard/notifications" className="bell" aria-label="РЈРІРµРґРѕРјР»РµРЅРёСЏ">
-            <svg viewBox="0 0 32 32" aria-hidden="true">
-              <path d="M24 13a8 8 0 0 0-16 0c0 9-4 11-4 11h24s-4-2-4-11Z" />
-              <path d="M19 28a3.5 3.5 0 0 1-6 0M16 5V3" />
-            </svg>
+          <Link
+            href="/dashboard/notifications"
+            className="notification"
+            aria-label="Открыть уведомления"
+          >
+            <Bell size={23} strokeWidth={1.8} />
             {unread > 0 && <i />}
           </Link>
         </header>
 
-        <section className="clientCode">
-          <span>Р’Р°С€ РєР»РёРµРЅС‚СЃРєРёР№ РєРѕРґ</span>
+        <section className="codeCard" aria-label="Ваш код клиента">
+          <span>Ваш индивидуальный код</span>
           <div>
             <strong>{clientCode}</strong>
             <button
               type="button"
-              onClick={() => copyText(client?.client_code || "", "code")}
-              aria-label="РЎРєРѕРїРёСЂРѕРІР°С‚СЊ РєР»РёРµРЅС‚СЃРєРёР№ РєРѕРґ"
+              onClick={() => copyText(clientCode, "code")}
+              aria-label="Скопировать код"
             >
-              <CopyIcon size={22} />
+              {copied === "code" ? (
+                <Check size={24} strokeWidth={2.2} />
+              ) : (
+                <Copy size={24} strokeWidth={1.9} />
+              )}
             </button>
           </div>
         </section>
 
-        {counts.ready > 0 && (
-          <Link href="/dashboard/orders?status=ready" className="ready">
-            <div className="readyIcon">
-              <ReadyIcon />
-            </div>
-            <div>
-              <strong>{readyText(counts.ready)}</strong>
-              <p>
-                Рљ РѕРїР»Р°С‚Рµ
-                <b>{amountDue.toLocaleString("ru-RU")} СЃРѕРј</b>
-              </p>
-            </div>
-            <Chevron size={18} />
-          </Link>
-        )}
-
-        <div className="search">
-          <svg viewBox="0 0 32 32" aria-hidden="true">
-            <circle cx="14" cy="14" r="10" />
-            <path d="m22 22 7 7" />
-          </svg>
-          <input
-            type="text"
-            placeholder="Р’РІРµРґРёС‚Рµ С‚СЂРµРє-РєРѕРґ"
-            aria-label="Р’РІРµРґРёС‚Рµ С‚СЂРµРє-РєРѕРґ"
-            onKeyDown={(event) => {
-              if (event.key === "Enter") {
-                window.location.href = "/dashboard/orders";
-              }
-            }}
-          />
-          <button
-            type="button"
-            onClick={() => {
-              window.location.href = "/dashboard/orders";
-            }}
-          >
-            РќР°Р№С‚Рё
-          </button>
-        </div>
+        <form
+          className="tracking"
+          onSubmit={(event) => {
+            event.preventDefault();
+            findShipment();
+          }}
+        >
+          <label>
+            <Search size={22} strokeWidth={1.8} />
+            <input
+              value={trackCode}
+              onChange={(event) => setTrackCode(event.target.value)}
+              placeholder="Введите трек-код"
+              aria-label="Трек-код"
+            />
+          </label>
+          <button type="submit">Найти</button>
+        </form>
 
         <section className="orders">
-          <div className="sectionTitle">
-            <h2>Р’Р°С€Рё Р·Р°РєР°Р·С‹</h2>
+          <div className="sectionHeading">
+            <h2>Мои заказы</h2>
             <Link href="/dashboard/orders">
-              Р’СЃРµ Р·Р°РєР°Р·С‹ <Chevron size={18} />
+              Все заказы
+              <ChevronRight size={18} strokeWidth={2} />
             </Link>
           </div>
 
           <div className="orderGrid">
             <Link href="/dashboard/orders?status=china" className="orderCard china">
-              <div>
-                <strong>{counts.china}</strong>
-                <span>Р’ РљРёС‚Р°Рµ</span>
-              </div>
-              <div className="orderIcon">
-                <ChinaIcon />
-              </div>
+              <strong>{counts.china}</strong>
+              <span>В Китае</span>
+              <span className="statusIcon flag">
+                <img
+                  src="/icons/dashboard/china.svg"
+                  alt=""
+                  aria-hidden="true"
+                />
+              </span>
             </Link>
 
-            <Link href="/dashboard/orders?status=transit" className="orderCard transit">
-              <div>
-                <strong>{counts.transit}</strong>
-                <span>Р’ РїСѓС‚Рё</span>
-              </div>
-              <div className="orderIcon">
-                <TruckIcon />
-              </div>
+            <Link
+              href="/dashboard/orders?status=transit"
+              className="orderCard transit"
+            >
+              <strong>{counts.transit}</strong>
+              <span>В пути</span>
+              <span className="statusIcon">
+                <Truck size={30} strokeWidth={1.9} />
+              </span>
             </Link>
 
-            <Link href="/dashboard/orders?status=ready" className="orderCard readyOrder">
-              <div>
-                <strong>{counts.ready}</strong>
-                <span>Р“РѕС‚РѕРІРѕ Рє РІС‹РґР°С‡Рµ</span>
-              </div>
-              <div className="orderIcon">
-                <ReadyIcon size={30} />
-              </div>
+            <Link href="/dashboard/orders?status=ready" className="orderCard ready">
+              <strong>{counts.ready}</strong>
+              <span>Готово к выдаче</span>
+              <span className="statusIcon readyAsset">
+                <img
+                  src="/icons/dashboard/ready.svg"
+                  alt=""
+                  aria-hidden="true"
+                />
+              </span>
             </Link>
 
             <Link href="/dashboard/orders?status=issued" className="orderCard issued">
-              <div>
-                <strong>{issuedCount}</strong>
-                <span>Р’С‹РґР°РЅРѕ</span>
-              </div>
-              <div className="orderIcon">
-                <IssuedIcon />
-              </div>
+              <strong>{issuedCount}</strong>
+              <span>Выдано</span>
+              <span className="statusIcon issuedIcon">
+                <img
+                  src="/icons/dashboard/issued.svg"
+                  alt=""
+                  aria-hidden="true"
+                />
+              </span>
             </Link>
           </div>
 
           <div className="storage">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <circle cx="12" cy="12" r="9" />
-              <path d="M12 11v6M12 7h.01" />
-            </svg>
-            <span>Р‘РµСЃРїР»Р°С‚РЅРѕРµ С…СЂР°РЅРµРЅРёРµ вЂ” 7 РґРЅРµР№</span>
+            <Info size={19} strokeWidth={1.9} />
+            <span>
+              Срок бесплатного хранения - <strong>7 дней</strong>
+            </span>
           </div>
         </section>
 
         <section className="warehouse">
-          <div className="warehouseHead">
-            <div className="warehouseTitle">
-              <div className="pin">
-                <svg viewBox="0 0 32 38" aria-hidden="true">
-                  <path d="M29 15c0 9-13 20-13 20S3 24 3 15a13 13 0 1 1 26 0Z" />
-                  <circle cx="16" cy="15" r="4" />
-                </svg>
-              </div>
-              <h2>РђРґСЂРµСЃ СЃРєР»Р°РґР°</h2>
+          <div className="warehouseHeading">
+            <div>
+              <Warehouse size={24} strokeWidth={1.85} />
+              <h2>Адрес склада</h2>
             </div>
             <button
               type="button"
-              className="copyAddressIcon"
               onClick={() => copyText(warehouseAddress, "address")}
-              aria-label={
-                copied === "address" ? "РђРґСЂРµСЃ СЃРєРѕРїРёСЂРѕРІР°РЅ" : "РЎРєРѕРїРёСЂРѕРІР°С‚СЊ Р°РґСЂРµСЃ СЃРєР»Р°РґР°"
-              }
-              title={copied === "address" ? "РђРґСЂРµСЃ СЃРєРѕРїРёСЂРѕРІР°РЅ" : "РЎРєРѕРїРёСЂРѕРІР°С‚СЊ Р°РґСЂРµСЃ"}
+              aria-label="Скопировать адрес склада"
             >
-              <CopyIcon size={18} />
+              {copied === "address" ? (
+                <Check size={22} strokeWidth={2.2} />
+              ) : (
+                <Copy size={21} strokeWidth={1.9} />
+              )}
             </button>
           </div>
 
-          <div className="warehouseBody">
-            <div className="addrRow">
-              <span className="addrLabel">РџРѕР»СѓС‡Р°С‚РµР»СЊ</span>
-              <span className="addrValue">{warehouseRecipient}</span>
+          <div className="addressRows">
+            <div>
+              <span>Получатель</span>
+              <p>
+                龙生 <b>{clientCode}</b>
+              </p>
             </div>
-            <div className="addrRow">
-              <span className="addrLabel">РўРµР»РµС„РѕРЅ</span>
-              <span className="addrValue">{WAREHOUSE_PHONE}</span>
+            <div>
+              <span>Телефон</span>
+              <p>{WAREHOUSE_PHONE}</p>
             </div>
-            <div className="addrRow">
-              <span className="addrLabel">РђРґСЂРµСЃ</span>
-              <span className="addrValue">
+            <div>
+              <span>Адрес</span>
+              <p>
                 {WAREHOUSE_REGION}
                 <br />
                 {WAREHOUSE_LOCATION} <b>{clientCode}</b>
+              </p>
+            </div>
+          </div>
+
+          <Link
+            href="/dashboard/instructions#warehouse-address"
+            className="addressGuide"
+          >
+            <span>Как правильно заполнить адрес</span>
+            <ChevronRight size={19} strokeWidth={2} />
+          </Link>
+        </section>
+
+        <section className="belowFold" aria-label="Получение заказа и контакты">
+          <h2 className="pickupTitle">Пункт выдачи</h2>
+
+          <div className="pickupCard">
+            <a
+              href={PICKUP_MAP_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="pickupAddress"
+            >
+              <span className="pickupIcon">
+                <MapPin size={22} strokeWidth={1.9} />
+              </span>
+              <span className="pickupContent">
+                <strong>Логвиненко, 55А</strong>
+                <small>Открыть в 2ГИС</small>
+              </span>
+              <ChevronRight size={19} strokeWidth={2} />
+            </a>
+
+            <div className="pickupMeta">
+              <span className="pickupIcon">
+                <Clock3 size={21} strokeWidth={1.9} />
+              </span>
+              <span className="pickupContent">
+                <strong>10:00–19:00</strong>
+                <small>Ежедневно</small>
               </span>
             </div>
           </div>
 
-          <Link href="/dashboard/instructions#warehouse-address" className="addressGuide">
-            РљР°Рє Р·Р°РїРѕР»РЅРёС‚СЊ Р°РґСЂРµСЃ
-            <Chevron size={15} />
-          </Link>
-        </section>
-
-        <section className="contactSection" aria-label="РљРѕРЅС‚Р°РєС‚С‹">
-          <div className="contacts">
-            <a href={process.env.NEXT_PUBLIC_WHATSAPP_URL || "/dashboard/support"}>
-              <FaWhatsapp className="whatsapp" aria-hidden="true" />
-              <span>WhatsApp</span>
-            </a>
-            <a href={process.env.NEXT_PUBLIC_TELEGRAM_URL || "/dashboard/support"}>
-              <FaTelegram className="telegram" aria-hidden="true" />
-              <span>Telegram</span>
-            </a>
-            <a href={process.env.NEXT_PUBLIC_PHONE_URL || "/dashboard/support"}>
-              <FaPhone className="phone" aria-hidden="true" />
-              <span>РџРѕР·РІРѕРЅРёС‚СЊ</span>
-            </a>
+          <div className="contactSection">
+            <h2>Связаться</h2>
+            <div className="contactButtons">
+              <a
+                href={process.env.NEXT_PUBLIC_WHATSAPP_URL || "/dashboard/support"}
+                aria-label="Написать в WhatsApp"
+              >
+                <FaWhatsapp className="whatsapp" />
+                <span>WhatsApp</span>
+              </a>
+              <a
+                href={process.env.NEXT_PUBLIC_TELEGRAM_URL || "/dashboard/support"}
+                aria-label="Написать в Telegram"
+              >
+                <FaTelegram className="telegram" />
+                <span>Telegram</span>
+              </a>
+              <a
+                href={process.env.NEXT_PUBLIC_PHONE_URL || "tel:+996000000000"}
+                aria-label="Позвонить"
+              >
+                <Phone className="phone" size={21} fill="currentColor" />
+                <span>Позвонить</span>
+              </a>
+            </div>
           </div>
         </section>
       </div>
 
       {copied && (
         <div className="toast" role="status">
-          {copied === "code" ? "РљРѕРґ СЃРєРѕРїРёСЂРѕРІР°РЅ" : "РђРґСЂРµСЃ СЃРєРѕРїРёСЂРѕРІР°РЅ"}
+          {copied === "code" ? "Код скопирован" : "Адрес скопирован"}
         </div>
       )}
 
       <style jsx global>{`
+        :root {
+          --navy: #123b9f;
+          --text: #0a1e3d;
+          --muted: #667a98;
+          --border: #dce5f1;
+          --soft-blue: #eef4ff;
+        }
+
         * {
           box-sizing: border-box;
         }
@@ -440,8 +409,11 @@ export default function DashboardHome() {
         body {
           margin: 0;
           min-height: 100%;
-          overflow-x: clip;
-          background: #f6f8fb;
+          overflow-x: hidden;
+          background: #fff;
+          color: var(--text);
+          font-family: Inter, ui-sans-serif, system-ui, -apple-system,
+            BlinkMacSystemFont, "Segoe UI", sans-serif;
           -webkit-font-smoothing: antialiased;
           text-rendering: optimizeLegibility;
         }
@@ -458,306 +430,234 @@ export default function DashboardHome() {
         }
 
         button:focus-visible,
-        a:focus-visible,
-        input:focus-visible {
-          outline: 3px solid rgba(11, 49, 140, 0.2);
+        input:focus-visible,
+        a:focus-visible {
+          outline: 3px solid rgba(18, 59, 159, 0.18);
           outline-offset: 2px;
         }
 
         .page {
-          min-height: 100%;
           display: flex;
           justify-content: center;
-          background: #f6f8fb;
-          color: ${TEXT};
-          font-family: Inter, ui-sans-serif, system-ui, -apple-system,
-            BlinkMacSystemFont, "Segoe UI", sans-serif;
+          background: #fff;
         }
 
         .screen {
           width: 100%;
           max-width: 430px;
-          padding: max(14px, env(safe-area-inset-top)) 16px 18px;
+          padding: max(18px, env(safe-area-inset-top)) 16px 0;
           background: #fff;
         }
 
-        /* ===== Header ===== */
-
         .header {
-          min-height: 46px;
+          min-height: 48px;
           display: flex;
           align-items: center;
           justify-content: space-between;
         }
 
-        .user {
+        .profileLink {
           display: flex;
           align-items: center;
-          gap: 12px;
+          gap: 10px;
+          color: inherit;
+          text-decoration: none;
         }
 
         .avatar {
           width: 44px;
           height: 44px;
           display: grid;
-          flex: 0 0 auto;
           place-items: center;
+          flex: 0 0 auto;
           border-radius: 50%;
-          background: ${TINT};
-          color: ${NAVY};
-          font-size: 21px;
-          font-weight: 600;
-        }
-
-        .user p,
-        .user h1 {
-          margin: 0;
-        }
-
-        .user p {
-          color: ${MUTED};
-          font-size: 13px;
-          line-height: 18px;
-        }
-
-        .user h1 {
-          margin-top: 1px;
-          color: ${TEXT};
+          background: #edf3ff;
+          color: var(--navy);
           font-size: 20px;
-          line-height: 24px;
-          font-weight: 700;
+          line-height: 1;
+          font-weight: 620;
         }
 
-        .bell {
+        .profileText {
+          display: flex;
+          flex-direction: column;
+          min-width: 0;
+        }
+
+        .profileText small {
+          color: var(--muted);
+          font-size: 12px;
+          line-height: 16px;
+          font-weight: 460;
+        }
+
+        .profileText strong {
+          display: flex;
+          align-items: center;
+          gap: 3px;
+          color: var(--text);
+          font-size: 19px;
+          line-height: 23px;
+          font-weight: 680;
+        }
+
+        .profileText svg {
+          color: var(--navy);
+        }
+
+        .notification {
           width: 44px;
           height: 44px;
           position: relative;
           display: grid;
           place-items: center;
-          border-radius: 50%;
-          background: #f3f4f7;
-          color: ${MUTED};
+          border: 1px solid #dce6f6;
+          border-radius: 14px;
+          background: #fff;
+          color: #536883;
         }
 
-        .bell svg {
-          width: 22px;
-          height: 22px;
-          fill: none;
-          stroke: currentColor;
-          stroke-width: 1.8;
-          stroke-linecap: round;
-          stroke-linejoin: round;
-        }
-
-        .bell i {
-          width: 7px;
-          height: 7px;
+        .notification i {
+          width: 8px;
+          height: 8px;
           position: absolute;
-          top: 6px;
-          right: 7px;
+          top: 7px;
+          right: 8px;
+          border: 2px solid #fff;
           border-radius: 50%;
-          background: ${NAVY};
+          background: var(--navy);
         }
 
-        /* ===== Client code вЂ” РµРґРёРЅСЃС‚РІРµРЅРЅС‹Р№ "hero" Р°РєС†РµРЅС‚РЅС‹Р№ Р±Р»РѕРє, РїР»РѕСЃРєР°СЏ Р·Р°Р»РёРІРєР° ===== */
-
-        .clientCode {
+        .codeCard {
+          min-height: 112px;
+          display: grid;
+          align-content: center;
           margin-top: 14px;
-          padding: 16px;
-          border-radius: 16px;
-          background: ${TINT};
+          padding: 16px 18px;
+          border: 1px solid #c9d9f7;
+          border-radius: 18px;
+          background: #edf3ff;
           text-align: center;
         }
 
-        .clientCode > span {
-          display: block;
-          color: ${NAVY};
-          opacity: 0.75;
-          font-size: 13px;
+        .codeCard > span {
+          color: var(--navy);
+          font-size: 14px;
           line-height: 18px;
+          font-weight: 620;
         }
 
-        .clientCode > div {
+        .codeCard > div {
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 8px;
-          margin-top: 4px;
+          gap: 12px;
+          margin-top: 6px;
         }
 
-        .clientCode strong {
-          overflow: hidden;
-          color: ${NAVY};
-          font-size: clamp(32px, 9vw, 36px);
-          line-height: 40px;
-          font-weight: 700;
-          letter-spacing: 0.2px;
-          text-overflow: ellipsis;
-          white-space: nowrap;
+        .codeCard strong {
+          color: var(--navy);
+          font-size: clamp(36px, 10.5vw, 46px);
+          line-height: 1;
+          font-weight: 720;
+          letter-spacing: 0.3px;
         }
 
-        .clientCode button {
-          width: 38px;
-          height: 38px;
+        .codeCard button {
+          width: 42px;
+          height: 42px;
           display: grid;
-          flex: 0 0 auto;
           place-items: center;
+          flex: 0 0 auto;
           padding: 0;
           border: 0;
-          border-radius: 10px;
+          border-radius: 12px;
           background: transparent;
-          color: ${NAVY};
+          color: var(--navy);
           cursor: pointer;
         }
 
-        /* ===== Ready-to-collect banner вЂ” РµРґРёРЅСЃС‚РІРµРЅРЅС‹Р№ СЃРµРјР°РЅС‚РёС‡РµСЃРєРёР№ (РЅРµ-Р°РєС†РµРЅС‚РЅС‹Р№) С†РІРµС‚ ===== */
-
-        .ready {
-          min-height: 66px;
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          margin-top: 12px;
-          padding: 12px 14px;
-          border-radius: 14px;
-          background: #f2faf5;
-          color: ${TEXT};
-          text-decoration: none;
-        }
-
-        .readyIcon {
-          width: 40px;
-          height: 40px;
-          flex: 0 0 auto;
+        .tracking {
           display: grid;
-          place-items: center;
-          color: ${GREEN};
+          grid-template-columns: minmax(0, 1fr) 106px;
+          gap: 10px;
+          margin-top: 20px;
         }
 
-        .readyIcon img {
-          width: 40px;
-          height: 40px;
-          display: block;
-        }
-
-        .ready strong {
-          display: block;
-          color: ${TEXT};
-          font-size: 14px;
-          line-height: 19px;
-          font-weight: 600;
-        }
-
-        .ready p {
-          display: flex;
-          align-items: baseline;
-          gap: 8px;
-          margin: 3px 0 0;
-          color: ${MUTED};
-          font-size: 13px;
-        }
-
-        .ready b {
-          color: ${GREEN};
-          font-size: 14px;
-          font-weight: 700;
-        }
-
-        .ready > svg {
-          width: 16px;
-          height: 16px;
-          flex: 0 0 auto;
-          margin-left: auto;
-          fill: none;
-          stroke: ${MUTED};
-          stroke-width: 2;
-          stroke-linecap: round;
-          stroke-linejoin: round;
-        }
-
-        /* ===== Search ===== */
-
-        .search {
-          height: 54px;
+        .tracking label {
+          height: 56px;
           display: flex;
           align-items: center;
-          gap: 10px;
-          margin-top: 12px;
-          padding: 0 6px 0 14px;
-          border: 0.5px solid ${BORDER};
-          border-radius: 14px;
+          gap: 11px;
+          padding: 0 16px;
+          border: 1px solid var(--border);
+          border-radius: 16px;
           background: #fff;
+          color: var(--muted);
+          transition: border-color 0.15s ease;
         }
 
-        .search > svg {
-          width: 20px;
-          height: 20px;
-          flex: 0 0 auto;
-          fill: none;
-          stroke: ${MUTED};
-          stroke-width: 1.8;
-          stroke-linecap: round;
+        .tracking label:focus-within {
+          border-color: #9cb7ed;
         }
 
-        .search input {
+        .tracking input {
+          width: 100%;
           min-width: 0;
           height: 100%;
-          flex: 1;
+          padding: 0;
           border: 0;
           outline: 0;
           background: transparent;
-          color: ${TEXT};
-          font-size: 14px;
+          color: var(--text);
+          font-size: 15px;
+          font-weight: 480;
         }
 
-        .search input::placeholder {
-          color: ${MUTED};
+        .tracking input::placeholder {
+          color: #687d9b;
           opacity: 1;
         }
 
-        .search button {
-          height: 42px;
-          min-width: 82px;
-          padding: 0 15px;
+        .tracking > button {
+          height: 56px;
+          padding: 0 18px;
           border: 0;
-          border-radius: 10px;
-          background: ${NAVY};
+          border-radius: 16px;
+          background: var(--navy);
           color: #fff;
-          font-size: 14px;
-          font-weight: 600;
+          font-size: 15px;
+          font-weight: 680;
           cursor: pointer;
         }
 
-        /* ===== Orders ===== */
-
         .orders {
-          margin-top: 18px;
+          margin-top: 22px;
         }
 
-        .sectionTitle {
+        .sectionHeading {
+          min-height: 28px;
           display: flex;
           align-items: center;
           justify-content: space-between;
-          margin-bottom: 12px;
         }
 
-        .sectionTitle h2 {
+        .sectionHeading h2,
+        .warehouseHeading h2 {
           margin: 0;
-          color: ${TEXT};
-          font-size: 18px;
-          line-height: 24px;
-          font-weight: 700;
+          color: var(--text);
+          font-size: 17px;
+          line-height: 23px;
+          font-weight: 620;
+          letter-spacing: 0;
         }
 
-        .sectionTitle a {
+        .sectionHeading a {
           display: flex;
           align-items: center;
-          gap: 2px;
-          color: ${NAVY};
-          min-height: 40px;
-          margin: -8px -4px -8px 0;
-          padding: 0 4px;
-          font-size: 13px;
+          gap: 3px;
+          color: var(--navy);
+          font-size: 14px;
           font-weight: 600;
           text-decoration: none;
         }
@@ -766,576 +666,555 @@ export default function DashboardHome() {
           display: grid;
           grid-template-columns: repeat(2, minmax(0, 1fr));
           gap: 10px;
+          margin-top: 12px;
         }
 
         .orderCard {
-          min-height: 84px;
+          min-height: 104px;
+          position: relative;
           display: flex;
-          align-items: center;
+          flex-direction: column;
           justify-content: space-between;
-          padding: 12px 14px;
-          border-radius: 12px;
-          border: 1px solid transparent;
+          padding: 14px 15px;
+          overflow: hidden;
+          border: 1px solid;
+          border-radius: 17px;
           text-decoration: none;
         }
 
-        .orderCard > div:first-child {
-          min-width: 0;
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
+        .orderCard > strong {
+          font-size: 31px;
+          line-height: 32px;
+          font-weight: 650;
         }
 
-        .orderCard strong {
-          font-size: 26px;
-          line-height: 1;
-          font-weight: 700;
+        .orderCard > span:not(.statusIcon) {
+          color: #556a87;
+          font-size: 14px;
+          line-height: 18px;
+          font-weight: 620;
         }
 
-        .orderCard span {
-          color: ${MUTED};
-          font-size: 13px;
-          font-weight: 500;
-          white-space: nowrap;
-        }
-
-        .orderIcon {
-          width: 40px;
-          height: 40px;
-          flex: 0 0 auto;
+        .statusIcon {
+          width: 30px;
+          height: 30px;
+          position: absolute;
+          top: 14px;
+          right: 14px;
           display: grid;
           place-items: center;
-          border-radius: 10px;
         }
 
-        .orderIcon img {
-          width: 28px;
-          height: 28px;
+        .statusIcon > svg,
+        .statusIcon > img {
+          width: 30px;
+          height: 30px;
           display: block;
+          object-fit: contain;
+        }
+
+        .statusIcon.flag img {
+          transform: scale(1.06);
         }
 
         .china {
-          border-color: #f9e4e6;
-          background: #fff8f8;
-        }
-
-        .china strong {
-          color: ${RED};
-        }
-
-        .china .orderIcon {
-          background: #fff0f1;
+          border-color: #f5d4d9;
+          background: #fff7f8;
+          color: #ea394d;
         }
 
         .transit {
-          border-color: #e2eaf8;
-          background: #f7f9ff;
+          border-color: #d1e3f7;
+          background: #f3f8fe;
+          color: #2f74c8;
         }
 
-        .transit strong {
-          color: ${BLUE};
-        }
-
-        .transit .orderIcon {
-          background: #edf3ff;
-        }
-
-        .readyOrder {
-          border-color: #dfeee6;
-          background: #f5fbf8;
-        }
-
-        .readyOrder strong {
-          color: ${GREEN};
-        }
-
-        .readyOrder .orderIcon {
-          background: #eaf7f0;
+        .ready {
+          border-color: #cfe8dd;
+          background: #f2faf6;
+          color: #0a9b68;
         }
 
         .issued {
-          border-color: #ece7fa;
-          background: #faf8ff;
-        }
-
-        .issued strong {
-          color: ${VIOLET};
-        }
-
-        .issued .orderIcon {
-          background: #f2eeff;
+          border-color: #ddddf7;
+          background: #f7f7ff;
+          color: #5c5bd6;
         }
 
         .storage {
-          min-height: 34px;
+          min-height: 24px;
           display: flex;
           align-items: center;
           justify-content: center;
           gap: 8px;
-          margin-top: 4px;
-          color: ${MUTED};
+          margin-top: 15px;
+          color: var(--text);
+          font-size: 13px;
+          line-height: 18px;
+          font-weight: 570;
+          text-align: center;
         }
 
-        .storage svg {
-          width: 16px;
-          height: 16px;
-          flex: 0 0 auto;
-          fill: none;
-          stroke: currentColor;
-          stroke-width: 1.8;
-          stroke-linecap: round;
+        .storage svg,
+        .storage strong {
+          color: var(--navy);
         }
 
-        .storage span {
-          color: ${MUTED};
-          font-size: 12.5px;
+        .storage strong {
+          font-weight: 750;
         }
-
-        /* ===== Warehouse address ===== */
 
         .warehouse {
-          margin-top: 16px;
-          padding: 14px;
-          border: 0.5px solid ${BORDER};
-          border-radius: 14px;
+          margin-top: 17px;
+          padding: 16px;
+          border: 1px solid var(--border);
+          border-radius: 18px;
           background: #fff;
         }
 
-        .warehouseHead {
+        .warehouseHeading {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          min-height: 34px;
         }
 
-        .warehouseTitle {
+        .warehouseHeading > div {
           display: flex;
           align-items: center;
-          gap: 6px;
+          gap: 9px;
+          min-width: 0;
+          color: var(--navy);
         }
 
-        .pin {
-          width: 18px;
-          height: 20px;
+        .warehouseHeading h2 {
+          color: var(--text);
+          font-size: 17px;
+          font-weight: 620;
+        }
+
+        .warehouseHeading button {
+          width: 42px;
+          height: 42px;
           display: grid;
           place-items: center;
-          color: ${NAVY};
-        }
-
-        .pin svg {
-          width: 16px;
-          height: 19px;
-          fill: none;
-          stroke: currentColor;
-          stroke-width: 2.2;
-          stroke-linecap: round;
-          stroke-linejoin: round;
-        }
-
-        .warehouse h2 {
-          margin: 0;
-          color: ${TEXT};
-          font-size: 15px;
-          line-height: 20px;
-          font-weight: 600;
-        }
-
-        .copyAddressIcon {
-          width: 32px;
-          height: 32px;
-          display: grid;
-          place-items: center;
+          flex: 0 0 auto;
           padding: 0;
-          border: 0;
-          border-radius: 9px;
-          background: ${TINT};
-          color: ${NAVY};
+          border: 1px solid #d7e3f7;
+          border-radius: 12px;
+          background: var(--soft-blue);
+          color: var(--navy);
           cursor: pointer;
-          transition: background 0.15s ease, transform 0.15s ease;
         }
 
-        .copyAddressIcon:hover {
-          background: #e2eaff;
-        }
-
-        .copyAddressIcon:active {
-          transform: scale(0.96);
-        }
-
-        .warehouseBody {
-          margin-top: 8px;
-          padding-top: 8px;
-          border-top: 0.5px solid ${BORDER};
-        }
-
-        .addrRow {
+        .addressRows {
           display: grid;
-          grid-template-columns: 84px minmax(0, 1fr);
           gap: 8px;
-          padding: 5px 0;
-          font-size: 13.5px;
-          line-height: 1.6;
+          margin-top: 13px;
         }
 
-        .addrRow + .addrRow {
-          border-top: 0.5px solid #f0f1f4;
+        .addressRows > div {
+          display: grid;
+          grid-template-columns: 102px minmax(0, 1fr);
+          align-items: start;
+          gap: 8px;
         }
 
-        .addrLabel {
-          color: ${MUTED};
+        .addressRows span {
+          color: #71829d;
+          font-size: 12.5px;
+          line-height: 19px;
+          font-weight: 480;
         }
 
-        .addrValue {
-          color: ${TEXT};
+        .addressRows p {
+          min-width: 0;
+          margin: 0;
+          color: var(--text);
+          font-size: 14px;
+          line-height: 19px;
+          font-weight: 540;
           overflow-wrap: anywhere;
         }
 
-        .addrValue b {
-          font-weight: 700;
+        .addressRows b {
+          font-weight: 750;
         }
 
-        /* РљРЅРѕРїРєР°-РїРѕРґСЃРєР°Р·РєР° РѕСЃС‚Р°С‘С‚СЃСЏ Р’РќРЈРўР Р РєР°СЂС‚РѕС‡РєРё Р°РґСЂРµСЃР° вЂ” С‚Р°Рє РѕРЅР° РіР°СЂР°РЅС‚РёСЂРѕРІР°РЅРЅРѕ
-           РїРѕРїР°РґР°РµС‚ РІ РїРµСЂРІС‹Р№ СЌРєСЂР°РЅ РІРјРµСЃС‚Рµ СЃ Р°РґСЂРµСЃРѕРј, Р° РЅРµ С‚РµСЂСЏРµС‚СЃСЏ РіРґРµ-С‚Рѕ РЅРёР¶Рµ */
         .addressGuide {
-          width: 100%;
-          min-height: 40px;
+          min-height: 48px;
+          position: relative;
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 5px;
-          margin-top: 10px;
-          padding: 9px 12px;
-          border: 0;
-          border-radius: 10px;
-          background: ${TINT};
-          color: ${NAVY};
-          font-size: 13px;
+          margin-top: 8px;
+          padding: 10px 44px;
+          border: 1px solid #d5e2fa;
+          border-radius: 14px;
+          background: #edf3ff;
+          color: var(--navy);
+          font-size: 13.5px;
           line-height: 18px;
-          font-weight: 600;
-          text-decoration: none;
-          transition: background 0.15s ease;
-        }
-
-        .addressGuide:hover {
-          background: #e2eaff;
+          font-weight: 650;
+          text-align: center;
           text-decoration: none;
         }
 
-        /* ===== Contacts ===== */
+        .addressGuide svg {
+          position: absolute;
+          top: 50%;
+          right: 14px;
+          width: 19px;
+          height: 19px;
+          padding: 0;
+          flex: 0 0 auto;
+          border: 0;
+          border-radius: 0;
+          background: transparent;
+          transform: translateY(-50%);
+        }
+
+        .belowFold {
+          margin-top: 24px;
+        }
+
+        .pickupTitle,
+        .contactSection h2 {
+          margin: 0;
+          color: var(--text);
+          font-size: 17px;
+          line-height: 22px;
+          font-weight: 680;
+        }
+
+        .pickupCard {
+          margin-top: 10px;
+          overflow: hidden;
+          border: 1px solid var(--border);
+          border-radius: 16px;
+          background: #fff;
+        }
+
+        .pickupAddress {
+          min-height: 68px;
+          display: flex;
+          align-items: center;
+          gap: 11px;
+          padding: 12px 14px;
+          color: var(--text);
+          text-decoration: none;
+        }
+
+        .pickupIcon {
+          width: 36px;
+          height: 36px;
+          display: grid;
+          place-items: center;
+          flex: 0 0 auto;
+          border-radius: 11px;
+          background: #edf3ff;
+          color: var(--navy);
+        }
+
+        .pickupContent {
+          min-width: 0;
+          display: flex;
+          flex: 1;
+          flex-direction: column;
+        }
+
+        .pickupContent small {
+          color: #71829d;
+          font-size: 12px;
+          line-height: 16px;
+          font-weight: 520;
+        }
+
+        .pickupContent strong {
+          color: var(--text);
+          font-size: 14px;
+          line-height: 19px;
+          font-weight: 680;
+        }
+
+        .pickupMeta {
+          min-height: 60px;
+          display: flex;
+          align-items: center;
+          gap: 11px;
+          padding: 11px 14px;
+          border-top: 1px solid #edf1f6;
+          background: #fff;
+          color: var(--navy);
+        }
+
+        .pickupAddress > svg {
+          flex: 0 0 auto;
+          color: #7486a1;
+        }
 
         .contactSection {
-          margin-top: 10px;
+          margin-top: 20px;
           margin-bottom: 0;
         }
 
-        .contacts {
-          display: grid;
-          grid-template-columns: repeat(3, minmax(0, 1fr));
-          gap: 8px;
+        .contactSection h2 {
+          margin-bottom: 10px;
         }
 
-        .contacts a {
-          height: 50px;
+        .contactButtons {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 10px;
+        }
+
+        .contactButtons a {
           min-width: 0;
+          min-height: 56px;
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 6px;
-          border: 0.5px solid ${BORDER};
-          border-radius: 12px;
+          gap: 7px;
+          padding: 10px 8px;
+          border: 1px solid var(--border);
+          border-radius: 15px;
           background: #fff;
-          color: ${TEXT};
+          color: var(--text);
+          font-size: 13px;
+          font-weight: 620;
           text-decoration: none;
-          transition: border-color 0.15s ease, background 0.15s ease;
         }
 
-        .contacts a:hover {
-          border-color: #c3cddc;
-          background: #fbfcff;
-        }
-
-        .contacts svg {
-          width: 20px;
-          height: 20px;
+        .contactButtons svg {
+          width: 22px;
+          height: 22px;
           flex: 0 0 auto;
-          display: block;
         }
 
-        /* Р‘СЂРµРЅРґРѕРІС‹Рµ С†РІРµС‚Р° РјРµСЃСЃРµРЅРґР¶РµСЂРѕРІ вЂ” РµРґРёРЅСЃС‚РІРµРЅРЅРѕРµ РѕСЃРѕР·РЅР°РЅРЅРѕРµ РёСЃРєР»СЋС‡РµРЅРёРµ РёР·
-           РµРґРёРЅРѕРіРѕ Р°РєС†РµРЅС‚Р°: СЌС‚Рѕ СѓР·РЅР°РІР°РµРјС‹Рµ Р»РѕРіРѕС‚РёРїС‹, Р° РЅРµ СЃС‚Р°С‚СѓСЃ-РёРЅРґРёРєР°С†РёСЏ */
-        .contacts .whatsapp {
-          color: #25d366;
+        .whatsapp {
+          color: #09b95f;
         }
 
-        .contacts .telegram {
+        .telegram {
           color: #229ed9;
         }
 
-        .contacts .phone {
-          color: ${NAVY};
+        .phone {
+          color: var(--navy);
         }
-
-        .contacts span {
-          overflow: hidden;
-          font-size: 13px;
-          font-weight: 500;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
-
-        .chat-widget,
-        .chatWidget,
-        #chat-widget,
-        [data-chat-widget],
-        [data-support-widget],
-        .chat-widget-button,
-        .support-chat-button,
-        .floating-chat-button,
-        .chat-toggle,
-        button[aria-label*="С‡Р°С‚" i],
-        button[title*="С‡Р°С‚" i],
-        button[aria-label*="СЃРѕРѕР±С‰" i],
-        button[title*="СЃРѕРѕР±С‰" i],
-        button[aria-label*="support" i] {
-          display: none !important;
-        }
-
-        /* ===== Р¤РёРЅР°Р»СЊРЅР°СЏ РєРѕРјРїРѕР·РёС†РёСЏ РїРѕ СѓС‚РІРµСЂР¶РґС‘РЅРЅРѕРјСѓ РјР°РєРµС‚Сѓ ===== */
-        .page { background: #f7f9fc; }
-        .screen {
-          max-width: 430px;
-          padding: max(20px, env(safe-area-inset-top)) 18px
-            calc(104px + env(safe-area-inset-bottom));
-          background: #fff;
-        }
-        .header { min-height: 54px; }
-        .user { gap: 13px; }
-        .avatar {
-          width: 52px; height: 52px;
-          background: #edf3ff;
-          font-size: 25px; font-weight: 650;
-        }
-        .user p {
-          font-size: 14px; line-height: 18px; letter-spacing: -0.1px;
-        }
-        .user h1 {
-          margin-top: 2px;
-          font-size: 23px; line-height: 27px;
-          font-weight: 700; letter-spacing: -0.45px;
-        }
-        .bell {
-          width: 48px; height: 48px;
-          background: #f5f7fb; color: #52627a;
-        }
-        .bell svg { width: 25px; height: 25px; stroke-width: 1.75; }
-        .bell i {
-          width: 8px; height: 8px; top: 5px; right: 6px;
-          box-shadow: 0 0 0 3px #f5f7fb;
-        }
-        .clientCode {
-          min-height: 112px;
-          display: flex; flex-direction: column; justify-content: center;
-          margin-top: 20px; padding: 15px 18px 17px;
-          border: 1px solid #d8e3f7;
-          border-radius: 20px; background: #eef3ff;
-        }
-        .clientCode > span {
-          color: ${NAVY}; opacity: 1;
-          font-size: 14px; line-height: 19px; font-weight: 450;
-        }
-        .clientCode > div { gap: 9px; margin-top: 3px; }
-        .clientCode strong {
-          font-size: clamp(38px, 11vw, 48px);
-          line-height: 52px; font-weight: 750; letter-spacing: 0.35px;
-        }
-        .clientCode button { width: 36px; height: 40px; border-radius: 9px; }
-        .ready {
-          min-height: 64px; margin-top: 14px; padding: 11px 15px;
-          border: 1px solid #dcefe5;
-          border-radius: 16px; background: #f6fbf8;
-        }
-        .search {
-          height: 60px; gap: 12px; margin-top: 16px;
-          padding: 0 7px 0 16px;
-          border: 1px solid ${BORDER}; border-radius: 17px;
-        }
-        .search > svg {
-          width: 24px; height: 24px;
-          stroke: #64748b; stroke-width: 1.7;
-        }
-        .search input { font-size: 15.5px; letter-spacing: -0.1px; }
-        .search button {
-          height: 48px; min-width: 94px; padding: 0 20px;
-          border-radius: 13px; font-size: 15px; font-weight: 650;
-        }
-        .orders { margin-top: 24px; }
-        .sectionTitle { margin-bottom: 12px; }
-        .sectionTitle h2 {
-          font-size: 18px; line-height: 24px;
-          font-weight: 650; letter-spacing: -0.2px;
-        }
-        .sectionTitle a {
-          gap: 3px; font-size: 14px; font-weight: 650;
-        }
-        .orderGrid { gap: 12px; }
-        .orderCard {
-          min-height: 100px; padding: 15px;
-          border-radius: 18px;
-        }
-        .orderCard > div:first-child { gap: 7px; }
-        .orderCard strong {
-          font-size: 32px; line-height: 34px;
-          font-weight: 700; letter-spacing: -0.7px;
-        }
-        .orderCard span {
-          max-width: 94px; color: #52627a;
-          font-size: 13.5px; line-height: 17px;
-          font-weight: 600; white-space: normal;
-        }
-        .orderIcon {
-          width: 44px; height: 44px; border-radius: 13px;
-        }
-        .orderIcon img { width: 30px; height: 30px; }
-        .china { border-color: #f8dfe2; background: #fff9f9; }
-        .china .orderIcon { background: #fff1f2; }
-        .transit { border-color: #dce6f7; background: #f8faff; }
-        .transit .orderIcon { background: #edf3ff; }
-        .readyOrder { border-color: #d8eee3; background: #f7fcf9; }
-        .readyOrder .orderIcon { background: #eaf8f1; }
-        .issued { border-color: #e9e1fb; background: #faf9ff; }
-        .issued .orderIcon { background: #f2eeff; }
-        .storage {
-          min-height: 42px; justify-content: center;
-          gap: 8px; margin-top: 10px; padding: 0 12px;
-          border: 1px solid #dfe8fa; border-radius: 13px;
-          background: #f5f8ff; color: ${BLUE};
-        }
-        .storage svg {
-          width: 18px; height: 18px;
-          stroke: ${BLUE}; stroke-width: 1.9;
-        }
-        .storage span {
-          color: #344054; font-size: 13px;
-          line-height: 18px; font-weight: 500;
-        }
-        .warehouse {
-          margin-top: 20px; padding: 16px;
-          border: 1px solid ${BORDER}; border-radius: 20px;
-        }
-        .warehouseHead { min-height: 40px; }
-        .warehouseTitle { gap: 9px; }
-        .pin { width: 22px; height: 26px; }
-        .pin svg { width: 20px; height: 24px; stroke-width: 2; }
-        .warehouse h2 {
-          font-size: 18px; line-height: 24px;
-          font-weight: 700; letter-spacing: -0.25px;
-        }
-        .copyAddressIcon {
-          width: 40px; height: 40px; border-radius: 12px;
-        }
-        .warehouseBody {
-          margin-top: 11px; padding-top: 12px;
-          border-top: 1px solid ${BORDER};
-        }
-        .addrRow {
-          grid-template-columns: 88px minmax(0, 1fr);
-          gap: 12px; padding: 8px 0;
-          font-size: 14px; line-height: 1.55;
-        }
-        .addrRow + .addrRow { border-top: 0; }
-        .addrLabel { color: #718096; }
-        .addrValue { color: #111827; font-weight: 450; }
-        .addressGuide {
-          min-height: 52px; gap: 6px;
-          margin-top: 13px; padding: 12px 14px;
-          border-radius: 14px;
-          font-size: 14px; line-height: 20px; font-weight: 650;
-        }
-        .contactSection { margin-top: 14px; }
 
         .toast {
           position: fixed;
-          bottom: calc(76px + env(safe-area-inset-bottom));
           left: 50%;
-          z-index: 20;
-          padding: 10px 14px;
+          bottom: calc(94px + env(safe-area-inset-bottom));
+          z-index: 50;
           transform: translateX(-50%);
-          border-radius: 10px;
-          background: ${TEXT};
+          padding: 10px 14px;
+          border-radius: 12px;
+          background: var(--text);
           color: #fff;
           font-size: 13px;
           font-weight: 600;
           white-space: nowrap;
         }
 
-        @media (max-width: 370px) {
+        @media (max-width: 365px) {
           .screen {
             padding-right: 12px;
             padding-left: 12px;
           }
 
-          .clientCode strong {
-            font-size: 28px;
-          }
-
-          .orderGrid {
+          .tracking {
+            grid-template-columns: minmax(0, 1fr) 92px;
             gap: 8px;
           }
 
+          .tracking label {
+            padding: 0 12px;
+          }
+
           .orderCard {
-            padding: 10px 12px;
+            min-height: 100px;
+            padding: 13px;
           }
 
-          .orderIcon {
-            width: 34px;
-            height: 34px;
+          .addressRows > div {
+            grid-template-columns: 90px minmax(0, 1fr);
           }
 
-          .contacts {
-            gap: 6px;
+          .contactButtons {
+            gap: 7px;
           }
 
-          .contacts span {
-            font-size: 12px;
+          .contactButtons a {
+            gap: 5px;
+            font-size: 11.5px;
           }
+
         }
 
-        @media (max-width: 430px) and (max-height: 760px) {
+        /*
+         * На типичных мобильных viewport 740–900 px весь основной сценарий
+         * завершается карточкой склада. Контакты остаются следующим экраном
+         * прокрутки и не выглядывают из-под фиксированной навигации.
+         */
+        @media (max-height: 900px) {
           .screen {
-            padding-top: max(10px, env(safe-area-inset-top));
-            padding-bottom: 12px;
+            padding-top: max(12px, env(safe-area-inset-top));
           }
 
-          .clientCode {
-            margin-top: 8px;
-            padding: 12px 14px;
+          .header {
+            min-height: 44px;
           }
 
-          .ready {
+          .avatar {
+            width: 42px;
+            height: 42px;
+            font-size: 19px;
+          }
+
+          .notification {
+            width: 42px;
+            height: 42px;
+          }
+
+          .codeCard {
+            min-height: 96px;
             margin-top: 10px;
+            padding: 12px 16px;
           }
 
-          .search {
-            margin-top: 10px;
+          .codeCard > span {
+            font-size: 13px;
+            line-height: 17px;
           }
 
-          .orders {
+          .codeCard > div {
+            margin-top: 4px;
+          }
+
+          .codeCard strong {
+            font-size: clamp(34px, 10vw, 42px);
+          }
+
+          .codeCard button {
+            width: 38px;
+            height: 38px;
+          }
+
+          .tracking {
+            grid-template-columns: minmax(0, 1fr) 102px;
             margin-top: 14px;
           }
 
-          .warehouse {
-            margin-top: 12px;
-            padding: 12px 14px;
+          .tracking label,
+          .tracking > button {
+            height: 52px;
           }
 
-          .contactSection {
-            margin-top: 8px;
+          .orders {
+            margin-top: 16px;
+          }
+
+          .sectionHeading {
+            min-height: 26px;
+          }
+
+          .sectionHeading h2 {
+            font-size: 17px;
+            line-height: 23px;
+            font-weight: 620;
+          }
+
+          .orderGrid {
+            gap: 9px;
+            margin-top: 10px;
+          }
+
+          .orderCard {
+            min-height: 88px;
+            padding: 12px 14px;
+            border-radius: 16px;
+          }
+
+          .orderCard > strong {
+            font-size: 28px;
+            line-height: 29px;
+          }
+
+          .orderCard > span:not(.statusIcon) {
+            font-size: 13px;
+            line-height: 17px;
+          }
+
+          .statusIcon {
+            width: 30px;
+            height: 30px;
+            top: 12px;
+            right: 13px;
+          }
+
+          .storage {
+            min-height: 22px;
+            margin-top: 11px;
+            font-size: 12.5px;
+          }
+
+          .warehouse {
+            margin-top: 13px;
+            padding: 14px;
+            border-radius: 17px;
+          }
+
+          .warehouseHeading button {
+            width: 42px;
+            height: 42px;
+          }
+
+          .warehouseHeading h2 {
+            font-size: 17px;
+            line-height: 23px;
+            font-weight: 620;
+          }
+
+          .addressRows {
+            gap: 5px;
+            margin-top: 10px;
+          }
+
+          .addressRows > div {
+            grid-template-columns: 96px minmax(0, 1fr);
+          }
+
+          .addressRows span {
+            font-size: 12px;
+            line-height: 18px;
+          }
+
+          .addressRows p {
+            font-size: 13px;
+            line-height: 18px;
+          }
+
+          .addressGuide {
+            min-height: 44px;
+            margin-top: 7px;
+            padding: 8px 42px;
+            font-size: 13px;
           }
         }
 
-        @media (min-width: 431px) {
-          .screen {
-            box-shadow: none;
+        @media (prefers-reduced-motion: no-preference) {
+          button,
+          a {
+            transition:
+              transform 0.14s ease,
+              background 0.14s ease,
+              border-color 0.14s ease;
+          }
+
+          button:active,
+          a:active {
+            transform: scale(0.985);
           }
         }
       `}</style>
