@@ -1,155 +1,326 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent,
+} from "react";
 import { createBrowserClient } from "@supabase/ssr";
-import { Icon } from "@/lib/dashboard";
+import {
+  CircleAlert,
+  MessageCircleMore,
+  Send,
+  Sparkles,
+} from "lucide-react";
 import { getClient } from "@/lib/supabase-dashboard";
 
-type Message = { role: "user" | "assistant"; text: string };
+type Message = {
+  role: "user" | "assistant";
+  text: string;
+};
+
+const quickQuestions = [
+  "Сколько стоит доставка?",
+  "Где мои заказы?",
+  "Как заполнить адрес в Китае?",
+  "Где и когда забрать посылку?",
+];
+
+const welcomeMessage: Message = {
+  role: "assistant",
+  text: "Здравствуйте! Помогу узнать статус заказа, стоимость доставки или правильно заполнить адрес склада.",
+};
 
 export default function AssistantPage() {
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  const supabase = useMemo(
+    () =>
+      createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      ),
+    [],
   );
 
-  const [messages, setMessages] = useState<Message[]>([
-    { role: "assistant", text: "Здравствуйте! Я ассистент 3X Cargo. Чем могу помочь?" }
-  ]);
+  const [messages, setMessages] = useState<Message[]>([welcomeMessage]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [clientCode, setClientCode] = useState<string | null>(null);
+  const [error, setError] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
-  const messagesRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    async function load() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+    let active = true;
+
+    async function loadClient() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!active || !user) return;
+
       const client = await getClient(user.id);
-      if (client) setClientCode(client.client_code);
+      if (active && client) setClientCode(client.client_code);
     }
-    load();
-  }, []);
+
+    loadClient();
+
+    return () => {
+      active = false;
+    };
+  }, [supabase]);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    bottomRef.current?.scrollIntoView({
+      behavior: messages.length > 2 ? "smooth" : "auto",
+      block: "end",
+    });
   }, [messages, loading]);
 
-  const send = async () => {
-    if (!input.trim() || loading) return;
-    const userMsg = input.trim();
-    setInput("");
-    setMessages(prev => [...prev, { role: "user", text: userMsg }]);
-    setLoading(true);
-    try {
-      const res = await fetch("/api/ai", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: userMsg, client_code: clientCode }),
-      });
-      const data = await res.json();
-      setMessages(prev => [...prev, { role: "assistant", text: data.reply || "Не смог обработать запрос." }]);
-    } catch {
-      setMessages(prev => [...prev, { role: "assistant", text: "Произошла ошибка. Попробуйте позже." }]);
-    }
-    setLoading(false);
-  };
+  function resizeTextarea() {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
 
-  const QUICK = ["Сколько стоит доставка?", "Где мои заказы?", "Адрес склада в Китае?", "Адрес выдачи в Бишкеке?"];
+    textarea.style.height = "48px";
+    textarea.style.height = `${Math.min(textarea.scrollHeight, 104)}px`;
+  }
+
+  async function send(prefilledMessage?: string) {
+    const userText = (prefilledMessage ?? input).trim();
+    if (!userText || loading) return;
+
+    const previousMessages = messages.slice(-8);
+
+    setInput("");
+    setError("");
+    setMessages((current) => [
+      ...current,
+      { role: "user", text: userText },
+    ]);
+    setLoading(true);
+
+    if (textareaRef.current) textareaRef.current.style.height = "48px";
+
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      const response = await fetch("/api/ai", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(session?.access_token
+            ? { Authorization: `Bearer ${session.access_token}` }
+            : {}),
+        },
+        body: JSON.stringify({
+          message: userText,
+          client_code: clientCode,
+          history: previousMessages,
+        }),
+      });
+
+      const data = (await response.json()) as {
+        reply?: string;
+        error?: string;
+      };
+
+      if (!response.ok) {
+        throw new Error(data.error || "Ошибка запроса");
+      }
+
+      setMessages((current) => [
+        ...current,
+        {
+          role: "assistant",
+          text:
+            data.reply ||
+            "Не удалось получить ответ. Попробуйте сформулировать вопрос иначе.",
+        },
+      ]);
+    } catch {
+      setError("Не удалось связаться с помощником. Попробуйте ещё раз.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function handleKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      void send();
+    }
+  }
 
   return (
-    <div style={{
-      position: "fixed",
-      top: 0, left: 0, right: 0,
-      bottom: 64,
-      display: "flex",
-      flexDirection: "column",
-      background: "#f0f2f5",
-      touchAction: "manipulation",
-    }}>
+    <div
+      data-dashboard-assistant="true"
+      className={[
+        "fixed left-1/2 top-0 z-20 flex w-full max-w-[430px]",
+        "-translate-x-1/2 flex-col overflow-hidden bg-white",
+        "bottom-[calc(76px+env(safe-area-inset-bottom))]",
+      ].join(" ")}
+    >
+      <header className="flex h-[68px] shrink-0 items-center gap-3 border-b border-[#E8EDF4] bg-white px-5">
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[13px] bg-[#EDF3FF] text-[#1744A7]">
+          <MessageCircleMore size={21} strokeWidth={1.9} />
+        </span>
 
-      {/* HEADER */}
-      <div style={{ background: "#fff", padding: "12px 20px", borderBottom: "0.5px solid #e8edf2", display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
-        <div style={{ width: 40, height: 40, borderRadius: 12, background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <Icon name="headphones" size={20} color="#005eaa" />
-        </div>
-        <div>
-          <div style={{ fontSize: 15, fontWeight: 700, color: "#0a1e3d" }}>AI Помощник</div>
-          <div style={{ fontSize: 11, color: "#10b981", display: "flex", alignItems: "center", gap: 4 }}>
-            <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#10b981" }} />
+        <div className="min-w-0 flex-1">
+          <h1 className="text-[16px] font-semibold leading-5 tracking-[-0.15px]">
+            Помощник 3X Cargo
+          </h1>
+          <p className="mt-0.5 flex items-center gap-1.5 text-[11px] font-medium leading-4 text-[#17885F]">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#18A875]" />
             Онлайн
-          </div>
+          </p>
         </div>
-      </div>
 
-      {/* MESSAGES */}
-      <div ref={messagesRef} style={{ flex: 1, overflowY: "auto", padding: "14px 14px 0", WebkitOverflowScrolling: "touch" } as React.CSSProperties}>
+        {clientCode && (
+          <span className="rounded-full bg-[#F1F4F9] px-2.5 py-1 text-[11px] font-semibold text-[#5F708A]">
+            {clientCode}
+          </span>
+        )}
+      </header>
+
+      <div className="flex-1 overflow-y-auto bg-[#F7F9FC] px-4 pb-3 pt-4 [overscroll-behavior:contain]">
         {messages.length === 1 && (
-          <div style={{ marginBottom: 16 }}>
-            <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 8, textAlign: "center" }}>Частые вопросы</div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, justifyContent: "center" }}>
-              {QUICK.map((q, i) => (
-                <button key={i} onClick={() => setInput(q)}
-                  style={{ padding: "7px 13px", borderRadius: 20, fontSize: 13, background: "#fff", border: "0.5px solid #e2e8f0", color: "#005eaa", cursor: "pointer", fontWeight: 500 }}>
-                  {q}
+          <section className="mb-5">
+            <div className="mb-2.5 flex items-center justify-center gap-1.5 text-[11px] font-medium text-[#71809A]">
+              <Sparkles size={14} strokeWidth={1.8} />
+              Частые вопросы
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              {quickQuestions.map((question) => (
+                <button
+                  key={question}
+                  type="button"
+                  onClick={() => void send(question)}
+                  className={[
+                    "min-h-[48px] rounded-[14px] border border-[#DCE5F3]",
+                    "bg-white px-3 py-2 text-left text-[12px]",
+                    "font-medium leading-[16px] text-[#1744A7]",
+                    "transition active:bg-[#EDF3FF]",
+                  ].join(" ")}
+                >
+                  {question}
                 </button>
               ))}
             </div>
-          </div>
+          </section>
         )}
 
-        {messages.map((m, i) => (
-          <div key={i} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start", marginBottom: 10 }}>
-            {m.role === "assistant" && (
-              <div style={{ width: 30, height: 30, borderRadius: 9, background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginRight: 8, alignSelf: "flex-end" }}>
-                <Icon name="headphones" size={15} color="#005eaa" />
+        <div className="space-y-3">
+          {messages.map((message, index) => {
+            const user = message.role === "user";
+
+            return (
+              <div
+                key={`${message.role}-${index}`}
+                className={[
+                  "flex items-end gap-2",
+                  user ? "justify-end" : "justify-start",
+                ].join(" ")}
+              >
+                {!user && (
+                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-[11px] bg-[#EDF3FF] text-[#1744A7]">
+                    <MessageCircleMore size={16} strokeWidth={1.9} />
+                  </span>
+                )}
+
+                <div
+                  className={[
+                    "max-w-[82%] whitespace-pre-wrap break-words px-3.5 py-2.5",
+                    "text-[14px] leading-[20px]",
+                    user
+                      ? "rounded-[17px_17px_5px_17px] bg-[#1744A7] text-white"
+                      : "rounded-[17px_17px_17px_5px] border border-[#DCE5F3] bg-white text-[#0A1E3D]",
+                  ].join(" ")}
+                >
+                  {message.text}
+                </div>
               </div>
-            )}
-            <div style={{
-              maxWidth: "75%", padding: "10px 14px",
-              borderRadius: m.role === "user" ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
-              background: m.role === "user" ? "#005eaa" : "#fff",
-              color: m.role === "user" ? "#fff" : "#0a1e3d",
-              fontSize: 15, lineHeight: 1.6,
-              border: m.role === "assistant" ? "0.5px solid #e8edf2" : "none",
-            }}>
-              {m.text}
-            </div>
-          </div>
-        ))}
+            );
+          })}
 
-        {loading && (
-          <div style={{ display: "flex", justifyContent: "flex-start", marginBottom: 10 }}>
-            <div style={{ width: 30, height: 30, borderRadius: 9, background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginRight: 8 }}>
-              <Icon name="headphones" size={15} color="#005eaa" />
+          {loading && (
+            <div className="flex items-end gap-2">
+              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-[11px] bg-[#EDF3FF] text-[#1744A7]">
+                <MessageCircleMore size={16} strokeWidth={1.9} />
+              </span>
+              <div className="flex h-10 items-center gap-1 rounded-[17px_17px_17px_5px] border border-[#DCE5F3] bg-white px-4">
+                {[0, 1, 2].map((item) => (
+                  <span
+                    key={item}
+                    className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#8B98AC]"
+                    style={{ animationDelay: `${item * 160}ms` }}
+                  />
+                ))}
+              </div>
             </div>
-            <div style={{ background: "#fff", border: "0.5px solid #e8edf2", borderRadius: "16px 16px 16px 4px", padding: "12px 16px", display: "flex", gap: 4, alignItems: "center" }}>
-              {[0,1,2].map(i => <div key={i} style={{ width: 6, height: 6, borderRadius: "50%", background: "#94a3b8", animation: `bounce 1s ${i*0.2}s infinite` }} />)}
-            </div>
-          </div>
-        )}
-        <div ref={bottomRef} style={{ height: 14 }} />
+          )}
+        </div>
+
+        <div ref={bottomRef} className="h-1" />
       </div>
 
-      {/* INPUT */}
-      <div style={{ background: "#fff", borderTop: "0.5px solid #e8edf2", padding: "12px 14px", flexShrink: 0 }}>
-        <div style={{ display: "flex", gap: 8, alignItems: "flex-end" }}>
-          <textarea
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
-            placeholder="Напишите вопрос..."
-            rows={1}
-            style={{ flex: 1, padding: "10px 14px", borderRadius: 12, border: "0.5px solid #e2e8f0", fontSize: 16, outline: "none", resize: "none", fontFamily: "inherit", lineHeight: 1.5, maxHeight: 100, overflowY: "auto" }}
-          />
-          <button onClick={send} disabled={!input.trim() || loading}
-            style={{ width: 42, height: 42, borderRadius: 12, flexShrink: 0, background: !input.trim() || loading ? "#e2e8f0" : "#005eaa", border: "none", cursor: !input.trim() || loading ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <Icon name="chevron_right" size={20} color="#fff" />
+      {error && (
+        <div className="flex items-center gap-2 border-t border-[#F1CCCC] bg-[#FFF7F7] px-4 py-2.5 text-[12px] font-medium text-[#BD3445]">
+          <CircleAlert size={16} strokeWidth={1.9} className="shrink-0" />
+          <span className="min-w-0 flex-1">{error}</span>
+          <button
+            type="button"
+            onClick={() => void send()}
+            className="shrink-0 font-semibold text-[#1744A7]"
+          >
+            Повторить
           </button>
         </div>
-      </div>
+      )}
 
-      <style>{`@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}`}</style>
+      <footer className="shrink-0 border-t border-[#E8EDF4] bg-white px-3.5 py-3">
+        <div className="flex items-end gap-2">
+          <textarea
+            ref={textareaRef}
+            value={input}
+            onChange={(event) => {
+              setInput(event.target.value);
+              setError("");
+              resizeTextarea();
+            }}
+            onKeyDown={handleKeyDown}
+            placeholder="Напишите вопрос"
+            rows={1}
+            className={[
+              "h-12 max-h-[104px] min-h-12 min-w-0 flex-1 resize-none",
+              "overflow-y-auto rounded-[15px] border border-[#DCE4EF]",
+              "bg-white px-3.5 py-[11px] text-[16px] leading-6",
+              "text-[#0A1E3D] outline-none placeholder:text-[#9AA6B8]",
+              "focus:border-[#6F94E8] focus:ring-2 focus:ring-[#EAF0FF]",
+            ].join(" ")}
+          />
+
+          <button
+            type="button"
+            onClick={() => void send()}
+            disabled={!input.trim() || loading}
+            className={[
+              "grid h-12 w-12 shrink-0 place-items-center rounded-[15px]",
+              "transition active:scale-95",
+              !input.trim() || loading
+                ? "cursor-not-allowed bg-[#E8EDF5] text-[#8A97AA]"
+                : "bg-[#1744A7] text-white",
+            ].join(" ")}
+            aria-label="Отправить сообщение"
+          >
+            <Send size={20} strokeWidth={1.9} />
+          </button>
+        </div>
+      </footer>
     </div>
   );
 }

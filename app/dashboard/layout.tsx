@@ -56,6 +56,7 @@ export default function DashboardLayout({
 
       controls.forEach((control) => {
         if (control.closest('nav[aria-label="Основная навигация"]')) return;
+        if (control.closest('[data-dashboard-assistant="true"]')) return;
 
         const rect = control.getBoundingClientRect();
         const isBottomCorner =
