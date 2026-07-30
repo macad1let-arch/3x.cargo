@@ -1,38 +1,38 @@
 "use client";
-import { useState, useEffect, Suspense } from "react";
+
+import {
+  Suspense,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 import { useSearchParams } from "next/navigation";
 import { createBrowserClient } from "@supabase/ssr";
+import {
+  ChevronDown,
+  Clock3,
+  PackageOpen,
+  Search,
+  Weight,
+  WalletCards,
+  X,
+} from "lucide-react";
 import { Icon } from "@/lib/dashboard";
-import { getClient, getShipments, Shipment, STATUS_MAP } from "@/lib/supabase-dashboard";
+import {
+  getClient,
+  getShipments,
+  STATUS_MAP,
+  type Shipment,
+} from "@/lib/supabase-dashboard";
 
-const TABS = [
-  { key: "all",       label: "Все"        },
-  { key: "china",     label: "В Китае"    },
-  { key: "transit",   label: "В пути"     },
-  { key: "sorting",   label: "Сортировка" },
-  { key: "ready",     label: "К выдаче"   },
-  { key: "completed", label: "Выдано"     },
+const tabs = [
+  { key: "all", label: "Все" },
+  { key: "china", label: "В Китае" },
+  { key: "transit", label: "В пути" },
+  { key: "ready", label: "Готово к выдаче" },
+  { key: "completed", label: "Выдано" },
 ];
-
-function matchTab(status: string, tab: string): boolean {
-  if (tab === "all")       return true;
-  if (tab === "china")     return status === "china_warehouse" || status === "Поступила на склад в Китае";
-  if (tab === "transit")   return status === "in_transit";
-  if (tab === "sorting")   return status === "sorting" || status === "bishkek_arrived";
-  if (tab === "ready")     return status === "ready_pickup";
-  if (tab === "completed") return status === "completed";
-  return false;
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const s = STATUS_MAP[status] ?? { label: status, color: "#94a3b8", bg: "#f1f5f9", iconName: "box" };
-  return (
-    <div style={{ display: "inline-flex", alignItems: "center", gap: 4, background: s.bg, borderRadius: 20, padding: "3px 10px" }}>
-      <Icon name={s.iconName} size={11} color={s.color} />
-      <span style={{ fontSize: 11, fontWeight: 600, color: s.color }}>{s.label}</span>
-    </div>
-  );
-}
 
 type TrackingEvent = {
   id: number;
@@ -42,103 +42,237 @@ type TrackingEvent = {
   location: string | null;
 };
 
-function OrderCard({ s, isOpen, onToggle, supabase }: {
-  s: Shipment;
-  isOpen: boolean;
+function matchesTab(status: string, tab: string) {
+  if (tab === "all") return true;
+  if (tab === "china") {
+    return (
+      status === "china_warehouse" ||
+      status === "Поступила на склад в Китае"
+    );
+  }
+  if (tab === "transit") return status === "in_transit";
+  if (tab === "ready") return status === "ready_pickup";
+  if (tab === "completed") return status === "completed";
+  return false;
+}
+
+function statusInfo(status: string) {
+  return (
+    STATUS_MAP[status] ?? {
+      label: status,
+      color: "#64748B",
+      bg: "#F1F5F9",
+      iconName: "box",
+    }
+  );
+}
+
+function formatDate(value: string) {
+  return new Date(value).toLocaleDateString("ru-RU", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const info = statusInfo(status);
+
+  return (
+    <span
+      className="inline-flex max-w-[145px] items-center gap-1.5 rounded-full px-2.5 py-1"
+      style={{ background: info.bg, color: info.color }}
+    >
+      <Icon name={info.iconName} size={13} color={info.color} />
+      <span className="truncate text-[11px] font-semibold leading-4">
+        {info.label}
+      </span>
+    </span>
+  );
+}
+
+function OrderCard({
+  shipment,
+  open,
+  onToggle,
+  supabase,
+}: {
+  shipment: Shipment;
+  open: boolean;
   onToggle: () => void;
   supabase: ReturnType<typeof createBrowserClient>;
 }) {
   const [events, setEvents] = useState<TrackingEvent[]>([]);
   const [eventsLoading, setEventsLoading] = useState(false);
-
-  const info = STATUS_MAP[s.status] ?? { label: s.status, color: "#94a3b8", bg: "#f1f5f9", iconName: "box" };
-  const date = new Date(s.updated_at || s.created_at).toLocaleDateString("ru-RU", { day: "numeric", month: "short", year: "numeric" });
-  const amount = s.final_amount ?? s.delivery_cost ?? 0;
-  const weight = s.chargeable_weight ?? s.weight ?? 0;
+  const [eventsLoaded, setEventsLoaded] = useState(false);
+  const info = statusInfo(shipment.status);
+  const date = formatDate(shipment.updated_at || shipment.created_at);
+  const amount = Number(
+    shipment.final_amount ?? shipment.delivery_cost ?? 0,
+  );
+  const weight = Number(
+    shipment.chargeable_weight ?? shipment.weight ?? 0,
+  );
 
   useEffect(() => {
-  if (!isOpen || events.length > 0) return;
-  setEventsLoading(true);
-  supabase
-    .from("tracking_events")
-    .select("id, status, created_at, note, location")
-    .eq("tracking_code", s.tracking_code)
-    .order("created_at", { ascending: false })
-    .then((result: { data: TrackingEvent[] | null }) => {
-      setEvents((result.data as TrackingEvent[]) || []);
+    if (!open || eventsLoaded) return;
+
+    let active = true;
+    setEventsLoading(true);
+
+    async function loadEvents() {
+      const result = await supabase
+        .from("tracking_events")
+        .select("id, status, created_at, note, location")
+        .eq("tracking_code", shipment.tracking_code)
+        .order("created_at", { ascending: false });
+
+      if (!active) return;
+
+      const trackingEvents =
+        (result.data as unknown as TrackingEvent[] | null) ?? [];
+
+      setEvents(trackingEvents);
+      setEventsLoaded(true);
       setEventsLoading(false);
-    });
-}, [isOpen]);
+    }
+
+    void loadEvents();
+
+    return () => {
+      active = false;
+    };
+  }, [open, eventsLoaded, shipment.tracking_code, supabase]);
 
   return (
-    <div style={{ background: "#fff", border: "0.5px solid #e8edf2", borderRadius: 16, marginBottom: 10, overflow: "hidden" }}>
-      {/* MAIN ROW */}
-      <div style={{ padding: "16px" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ width: 38, height: 38, borderRadius: 11, background: info.bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <Icon name={info.iconName} size={18} color={info.color} />
-            </div>
-            <div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: "#0a1e3d", letterSpacing: 0.3 }}>{s.tracking_code}</div>
-              <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 1 }}>{date}</div>
-            </div>
+    <article className="overflow-hidden rounded-[18px] border border-[#DCE5F3] bg-white">
+      <div className="px-4 pb-3.5 pt-4">
+        <div className="flex items-start gap-3">
+          <span
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-[14px]"
+            style={{ background: info.bg }}
+          >
+            <Icon name={info.iconName} size={21} color={info.color} />
+          </span>
+
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-[15px] font-semibold leading-5 tracking-[0.1px]">
+              {shipment.tracking_code}
+            </p>
+            <p className="mt-0.5 flex items-center gap-1 text-[11px] leading-4 text-[#71809A]">
+              <Clock3 size={12} strokeWidth={1.8} />
+              Обновлено {date}
+            </p>
           </div>
-          <StatusBadge status={s.status} />
+
+          <StatusBadge status={shipment.status} />
         </div>
 
-        <div style={{ height: 0.5, background: "#f0f2f5", margin: "0 0 10px" }} />
+        <div className="mt-3.5 grid grid-cols-2 gap-2">
+          <InfoCell
+            icon={<Weight size={17} strokeWidth={1.8} />}
+            label="Вес"
+            value={weight > 0 ? `${weight} кг` : "Уточняется"}
+          />
+          <InfoCell
+            icon={<WalletCards size={17} strokeWidth={1.8} />}
+            label="К оплате"
+            value={amount > 0 ? `${amount.toLocaleString("ru-RU")} сом` : "—"}
+          />
+        </div>
 
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-  <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-    <span style={{ fontSize: 12, color: "#94a3b8" }}>Вес:</span>
-    <span style={{ fontSize: 14, fontWeight: 700, color: "#0a1e3d" }}>{weight} кг</span>
-  </div>
-  {amount > 0 && (
-    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-      <span style={{ fontSize: 12, color: "#94a3b8" }}>Стоимость:</span>
-      <span style={{ fontSize: 14, fontWeight: 700, color: "#0a1e3d" }}>{amount.toLocaleString()} сом</span>
-    </div>
-  )}
-</div>
-
-        {/* Toggle button */}
-        <button onClick={onToggle} style={{ width: "100%", background: isOpen ? "#f0f2f5" : "#f8fafc", border: "none", borderRadius: 10, padding: "9px 14px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", fontFamily: "inherit" }}>
-          <span style={{ fontSize: 12, fontWeight: 600, color: "#64748b" }}>История статусов</span>
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            {isOpen && <span style={{ fontSize: 11, color: "#94a3b8" }}>Закрыть</span>}
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: isOpen ? "rotate(180deg)" : "none", transition: "transform .2s" }}>
-              <path d="M6 9l6 6 6-6" />
-            </svg>
-          </div>
+        <button
+          type="button"
+          onClick={onToggle}
+          className={[
+            "mt-3 flex h-11 w-full items-center justify-between rounded-[13px]",
+            "px-3.5 text-[13px] font-semibold transition",
+            open
+              ? "bg-[#EDF3FF] text-[#1744A7]"
+              : "bg-[#F7F9FD] text-[#5F708A] active:bg-[#F0F4FA]",
+          ].join(" ")}
+          aria-expanded={open}
+        >
+          <span>История статусов</span>
+          <ChevronDown
+            size={18}
+            strokeWidth={1.9}
+            className={[
+              "transition-transform",
+              open ? "rotate-180" : "",
+            ].join(" ")}
+          />
         </button>
       </div>
 
-      {/* ACCORDION */}
-      {isOpen && (
-        <div style={{ borderTop: "0.5px solid #f0f2f5", padding: "14px 16px" }}>
+      {open && (
+        <div className="border-t border-[#E9EDF4] bg-[#FBFCFE] px-4 py-4">
           {eventsLoading ? (
-            <div style={{ textAlign: "center", padding: "16px 0" }}>
-              <div style={{ width: 24, height: 24, border: "2px solid #e8edf2", borderTopColor: "#005eaa", borderRadius: "50%", animation: "spin 0.8s linear infinite", margin: "0 auto" }} />
+            <div className="grid min-h-20 place-items-center">
+              <span className="h-7 w-7 animate-spin rounded-full border-[3px] border-[#E2E8F2] border-t-[#1744A7]" />
             </div>
           ) : events.length === 0 ? (
-            <div style={{ fontSize: 13, color: "#94a3b8", textAlign: "center", padding: "10px 0" }}>История событий пуста</div>
+            <div className="py-4 text-center">
+              <p className="text-[13px] font-medium text-[#71809A]">
+                История пока не добавлена
+              </p>
+            </div>
           ) : (
-            <div style={{ position: "relative" }}>
-              <div style={{ position: "absolute", left: 13, top: 8, bottom: 8, width: 1.5, background: "#e8edf2" }} />
-              {events.map((e, i) => {
-                const eInfo = STATUS_MAP[e.status] ?? { label: e.status, color: "#94a3b8", bg: "#f1f5f9", iconName: "box" };
-                const eDate = new Date(e.created_at).toLocaleDateString("ru-RU", { day: "numeric", month: "short" });
-                const eTime = new Date(e.created_at).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+            <div>
+              {events.map((event, index) => {
+                const eventInfo = statusInfo(event.status);
+                const current = index === 0;
+                const eventDate = new Date(event.created_at);
+
                 return (
-                  <div key={e.id} style={{ display: "flex", gap: 12, marginBottom: i < events.length - 1 ? 14 : 0, position: "relative" }}>
-                    <div style={{ width: 28, height: 28, borderRadius: "50%", background: i === 0 ? eInfo.color : "#f0f2f5", flexShrink: 0, zIndex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
-  <Icon name={eInfo.iconName} size={13} color={i === 0 ? "#fff" : "#94a3b8"} />
-</div>
-<div style={{ flex: 1, paddingTop: 1 }}>
-  <div style={{ fontSize: 13, fontWeight: 600, color: i === 0 ? eInfo.color : "#374151" }}>{eInfo.label}</div>
-  <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>{eDate} · {eTime}</div>
-</div>
+                  <div
+                    key={event.id}
+                    className="relative flex gap-3 pb-4 last:pb-0"
+                  >
+                    {index !== events.length - 1 && (
+                      <span className="absolute bottom-0 left-[13px] top-7 w-px bg-[#DDE5F0]" />
+                    )}
+
+                    <span
+                      className="relative z-10 grid h-7 w-7 shrink-0 place-items-center rounded-full border-2 border-[#FBFCFE]"
+                      style={{
+                        background: current ? eventInfo.color : "#E7ECF3",
+                      }}
+                    >
+                      <Icon
+                        name={eventInfo.iconName}
+                        size={13}
+                        color={current ? "#FFFFFF" : "#8390A5"}
+                      />
+                    </span>
+
+                    <div className="min-w-0 flex-1 pt-0.5">
+                      <p
+                        className="text-[13px] font-semibold leading-4"
+                        style={{
+                          color: current ? eventInfo.color : "#36445A",
+                        }}
+                      >
+                        {eventInfo.label}
+                      </p>
+                      <p className="mt-1 text-[11px] leading-4 text-[#71809A]">
+                        {eventDate.toLocaleDateString("ru-RU", {
+                          day: "numeric",
+                          month: "short",
+                        })}
+                        {" · "}
+                        {eventDate.toLocaleTimeString("ru-RU", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                        {event.location ? ` · ${event.location}` : ""}
+                      </p>
+                      {event.note && (
+                        <p className="mt-1 text-[12px] leading-[17px] text-[#5F708A]">
+                          {event.note}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 );
               })}
@@ -146,124 +280,267 @@ function OrderCard({ s, isOpen, onToggle, supabase }: {
           )}
         </div>
       )}
+    </article>
+  );
+}
+
+function InfoCell({
+  icon,
+  label,
+  value,
+}: {
+  icon: ReactNode;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="flex min-w-0 items-center gap-2.5 rounded-[13px] bg-[#F7F9FD] px-3 py-2.5">
+      <span className="shrink-0 text-[#1744A7]">{icon}</span>
+      <div className="min-w-0">
+        <p className="text-[10px] font-medium leading-3.5 text-[#71809A]">
+          {label}
+        </p>
+        <p className="mt-0.5 truncate text-[12px] font-semibold leading-4">
+          {value}
+        </p>
+      </div>
     </div>
   );
 }
 
 function OrdersContent() {
   const searchParams = useSearchParams();
-  const initialTab = searchParams.get("status") ?? "all";
+  const requestedTab = searchParams.get("status") || "all";
+  const initialTab = tabs.some((item) => item.key === requestedTab)
+    ? requestedTab
+    : "all";
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  const supabase = useMemo(
+    () =>
+      createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      ),
+    [],
   );
 
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [tab, setTab] = useState(initialTab);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [openId, setOpenId] = useState<number | null>(null);
+  const [openId, setOpenId] = useState<Shipment["id"] | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
     let channel: ReturnType<typeof supabase.channel> | null = null;
 
     async function load() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { setLoading(false); return; }
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (cancelled) return;
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
       const client = await getClient(user.id);
-      if (!client) { setLoading(false); return; }
-      const data = await getShipments(client.client_code);
-      setShipments(data);
+
+      if (cancelled) return;
+      if (!client) {
+        setLoading(false);
+        return;
+      }
+
+      const currentShipments = await getShipments(client.client_code);
+
+      if (cancelled) return;
+      setShipments(currentShipments);
       setLoading(false);
 
+      const channelName = `shipments-${client.client_code}-${crypto.randomUUID()}`;
+
       channel = supabase
-        .channel("shipments-realtime")
-        .on("postgres_changes", { event: "*", schema: "public", table: "shipments", filter: `client_code=eq.${client.client_code}` },
+        .channel(channelName)
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "shipments",
+            filter: `client_code=eq.${client.client_code}`,
+          },
           async () => {
             const updated = await getShipments(client.client_code);
-            setShipments(updated);
-          })
+            if (!cancelled) setShipments(updated);
+          },
+        )
         .subscribe();
     }
 
     load();
-    return () => { if (channel) supabase.removeChannel(channel); };
-  }, []);
 
-  const filtered = shipments.filter(s => {
-    const matchesTab = matchTab(s.status, tab);
-    const matchesSearch = search.trim() === "" || s.tracking_code.toLowerCase().includes(search.trim().toLowerCase());
-    return matchesTab && matchesSearch;
-  });
+    return () => {
+      cancelled = true;
+      if (channel) void supabase.removeChannel(channel);
+    };
+  }, [supabase]);
+
+  const normalizedSearch = search.trim().toLowerCase();
+  const filtered = shipments.filter(
+    (shipment) =>
+      matchesTab(shipment.status, tab) &&
+      (!normalizedSearch ||
+        shipment.tracking_code.toLowerCase().includes(normalizedSearch)),
+  );
 
   if (loading) {
-    return (
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", background: "#f0f2f5" }}>
-        <div style={{ textAlign: "center" }}>
-          <div style={{ width: 36, height: 36, border: "3px solid #e8edf2", borderTopColor: "#005eaa", borderRadius: "50%", animation: "spin 0.8s linear infinite", margin: "0 auto 10px" }} />
-          <div style={{ fontSize: 13, color: "#94a3b8" }}>Загрузка...</div>
-        </div>
-        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-      </div>
-    );
+    return <OrdersLoader />;
   }
 
   return (
-    <div style={{ background: "#f0f2f5", minHeight: "100vh" }}>
-      <div style={{ background: "#fff", padding: "14px 20px 0" }}>
-        <div style={{ fontSize: 20, fontWeight: 800, color: "#0a1e3d", marginBottom: 14 }}>Мои заказы</div>
-        <div style={{ position: "relative", marginBottom: 12 }}>
-          <div style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }}>
-            <Icon name="search" size={16} color="#94a3b8" />
-          </div>
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Поиск по трек-коду..."
-            style={{ width: "100%", boxSizing: "border-box", background: "#f4f6f9", border: "none", borderRadius: 12, padding: "10px 14px 10px 36px", fontSize: 13, color: "#0a1e3d", outline: "none" }} />
+    <div className="min-h-full bg-white px-5 pb-7 pt-6 text-[#0A1E3D]">
+      <header className="flex items-end justify-between gap-4">
+        <div>
+          <h1 className="text-[24px] font-semibold leading-8 tracking-[-0.45px]">
+            Мои заказы
+          </h1>
+          <p className="mt-1 text-[13px] leading-[18px] text-[#71809A]">
+            Все ваши посылки в одном месте
+          </p>
         </div>
-        <div style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 12, scrollbarWidth: "none" }}>
-          {TABS.map(t => {
-            const count = t.key === "all" ? shipments.length : shipments.filter(s => matchTab(s.status, t.key)).length;
-            const active = tab === t.key;
+
+        <span className="rounded-full bg-[#EDF3FF] px-3 py-1.5 text-[12px] font-semibold text-[#1744A7]">
+          {shipments.length}
+        </span>
+      </header>
+
+      <div className="relative mt-5">
+        <Search
+          size={20}
+          strokeWidth={1.8}
+          className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#7890B2]"
+        />
+        <input
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          placeholder="Введите трек-код"
+          className={[
+            "h-[52px] w-full rounded-[16px] border border-[#DCE4EF] bg-white",
+            "pl-12 pr-12 text-[16px] font-medium text-[#0A1E3D] outline-none",
+            "placeholder:font-normal placeholder:text-[#9AA6B8]",
+            "transition focus:border-[#6F94E8] focus:ring-2 focus:ring-[#EAF0FF]",
+          ].join(" ")}
+        />
+
+        {search && (
+          <button
+            type="button"
+            onClick={() => setSearch("")}
+            className="absolute right-1.5 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-[12px] text-[#71809A] active:bg-[#F1F4F9]"
+            aria-label="Очистить поиск"
+          >
+            <X size={18} strokeWidth={1.9} />
+          </button>
+        )}
+      </div>
+
+      <div className="-mx-5 mt-3 overflow-x-auto px-5 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="flex w-max gap-2">
+          {tabs.map((item) => {
+            const active = tab === item.key;
+            const count =
+              item.key === "all"
+                ? shipments.length
+                : shipments.filter((shipment) =>
+                    matchesTab(shipment.status, item.key),
+                  ).length;
+
             return (
-              <button key={t.key} onClick={() => setTab(t.key)}
-                style={{ flexShrink: 0, padding: "6px 14px", borderRadius: 20, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600, background: active ? "#005eaa" : "#f0f2f5", color: active ? "#fff" : "#64748b", display: "flex", alignItems: "center", gap: 5 }}>
-                {t.label}
-                {count > 0 && <span style={{ background: active ? "rgba(255,255,255,0.25)" : "#e2e8f0", color: active ? "#fff" : "#64748b", borderRadius: 10, padding: "0 6px", fontSize: 10, fontWeight: 700 }}>{count}</span>}
+              <button
+                key={item.key}
+                type="button"
+                onClick={() => {
+                  setTab(item.key);
+                  setOpenId(null);
+                }}
+                className={[
+                  "flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3.5",
+                  "text-[12px] font-semibold transition",
+                  active
+                    ? "bg-[#1744A7] text-white"
+                    : "bg-[#F1F4F9] text-[#5F708A]",
+                ].join(" ")}
+              >
+                {item.label}
+                {count > 0 && (
+                  <span
+                    className={[
+                      "min-w-[18px] rounded-full px-1.5 text-[10px] leading-[18px]",
+                      active
+                        ? "bg-white/[0.18] text-white"
+                        : "bg-white text-[#71809A]",
+                    ].join(" ")}
+                  >
+                    {count}
+                  </span>
+                )}
               </button>
             );
           })}
         </div>
       </div>
 
-      <div style={{ padding: "12px 14px 24px" }}>
+      <section className="mt-4 space-y-3">
         {filtered.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "60px 20px" }}>
-            <div style={{ width: 56, height: 56, borderRadius: 16, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 14px" }}>
-              <Icon name="box" size={26} color="#cbd5e1" />
-            </div>
-            <div style={{ fontSize: 15, fontWeight: 600, color: "#0a1e3d", marginBottom: 6 }}>Заказов нет</div>
-            <div style={{ fontSize: 12, color: "#94a3b8" }}>По выбранному фильтру ничего не найдено</div>
+          <div className="flex min-h-[280px] flex-col items-center justify-center px-6 text-center">
+            <span className="grid h-14 w-14 place-items-center rounded-[18px] bg-[#F1F4F9] text-[#8B98AC]">
+              <PackageOpen size={27} strokeWidth={1.7} />
+            </span>
+            <h2 className="mt-4 text-[16px] font-semibold">
+              {search ? "Ничего не найдено" : "Заказов пока нет"}
+            </h2>
+            <p className="mt-1.5 max-w-[260px] text-[13px] leading-[18px] text-[#71809A]">
+              {search
+                ? "Проверьте трек-код или очистите строку поиска"
+                : "Когда посылка поступит на склад, она появится здесь"}
+            </p>
           </div>
         ) : (
-          filtered.map(s => (
+          filtered.map((shipment) => (
             <OrderCard
-              key={s.id}
-              s={s}
-              isOpen={openId === s.id}
-              onToggle={() => setOpenId(openId === s.id ? null : s.id)}
+              key={shipment.id}
+              shipment={shipment}
+              open={openId === shipment.id}
+              onToggle={() =>
+                setOpenId(openId === shipment.id ? null : shipment.id)
+              }
               supabase={supabase}
             />
           ))
         )}
+      </section>
+    </div>
+  );
+}
+
+function OrdersLoader() {
+  return (
+    <div className="grid min-h-[70dvh] place-items-center bg-white">
+      <div className="text-center">
+        <span className="mx-auto block h-8 w-8 animate-spin rounded-full border-[3px] border-[#E7EDF7] border-t-[#1744A7]" />
+        <p className="mt-3 text-[13px] font-medium text-[#71809A]">
+          Загружаем заказы
+        </p>
       </div>
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   );
 }
 
 export default function OrdersPage() {
   return (
-    <Suspense fallback={<div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh" }}><div style={{ width: 36, height: 36, border: "3px solid #e8edf2", borderTopColor: "#005eaa", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} /><style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style></div>}>
+    <Suspense fallback={<OrdersLoader />}>
       <OrdersContent />
     </Suspense>
   );
