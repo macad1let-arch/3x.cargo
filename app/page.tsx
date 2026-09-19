@@ -1,47 +1,13 @@
 "use client";
-import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import {
-  GraduationCap,
-  Package,
-  Tag,
-  Clock3,
-  Coins,
-  ShoppingCart,
-  Store,
-  Plane,
-  Gift
-} from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import ChatWidget from "@/components/ChatWidget";
+import TopBanner from "@/components/home/TopBanner";
+import Header from "@/components/home/Header";
+import TrackingBlock from "@/components/home/TrackingBlock";
+import QuickActions from "@/components/home/quick-actions/QuickActions";
+import PrimaryActions from "@/components/home/primary-actions/PrimaryActions";
+import SecondaryActions from "@/components/home/secondary-actions/SecondaryActions";
 // ── DATA ──────────────────────────────────────────────────────────────────────
-
-const HERO_SLIDES = [
-  {
-    bg: "https://grrwtedzdbxtkaodfvvd.supabase.co/storage/v1/object/public/hero%201/logo15.webp",
-    bgMobile: "https://grrwtedzdbxtkaodfvvd.supabase.co/storage/v1/object/public/hero%201/logo4000.webp",
-    objPos: "center 73%",
-    eyebrow: "Карго из Китая для бизнеса и личных заказов",
-    title: "2.8$/кг • 7–12 дней",
-    btnText: "Получить код склада →",
-    btnHref: "/learn",
-  },
-  {
-    bg: "https://grrwtedzdbxtkaodfvvd.supabase.co/storage/v1/object/public/hero%201/logo14.webp",
-    bgMobile: "https://grrwtedzdbxtkaodfvvd.supabase.co/storage/v1/object/public/hero%201/logo3000.webp",
-    objPos: "center 88%",
-    eyebrow: "✈️  Прямые рейсы Гуанчжоу → Бишкек",
-    title: "Доставляем грузы из Китая",
-    sub: "От 0.8$ до 2.8$ за кг · 7–12 дней",
-    btnText: "Получить код клиента",
-    btnHref: "/register",
-  },
-];
-const HIW_STEPS = [
-  { tag: "Шаг 1", title: "Регистрация",  desc: "Получите личный код клиента за 1 минуту — бесплатно",                       ssLabel: "Регистрация" },
-  { tag: "Шаг 2", title: "Заказ товара", desc: "Укажите наш адрес склада при оформлении на Taobao, 1688, Poizon",           ssLabel: "Заказ" },
-  { tag: "Шаг 3", title: "Приём и фото", desc: "Принимаем, фотографируем и проверяем каждый груз на складе в Китае",        ssLabel: "Фото груза" },
-  { tag: "Шаг 4", title: "Доставка",     desc: "7–12 дней — Гуанчжоу → Бишкек без задержек",                               ssLabel: "Трекинг" },
-];
 
 const FAQS = [
   { q: "Как получить адрес склада в Китае?", a: "Зарегистрируйтесь на сайте — адрес склада и личный код клиента появятся в личном кабинете сразу после регистрации. Это бесплатно и занимает 1 минуту." },
@@ -52,23 +18,6 @@ const FAQS = [
   { q: "Какие товары запрещены к перевозке?", a: "К перевозке не принимаются горючие вещества, химикаты, лекарства, продукты питания, оружие, ноутбуки, смартфоны. Если вы не уверены, можно ли отправить товар, уточните у менеджера." },
   { q: "Есть ли минимальный вес заказа?", a: "Нет, мы доставляем как небольшие посылки, так и крупные партии товаров. Стоимость от 0.80$ - $2.8 за кг, срок доставки 7–12 дней." },
 ];
-
-const STATUS_MAP: Record<string, string> = {
-  china_warehouse: "На складе в Китае",
-  in_transit:      "В пути",
-  bishkek_arrived: "Прибыл в Бишкек",
-  sorting:         "На сортировке",
-  ready_pickup:    "Готов к выдаче",
-  completed:       "Выдано",
-  problem:         "Требует внимания",
-};
-
-const ScreenshotPlaceholder = ({ label }: { label: string }) => (
-  <div style={{ marginTop: 16, borderRadius: 16, overflow: "hidden", background: "#f0f4f8", border: "1.5px dashed #c8d8ea", aspectRatio: "16/9", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8 }}>
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a0b4c8" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-    <span style={{ fontSize: 12, color: "#a0b4c8", fontWeight: 500 }}>Скриншот: {label}</span>
-  </div>
-);
 
 // ── MAIN COMPONENT ────────────────────────────────────────────────────────────
 
@@ -184,10 +133,10 @@ const TabCard = React.memo(({ t, pos, activeTab, isMobile, tabs, setActiveTab }:
   t: any, pos: number | null, activeTab: number, isMobile: boolean, tabs: any[], setActiveTab: (i: number) => void
 }) => {
   const style: React.CSSProperties =
-    pos === 0 ? { position: "absolute", width: "88%", maxWidth: 400, height: isMobile ? 320 : 420, top: "50%", left: "50%", transform: "translate(-50%, -50%) translateZ(0)", zIndex: 3, opacity: 1, borderRadius: 20, overflow: "hidden", boxShadow: "0 12px 40px rgba(0,0,0,.15)", transition: "transform 0.45s cubic-bezier(0.4,0,0.2,1), opacity 0.45s", willChange: "transform, opacity", backfaceVisibility: "hidden" as const }
-    : pos === 1 ? { position: "absolute", width: "54%", maxWidth: 280, height: isMobile ? 270 : 320, top: "50%", left: "50%", transform: "translate(calc(-50% + 42%), -50%) translateZ(0)", zIndex: 2, opacity: 0.55, borderRadius: 20, overflow: "hidden", transition: "transform 0.45s cubic-bezier(0.4,0,0.2,1), opacity 0.45s", willChange: "transform, opacity", backfaceVisibility: "hidden" as const }
-    : pos === -1 ? { position: "absolute", width: "54%", maxWidth: 280, height: isMobile ? 270 : 320, top: "50%", left: "50%", transform: "translate(calc(-50% - 42%), -50%) translateZ(0)", zIndex: 2, opacity: 0.55, borderRadius: 20, overflow: "hidden", transition: "transform 0.45s cubic-bezier(0.4,0,0.2,1), opacity 0.45s", willChange: "transform, opacity", backfaceVisibility: "hidden" as const }
-    : { position: "absolute", opacity: 0, pointerEvents: "none" as const, zIndex: 1, width: "54%", height: isMobile ? 270 : 320, top: "50%", left: "50%", transform: "translate(-50%, -50%) translateZ(0)", transition: "transform 0.45s cubic-bezier(0.4,0,0.2,1), opacity 0.45s", willChange: "transform, opacity", backfaceVisibility: "hidden" as const };
+    pos === 0 ? { position: "absolute", width: "88%", maxWidth: 400, height: isMobile ? 320 : 420, top: "50%", left: "50%", transform: "translate(-50%, -50%) translateZ(0)", zIndex: 3, opacity: 1, borderRadius: 20, overflow: "hidden", boxShadow: "0 12px 40px rgba(0,0,0,.15)", transition: "transform 0.45s cubic-bezier(0.4,0,0.2,1), opacity 0.45s", backfaceVisibility: "hidden" as const }
+    : pos === 1 ? { position: "absolute", width: "54%", maxWidth: 280, height: isMobile ? 270 : 320, top: "50%", left: "50%", transform: "translate(calc(-50% + 42%), -50%) translateZ(0)", zIndex: 2, opacity: 0.55, borderRadius: 20, overflow: "hidden", transition: "transform 0.45s cubic-bezier(0.4,0,0.2,1), opacity 0.45s", backfaceVisibility: "hidden" as const }
+    : pos === -1 ? { position: "absolute", width: "54%", maxWidth: 280, height: isMobile ? 270 : 320, top: "50%", left: "50%", transform: "translate(calc(-50% - 42%), -50%) translateZ(0)", zIndex: 2, opacity: 0.55, borderRadius: 20, overflow: "hidden", transition: "transform 0.45s cubic-bezier(0.4,0,0.2,1), opacity 0.45s", backfaceVisibility: "hidden" as const }
+    : { position: "absolute", opacity: 0, pointerEvents: "none" as const, zIndex: 1, width: "54%", height: isMobile ? 270 : 320, top: "50%", left: "50%", transform: "translate(-50%, -50%) translateZ(0)", transition: "transform 0.45s cubic-bezier(0.4,0,0.2,1), opacity 0.45s", backfaceVisibility: "hidden" as const };
 
   return (
     <div style={style} onClick={() => {
@@ -195,8 +144,8 @@ const TabCard = React.memo(({ t, pos, activeTab, isMobile, tabs, setActiveTab }:
       if (pos === -1) setActiveTab((activeTab - 1 + tabs.length) % tabs.length);
     }}>
       <div style={{ position: "relative", width: "100%", height: "100%" }}>
-        <img src={t.img} alt={t.label} style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: t.objPos || "center 45%", display: "block", cursor: pos !== 0 ? "pointer" : "default" }} />
-        <div style={{ position: "absolute", inset: 0, opacity: pos === 0 ? 1 : 0, transition: "opacity 0.3s", willChange: "opacity" }}>
+        <img src={t.img} alt={t.label} loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: t.objPos || "center 45%", display: "block", cursor: pos !== 0 ? "pointer" : "default" }} />
+        <div style={{ position: "absolute", inset: 0, opacity: pos === 0 ? 1 : 0, transition: "opacity 0.3s" }}>
           {t.overlay}
         </div>
       </div>
@@ -232,26 +181,24 @@ footer: false,
 ];
 
 function BonusSlider() {
-  const [idx, setIdx] = React.useState(0);
-  const timerRef = React.useRef<any>(null);
+  const [idx, setIdx] = useState(0);
 
-  const reset = (i: number) => {
-    setIdx(i);
-    if (timerRef.current) clearInterval(timerRef.current);
-    timerRef.current = setInterval(() => setIdx(p => (p + 1) % 2), 5000);
-  };
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setIdx((current) => (current + 1) % BONUS_SLIDES.length);
+    }, 5000);
 
-  React.useEffect(() => {
-    timerRef.current = setInterval(() => setIdx(p => (p + 1) % 2), 5000);
-    return () => clearInterval(timerRef.current);
-  }, []);
+    return () => window.clearTimeout(timer);
+  }, [idx]);
+
+  const reset = (i: number) => setIdx(i);
 
   return (
     <div>
       <div style={{ position: "relative", borderRadius: 18, aspectRatio: "4/3", overflow: "hidden" }}>
         {BONUS_SLIDES.map((s, i) => (
          <div key={i} style={{ position: "absolute", inset: 0, opacity: idx === i ? 1 : 0, transition: "opacity 0.5s ease", pointerEvents: idx === i ? "all" : "none" }}>
-  <img src={s.img} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "contain", objectPosition: "center center" }} />
+  <img src={s.img} alt="" loading="lazy" decoding="async" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "contain", objectPosition: "center center" }} />
   <div style={{ position: "absolute", inset: 0, background: s.overlay }} />
   <div style={{ position: "absolute", inset: 0, padding: s.textPos === "center" ? "20%" : "24px 20px", alignItems: s.textPos === "center" ? "center" : "flex-start", textAlign: s.textPos === "center" ? "center" : "left" as const, zIndex: 1 }}>
     <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: i === 0 ? "rgba(255,255,255,0.9)" : "rgba(255,215,0,0.2)", border: i === 0 ? "none" : "1px solid rgba(255,215,0,0.4)", color: i === 0 ? "#8B6000" : "#FFD700", fontSize: 12, fontWeight: 800, padding: "5px 12px", borderRadius: 999, marginBottom: 8, width: "fit-content" }}>{s.badge}</div>
@@ -284,46 +231,8 @@ function BonusSlider() {
 }
 
 export default function HomePage() {
-  const [lang, setLang] = useState<"RU" | "KG">("RU");
-  // Carousel
-  const [carouselIdx, setCarouselIdx] = useState(0);
-  const carouselAnimating = useRef(false);
-  const carouselTimer = useRef<ReturnType<typeof setInterval> | null>(null);
-
-const resetCarouselTimer = useCallback(() => {
-  if (carouselTimer.current) clearInterval(carouselTimer.current);
-  carouselTimer.current = setInterval(() => {
-    if (!carouselAnimating.current)
-      setCarouselIdx(i => (i + 1) % 2);
-  }, 10000);
-}, []);
-
-useEffect(() => {
-  resetCarouselTimer();
-  return () => { if (carouselTimer.current) clearInterval(carouselTimer.current); };
-}, [resetCarouselTimer]);
-
-  const goCarousel = (dir: 1 | -1) => {
-    if (carouselAnimating.current) return;
-    carouselAnimating.current = true;
-    setCarouselIdx(i => (i + dir + HERO_SLIDES.length) % HERO_SLIDES.length);
-    resetCarouselTimer();
-    setTimeout(() => { carouselAnimating.current = false; }, 500);
-  };
-  const goCarouselTo = (idx: number) => {
-    if (carouselAnimating.current || idx === carouselIdx) return;
-    carouselAnimating.current = true;
-    setCarouselIdx(idx);
-    resetCarouselTimer();
-    setTimeout(() => { carouselAnimating.current = false; }, 500);
-  };
 
   // Other state
-  const [menuOpen, setMenuOpen]       = useState(false);
-  const [trackCode, setTrackCode]     = useState("");
-  const [trackResult, setTrackResult] = useState<any>(null);
-  const [trackLoading, setTrackLoading] = useState(false);
-  const [trackSearched, setTrackSearched] = useState(false);
   const [weight, setWeight]           = useState<number | "">("");
   const [length, setLength]           = useState("");
   const [width, setWidth]             = useState("");
@@ -331,43 +240,26 @@ useEffect(() => {
   const [openFaq, setOpenFaq]         = useState<number | null>(null);
   const [formData, setFormData]       = useState({ name: "", phone: "", message: "" });
   const [formSent, setFormSent]       = useState(false);
+  const [formSending, setFormSending] = useState(false);
   const [activeTab, setActiveTab]     = useState(0);
   const [isMobile, setIsMobile]       = useState(false);
   const handleSetActiveTab = useCallback((i: number) => setActiveTab(i), []);
 
   useEffect(() => {
-  const check = () => setIsMobile(window.innerWidth < 768);
-  check();
-  window.addEventListener("resize", check);
-  return () => window.removeEventListener("resize", check);
-}, []);
+    const media = window.matchMedia("(max-width: 767px)");
+    const sync = () => setIsMobile(media.matches);
+
+    sync();
+    media.addEventListener("change", sync);
+    return () => media.removeEventListener("change", sync);
+  }, []);
  const tabs = useMemo(() => [
   { label: "Запрещено",        img: "https://grrwtedzdbxtkaodfvvd.supabase.co/storage/v1/object/public/hero%201/qqq2.webp",  overlay: OVERLAY_ZAPRESHENO, objPos: "center 48%" },
   { label: "Обрешётка",        img: "https://grrwtedzdbxtkaodfvvd.supabase.co/storage/v1/object/public/hero%201/aw1.webp",   overlay: OVERLAY_OBRESHOTKA, objPos: "center 48%" },
   { label: "Объёмные посылки", img: "https://grrwtedzdbxtkaodfvvd.supabase.co/storage/v1/object/public/hero%201/ChatGPT%20Image%20Jun%2016,%202026,%2004_01_47%20AM.png",    overlay: OVERLAY_OBEMNYE,   objPos: "center 45%" },
 ], []);
 
-useEffect(() => {
-  const durations = [5000, 10000, 10000];
-  const timer = setTimeout(() => {
-    handleSetActiveTab((activeTab + 1) % tabs.length);
-  }, durations[activeTab]);
-  return () => clearTimeout(timer);
-}, [activeTab, tabs.length, handleSetActiveTab]);
 
-const [topIdx, setTopIdx] = useState(0);
-
-useEffect(() => {
-  const t = setInterval(() => setTopIdx(p => (p + 1) % 2), 8000);
-  return () => clearInterval(t);
-}, []);
-
-useEffect(() => {
-  tabs.forEach(tab => {
-    const img = new Image();
-    img.src = tab.img;
-  });
-}, [tabs]);
 
   const pw = parseFloat(weight.toString()) || 0;
   const vw = parseFloat(length) > 0 && parseFloat(width) > 0 && parseFloat(height) > 0
@@ -376,90 +268,41 @@ useEffect(() => {
   const price = pw > 0 ? (cw * 2.8).toFixed(2) : null;
   const isVol = vw > pw && pw > 0;
 
-  const handleTrack = async () => {
-    if (!trackCode.trim()) return;
-    setTrackLoading(true); setTrackResult(null); setTrackSearched(false);
-    const { data, error } = await supabase.from("shipments").select("*").eq("tracking_code", trackCode.trim().toUpperCase()).single();
-    setTrackLoading(false); setTrackSearched(true);
-    setTrackResult(!error && data ? data : null);
+
+
+  const handleFormSubmit = async () => {
+    if (!formData.phone.trim() || formSending) return;
+
+    setFormSending(true);
+    try {
+      const res = await fetch("/api/telegram", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      if (!res.ok) {
+        const message = await res.text();
+        console.error("Telegram error:", message || res.statusText);
+        return;
+      }
+
+      setFormSent(true);
+    } catch (error) {
+      console.error("Telegram request failed:", error);
+    } finally {
+      setFormSending(false);
+    }
   };
 
- const handleFormSubmit = async () => {
-  if (!formData.phone) return;
-  try {
-    const res = await fetch("/api/telegram", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData),
-    });
-    if (res.ok) {
-      setFormSent(true);
-    } else {
-      const err = await res.json();
-      console.error("Telegram error:", err);
-    }
-  } catch (e) {
-    console.error("Fetch error:", e);
-  }
-};
-
   return (
-    <div style={{ fontFamily: "'Geologica', -apple-system, sans-serif", background: "#fff", color: "#0d1a2e", overflowX: "hidden" }}>
+    <div style={{ fontFamily: "'Geologica', -apple-system, sans-serif", background: "#f5f7fb", color: "#0d1a2e", overflowX: "hidden" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Geologica:wght@300;400;500;600;700;800;900&display=swap');
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         html { scroll-behavior: smooth; }
         body { -webkit-font-smoothing: antialiased; }
 
-        /* ── CAROUSEL ── */
-        .carousel-wrap {
-          width: 100%; overflow: hidden; position: relative;
-          padding: 24px 0 8px; background: #f5f7fa;
-        }
-        .carousel-track {
-          display: flex; align-items: center; justify-content: center;
-          position: relative; height: 500px;
-        }
-        @media (max-width: 480px) { .carousel-track { height: 440px; } }
-
-        /* В <style> замени .c-slide: */
-.c-slide {
-  position: absolute; border-radius: 20px; overflow: hidden; cursor: pointer;
-  transition: all 0.45s cubic-bezier(0.4,0,0.2,1);
-  will-change: transform, opacity;
-  transform: translateZ(0);  /* ← форсирует GPU-слой */
-  backface-visibility: hidden;
-}
-        .c-slide img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; user-select: none; }
-        .c-slide-overlay {
-          position: absolute; bottom: 0; left: 0; right: 0;
-          padding: 60px 18px 20px;
-          background: linear-gradient(transparent, rgba(5,15,40,0.88));
-          pointer-events: none;
-        }
-        .c-slide-eyebrow { font-size: 10px; font-weight: 700; color: rgba(255,255,255,.7); letter-spacing: .06em; margin-bottom: 5px; text-transform: uppercase; }
-        .c-slide-title   { font-size: 20px; font-weight: 900; color: #fff; line-height: 1.15; letter-spacing: -0.03em; margin-bottom: 6px; }
-        .c-slide-sub     { font-size: 11px; color: rgba(255,255,255,.72); line-height: 1.5; margin-bottom: 14px; }
-        .c-slide-btn {
-          display: inline-flex; align-items: center; gap: 6px;
-          padding: 10px 18px; border-radius: 10px; background: #fff; color: #005eaa;
-          font-size: 13px; font-weight: 800; text-decoration: none; pointer-events: all;
-        }
-        @media (max-width: 480px) {
-          .c-slide-title { font-size: 17px; }
-          .c-slide-sub   { display: none; }
-          .c-slide-overlay { padding: 40px 14px 16px; }
-        }
-        .carousel-nav { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 18px; padding-bottom: 4px; }
-        .carousel-arrow {
-          width: 38px; height: 38px; border-radius: 50%;
-          border: 1.5px solid #dce4ef; background: #fff;
-          cursor: pointer; display: flex; align-items: center; justify-content: center;
-          color: #0d1a2e; transition: background .15s, border-color .15s; flex-shrink: 0;
-        }
-        .carousel-arrow:hover { background: #e8f2fb; border-color: #005eaa; color: #005eaa; }
-        .carousel-dot { height: 5px; border-radius: 999px; background: #dce4ef; cursor: pointer; transition: all .3s; flex-shrink: 0; }
-        .carousel-dot.active { background: #005eaa; }
 
         /* ── LAYOUT ── */
         .wrap { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
@@ -468,358 +311,19 @@ useEffect(() => {
         @media (max-width: 768px) { .sec-pad { padding: 44px 16px; } }
         .ps-item-border + .ps-item-border { border-left: 1px solid #dce4ef; }
 
-        /* ── MOBILE MENU ── */
-        .mob-nav { position: fixed; inset: 0; z-index: 290; background: #fff; padding: 80px 24px 40px; overflow-y: auto; transform: translateX(100%); transition: transform .3s cubic-bezier(.4,0,.2,1); }
-        .mob-nav.open { transform: translateX(0); }
-        @media (min-width: 901px) { .hamburger-btn { display: none !important; } }
-        @media (max-width: 900px) { .desktop-nav { display: none !important; } .btn-reg-desk { display: none !important; } }
 
-        /* ── FAQ ── */
-        .faq-item.open { border-color: #005eaa !important; }
 
-        /* ── HOVER ── */
-        .nav-link:hover      { background: #e8f2fb !important; color: #005eaa !important; }
-        .btn-outline-h:hover { border-color: #005eaa !important; color: #005eaa !important; }
-        .track-btn-h:hover   { background: #004a8a !important; }
-        .footer-link-h:hover { color: #fff !important; }
-
-        /* ── TOPBAR MOBILE ── */
-        @media (max-width: 768px) {
-          .topbar-t { font-size: 12px !important; font-weight: 600 !important; white-space: nowrap; }
-          .topbar-s { font-size: 10px !important; white-space: nowrap; }
-          .topbar-icon { width: 28px !important; height: 28px !important; }
-          .topbar-wrap { padding: 8px 10px !important; gap: 6px !important; }
-        }
-        @media (max-width: 480px) { .track-input { font-size: 13px !important; } }
-        * { -webkit-font-smoothing: antialiased; }
-          @keyframes progress {
-  from { width: 0%; }
-  to   { width: 100%; }
-}
-  @keyframes topbarSlide {
-  0%    { opacity: 0; transform: translateY(10px); }
-  3%    { opacity: 1; transform: translateY(0); }
-  22%   { opacity: 1; transform: translateY(0); }
-  25%   { opacity: 0; transform: translateY(-10px); }
-  100%  { opacity: 0; transform: translateY(-10px); }
-}@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@800&display=swap');
-
-@import url('https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css');
       `}</style>
 
-      {/* ══ TOP BANNER ══ */}
-<div style={{ background: "#052D75", overflow: "hidden", position: "relative", height: 60, borderBottom: "1px solid rgba(255,255,255,.06)" }}>
-  {[
-    [
-  { icon: <Package size={20} color="#F5B301" />, t: "500 000+", s: "доставленных грузов" },
-  { icon: <GraduationCap size={20} color="#fff" />, t: "1000+", s: "обученных клиентов" },
-],
-   [
-    { icon: <Gift size={22} color="#F5B301" />, t: "Получайте бонусы с каждого заказа", s: "+ 100 сом за приглашённого друга", sColor: "#F5B301", center: true },
-],
-  ].map((pair, idx) => (
-    <div
-  key={idx}
-  style={{
-    position: "absolute", inset: 0,
-    display: "flex",
-    opacity: topIdx === idx ? 1 : 0,
-    transform: topIdx === idx ? "translateY(0)" : "translateY(100%)",
-    transition: "opacity 0.4s ease, transform 0.4s ease",
-    pointerEvents: topIdx === idx ? "all" : "none",
-  }}
->
-      {pair.map((item, i) => (
-        <div
-          key={i}
-          style={{
-            flex: 1,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 14,
-            padding: "0 14px",
-            position: "relative",
-          }}
-        >
-          {i > 0 && (
-            <div style={{ position: "absolute", left: 0, top: 16, bottom: 16, width: 1, background: "rgba(255,255,255,.1)" }} />
-          )}
-          <div style={{
-  width: 34, height: 34, borderRadius: 10,
-  background: "rgba(255,255,255,.08)",
-  display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-}}>
-            {item.icon}
-          </div>
-          <div style={{ minWidth: 0, textAlign: (item as any).center ? "center" : "left" }}>
-  <div style={{ color: "#fff", fontSize: 13, fontWeight: 800, lineHeight: 1.2 }}>{item.t}</div>
-  <div style={{ color: (item as any).sColor || "rgba(255,255,255,.55)", fontSize: 11, marginTop: 2, lineHeight: 1.2 }}>{item.s}</div>
-</div>
-</div>
-      ))}
-    </div>
-  ))}
-</div>
 
-     <header style={{ position: "sticky", top: 0, zIndex: 300, background: "#fff", borderBottom: "1px solid #eef2f8" }}>
-  <div className="wrap" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", height: 56, padding: "0 20px" }}>
+<TopBanner />
+      <Header />
+          <PrimaryActions />
+             <QuickActions />
+      <TrackingBlock />
+      <SecondaryActions />
 
-    {/* Лого */}
-    <a href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 2, lineHeight: 1 }}>
-      <span style={{ fontFamily: "Manrope, sans-serif", fontSize: 26, fontWeight: 800, color: "#052D75", letterSpacing: "-1.2px" }}>3X</span>
-      <span style={{ fontFamily: "Manrope, sans-serif", fontSize: 13, fontWeight: 700, color: "#2A6BC4", letterSpacing: "1.8px", textTransform: "uppercase", marginTop: 5 }}>CARGO</span>
-    </a>
 
-    {/* Правая часть */}
-    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-      
-      {/* Язык */}
-      <button onClick={() => setLang(lang === "RU" ? "KG" : "RU")}
-        style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, fontWeight: 700, color: "#4a6080", padding: "4px 6px", letterSpacing: ".04em" }}>
-        {lang}
-      </button>
-
-      {/* Войти */}
-      <a href="/login" style={{ fontSize: 13, fontWeight: 700, color: "#052D75", textDecoration: "none", background: "#f0f4f8", borderRadius: 10, padding: "7px 14px" }}>
-        Войти
-      </a>
-
-      {/* Бургер */}
-      <button onClick={() => setMenuOpen(!menuOpen)}
-        style={{ background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", gap: 4, padding: "6px 4px", borderRadius: 10 }}>
-        <span style={{ display: "block", width: 18, height: 2, background: "#052D75", borderRadius: 2 }} />
-        <span style={{ display: "block", width: 18, height: 2, background: "#052D75", borderRadius: 2 }} />
-        <span style={{ display: "block", width: 12, height: 2, background: "#052D75", borderRadius: 2 }} />
-      </button>
-    </div>
-
-  </div>
-
-  {/* Mobile menu */}
-  {menuOpen && (
-    <div className="mob-nav open">
-      {[
-        "#tracking|Отслеживание",
-        "#services|Услуги",
-        "#calculator|Калькулятор",
-        "#info|Важно знать",
-        "#faq|FAQ"
-      ].map(item => {
-        const [href, label] = item.split("|");
-        return (
-          <a key={href} href={href} onClick={() => setMenuOpen(false)}
-            style={{ display: "block", padding: "14px 0", fontSize: "1rem", fontWeight: 600, color: "#0d1a2e", textDecoration: "none", borderBottom: "1px solid #f0f4f8" }}>
-            {label}
-          </a>
-        );
-      })}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 24 }}>
-        <a href="/login" style={{ padding: 14, borderRadius: 14, background: "#f0f4f8", color: "#0d1a2e", textDecoration: "none", fontWeight: 700, fontSize: 14, textAlign: "center" }}>
-          Войти
-        </a>
-        <a href="/register" style={{ padding: 14, borderRadius: 14, background: "#052D75", color: "#fff", textDecoration: "none", fontWeight: 700, fontSize: 14, textAlign: "center" }}>
-          Регистрация
-        </a>
-      </div>
-    </div>
-  )}
-</header>
-
-      {/* ══ HERO CAROUSEL ══ */}
-<div
-  style={{ background: "#f5f7fa", overflow: "hidden" }}
-  onTouchStart={(e) => { (e.currentTarget as any)._tx = e.touches[0].clientX; }}
-  onTouchEnd={(e) => {
-    const dx = (e.currentTarget as any)._tx - e.changedTouches[0].clientX;
-    if (Math.abs(dx) > 40) goCarousel(dx > 0 ? 1 : -1);
-  }}
->
-  <div style={{ position: "relative", width: "100%", height: isMobile ? 470 : 600, overflow: "hidden" }}>
-    {HERO_SLIDES.slice(0, 2).map((s, i) => (
-  <div key={i} style={{ position: "absolute", inset: 0, opacity: carouselIdx === i ? 1 : 0, transition: "opacity 0.5s ease", pointerEvents: carouselIdx === i ? "all" : "none" }}>
-    <img
-      src={isMobile && s.bgMobile ? s.bgMobile : s.bg}
-      alt={s.title}
-      style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: s.objPos }}
-    />
-    <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "18px 20px 24px", background: "none" }}>
-
-      {i === 0 ? (
-  <div>
-  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.7)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/>
-  </svg>
-  <span style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,.7)", letterSpacing: ".04em" }}>Китай → Бишкек</span>
-</div>
-<div style={{ fontSize: 24, fontWeight: 900, color: "#fff", letterSpacing: "-0.03em", lineHeight: 1.05, marginBottom: 10, textShadow: "0 2px 12px rgba(0,0,0,.5)" }}>
-  
-</div>
-<div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-  <span style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,.9)", background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 8, padding: "5px 10px" }}>2.8$/кг</span>
-  <span style={{ color: "rgba(255,255,255,.3)" }}>•</span>
-  <span style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,.9)", background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 8, padding: "5px 10px" }}>7–12 дней</span>
-</div>
-</div>
-) : (
-        <div style={{ position: "relative" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.7)" strokeWidth="2" strokeLinecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            <span style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,.7)", letterSpacing: ".06em" }}>
-  Оффлайн обучение
-</span>
-          </div>
-          <div style={{ fontSize: 24, fontWeight: 900, color: "#fff", letterSpacing: "-0.02em", lineHeight: 1.05 }}>
-  С нуля до<br/>первого заказа
-</div>
-<div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginTop: 6, background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.25)", borderRadius: 6, padding: "5px 10px" }}>
-  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#F5B301" strokeWidth="2" strokeLinecap="round"><path d="M20 12v10H4V12"/><path d="M22 7H2v5h20V7z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
-  <span style={{ fontSize: 11, fontWeight: 700, color: "#F5B301" }}>Бонусом:</span>
-  <span style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,.9)" }}>1 кг доставки в подарок на первый заказ</span>
-</div>
-              </div>
-      )}
-
-      <a href={i === 0 ? "/register" : "/learn"} style={{
-        display: "flex", alignItems: "center", justifyContent: "center",
-        padding: "18px", borderRadius: 16, background: "#FFFFFF",
-        color: "#0057D9", fontSize: 16, fontWeight: 700, textDecoration: "none",
-        width: "100%", boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
-      }}>
-        {i === 0 ? "Получить адрес склада" : "Подробнее →"}
-      </a>
-
-    </div>
-  </div>
-))}
-
-    {/* Progress bars */}
-<div style={{ position: "absolute", bottom: 12, left: 0, right: 0, display: "flex", justifyContent: "center", gap: 6, padding: "0 16px" }}>
-  {HERO_SLIDES.slice(0, 2).map((_, i) => (
-    <div key={i} onClick={() => goCarouselTo(i)}
-      style={{ height: 3, width: 50, borderRadius: 999, background: "rgba(255,255,255,0.3)", cursor: "pointer", overflow: "hidden" }}>
-      <div
-  key={`${i}-${carouselIdx}`}
-  style={{
-    height: "100%",
-    borderRadius: 999,
-    background: "#fff",
-    width: carouselIdx === i ? "100%" : "0%",
-    animation: carouselIdx === i ? "progress 10s linear forwards" : "none",
-    transition: carouselIdx === i ? "none" : "width 0s",
-  }}
-/>
-    </div>
-  ))}
-</div>
-  </div>
-</div>
-      {/* ══ TRACKING ══ */}
-<div id="tracking" style={{ background: "#fff", padding: "16px 0" }}>
-  <div className="wrap">
-    <div style={{ background: "#f8fbff", border: "1px solid #e6edf5", borderRadius: 24, overflow: "hidden" }}>
-      
-      {/* Хедер */}
-      <div
-  style={{
-    padding: "18px 20px 8px"
-  }}
->
-  <div
-    style={{
-      fontSize: 17,
-      fontWeight: 800,
-      letterSpacing: "-0.02em",
-      color: "#0d1a2e"
-    }}
-  >
-    Отследить посылку
-  </div>
-
-  <div
-    style={{
-      marginTop: 4,
-      fontSize: 13,
-      fontWeight: 500,
-      color: "#7a8fa8"
-    }}
-  >
-    Введите трек-код и узнайте статус
-  </div>
-</div>
-
-      {/* Инпут */}
-      <div
-  style={{
-    padding: "10px 20px 20px"
-  }}
->
-        <div style={{ display: "flex", gap: 8 }}>
-          <input type="text" placeholder="Например: YT8812272164356" className="track-input"
-  value={trackCode} onChange={e => { setTrackCode(e.target.value); if (!e.target.value.trim()) { setTrackSearched(false); setTrackResult(null); } }}
-  onKeyDown={e => e.key === "Enter" && handleTrack()}
-            style={{ flex: 1, height: 50, padding: "0 5px", border: "1.5px solid #dde6f0", borderRadius: 14, fontSize: 12, fontFamily: "inherit", outline: "none", color: "#0d1a2e", background: "#fff", }} />
-          <button onClick={handleTrack} disabled={trackLoading} className="track-btn-h"
-            style={{ height: 50, padding: "0 20px", background: "#052D75", color: "#fff", border: "none", borderRadius: 14, boxShadow: "0 4px 12px rgba(5,45,117,.15)", fontSize: 14, fontWeight: 700, fontFamily: "inherit", cursor: "pointer", display: "flex", alignItems: "center", gap: 7, flexShrink: 0 }}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-            Найти
-          </button>
-        </div>
-
-        {trackSearched && !trackResult && (
-          <div style={{ marginTop: 12, padding: "12px 14px", background: "#fef2f2", borderRadius: 12, border: "1.5px solid #fca5a5", display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "#dc2626", fontWeight: 600 }}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-            Посылка <strong style={{ marginLeft: 4 }}>{trackCode.toUpperCase()}</strong>&nbsp;не найдена
-          </div>
-        )}
-
-        {trackResult && (
-          <div style={{ marginTop: 12, padding: 14, background: "#f0fdf4", borderRadius: 12, border: "1.5px solid #86efac" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10, fontSize: 13, fontWeight: 700, color: "#15803d" }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2" strokeLinecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-              Посылка найдена
-            </div>
-            {[
-              { l: "Трек-код", v: trackResult.tracking_code },
-              { l: "Статус", v: STATUS_MAP[trackResult.status] ?? trackResult.status },
-              trackResult.weight_kg ? { l: "Вес", v: `${trackResult.weight_kg} кг` } : null,
-              trackResult.created_at ? { l: "Принят", v: new Date(trackResult.created_at).toLocaleDateString("ru-RU") } : null,
-            ].filter(Boolean).map((row: any) => (
-              <div key={row.l} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid rgba(0,0,0,.05)", fontSize: 13 }}>
-                <span style={{ color: "rgba(13,26,46,.55)" }}>{row.l}</span>
-                <span style={{ fontWeight: 600, color: "#0d1a2e" }}>{row.v}</span>
-                {row.hint && (
-               <div style={{ fontSize: 10, color: "#9fb3d0", marginTop: 2 }}>пример: 50×50×50 ÷ 6000 = 20.83 кг</div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  </div>
-</div>
-
-{/* ══ STATS ══ */}
-<section style={{ padding: "16px 12px", background: "#fff" }}>
-  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-    {[
-      { icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#005eaa" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>, title: "24/7", sub: "На связи" },
-      { icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#005eaa" strokeWidth="2" strokeLinecap="round"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>, title: "90% грузов", sub: "Поступает за 9 дней" },
-      { icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#005eaa" strokeWidth="2" strokeLinecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>, title: "Собственный склад", sub: "В Китае" },
-      { icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#005eaa" strokeWidth="2" strokeLinecap="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>, title: "Бесплатная доставка", sub: "По Бишкеку" },
-    ].map(({ icon, title, sub }, i) => (
-      <div key={i} style={{ background: "#f7faff", borderRadius: 16, padding: "16px 14px", border: "1.5px solid #e8f0fb" }}>
-        <div style={{ width: 40, height: 40, borderRadius: 12, background: "#e0eaff", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 10 }}>
-          {icon}
-        </div>
-        <div style={{ fontSize: 16, fontWeight: 800, color: "#0a1e3d", lineHeight: 1.1, marginBottom: 4 }}>{title}</div>
-        <div style={{ fontSize: 12, color: "#7a8fa8", fontWeight: 500, lineHeight: 1.4 }}>{sub}</div>
-      </div>
-    ))}
-  </div>
-</section>
 
 {/* ══ БОНУСЫ ══ */}
 <section style={{ padding: "0 12px 10px" }}>
@@ -827,82 +331,6 @@ useEffect(() => {
 </section>
 
 
-      {/* ══ SERVICES ══ */}
-{/* ══ SERVICES ══ */}
-<section style={{ padding: "24px 0" }} id="services">
-  <div className="wrap" style={{ padding: "0 12px" }}>
-    <h2 style={{ fontSize: 22, fontWeight: 800, color: "#0a1e3d", margin: "0 0 12px", letterSpacing: "-0.02em" }}>Наши услуги</h2>
-    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-
-     {/* Обучение — с фото */}
-{/* Обучение — с фото */}
-<a href="/learn" style={{ borderRadius: 18, height: 160, display: "flex", overflow: "hidden", textDecoration: "none", position: "relative", background: "#1e3a5f" }}>
-  <img src="https://grrwtedzdbxtkaodfvvd.supabase.co/storage/v1/object/public/hero%201/1w.webp"
-    style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "contain", objectPosition: "right center" }} />
-  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, rgba(20,45,90,0.92) 27%, transparent 100%)" }} />
-  <div style={{ position: "relative", padding: "20px 20px", display: "flex", flexDirection: "column", justifyContent: "space-between", zIndex: 1 }}>
-    <div>
-      <div style={{ fontSize: 17, fontWeight: 800, color: "#fff", marginBottom: 6, lineHeight: 1.15 }}>Оффлайн обучение</div>
-<div style={{ fontSize: 12, color: "rgba(255,255,255,.75)", marginBottom: 16, maxWidth: 160, lineHeight: 1.4 }}>С нуля до первого заказа из Китая</div>
-    </div>
-    <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.18)", border: "1.5px solid rgba(255,255,255,0.3)", color: "#fff", fontSize: 13, fontWeight: 700, padding: "8px 16px", borderRadius: 10, width: "fit-content" }}>
-      Подробнее →
-    </div>
-  </div>
-</a>
-
-{/* Юани — с фото */}
-<a href="/register" style={{ borderRadius: 18, height: 160, display: "flex", overflow: "hidden", textDecoration: "none", position: "relative", background: "#1a5c42" }}>
-  <img src="https://grrwtedzdbxtkaodfvvd.supabase.co/storage/v1/object/public/hero%201/22w.webp"
-    style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "right center" }} />
-  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, rgba(20,70,50,0.95) 20%, transparent 100%)" }} />
-  <div style={{ position: "relative", padding: "20px 20px", display: "flex", flexDirection: "column", justifyContent: "space-between", zIndex: 1 }}>
-    <div>
-      <div style={{ fontSize: 18, fontWeight: 800, color: "#fff", marginBottom: 4 }}>Обменяйте Юани</div>
-      <div style={{ fontSize: 12, color: "rgba(255,255,255,.75)", marginBottom: 16, lineHeight: 1.5, maxWidth: 150 }}>Всегда в наличии и<br/> Всегда  выгодный курс</div>
-    </div>
-    <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.18)", border: "1.5px solid rgba(255,255,255,0.3)", color: "#fff", fontSize: 13, fontWeight: 700, padding: "8px 16px", borderRadius: 10, width: "fit-content" }}>
-      Обменять →
-    </div>
-  </div>
-</a>
-
-{/* Туры — с фото */}
-<a href="/register" style={{ borderRadius: 18, height: 160, display: "flex", overflow: "hidden", textDecoration: "none", position: "relative", background: "#7c3a1e" }}>
-  <img src="https://grrwtedzdbxtkaodfvvd.supabase.co/storage/v1/object/public/hero%201/333rrt.webp"
-    style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center-right" }} />
-    <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, rgba(160,45,5,0.98) 18%, rgba(160,45,5,0.5) 45%, transparent 100%)" }} />
-  <div style={{ position: "relative", padding: "20px 20px", display: "flex", flexDirection: "column", justifyContent: "space-between", zIndex: 1 }}>
-    <div>
-      <div style={{ fontSize: 18, fontWeight: 800, color: "#fff", marginBottom: 4 }}>Бизнес - туры в Китай</div>
-<div style={{ fontSize: 12, color: "rgba(255,255,255,.75)", marginBottom: 16, lineHeight: 1.5, maxWidth: 160 }}>Закупки напрямую у поставщиков</div>
-    </div>
-    <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.18)", border: "1.5px solid rgba(255,255,255,0.3)", color: "#fff", fontSize: 13, fontWeight: 700, padding: "8px 16px", borderRadius: 10, width: "fit-content" }}>
-      Узнать →
-    </div>
-  </div>
-</a>
-
-
-{/* Карго — с фото */}
-<a href="/register" style={{ borderRadius: 18, height: 160, display: "flex", overflow: "hidden", textDecoration: "none", position: "relative", background: "#5b35c5" }}>
-  <img src="https://grrwtedzdbxtkaodfvvd.supabase.co/storage/v1/object/public/hero%201/333t.webp"
-    style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "right center" }} />
-  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, rgba(60,25,140,0.82) 1%, transparent 100%)" }} />
-  <div style={{ position: "relative", padding: "20px 20px", display: "flex", flexDirection: "column", justifyContent: "space-between", zIndex: 1 }}>
-    <div>
-      <div style={{ fontSize: 17, fontWeight: 800, color: "#fff", marginBottom: 4 }}>Карго партнерство</div>
-<div style={{ fontSize: 12, color: "rgba(255,255,255,.75)", marginBottom: 16, lineHeight: 1.5, maxWidth: 160 }}>Откройте и запустите свое Карго с нами</div>
-    </div>
-    <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.18)", border: "1.5px solid rgba(255,255,255,0.3)", color: "#fff", fontSize: 13, fontWeight: 700, padding: "6px 12px", borderRadius: 8, width: "fit-content" }}>
-      Стать партнёром →
-    </div>
-  </div>
-</a>
-
-    </div>
-  </div>
-</section>
 
 {/* ══ ВАЖНО ЗНАТЬ ══ */}
 <section style={{ padding: "24px 0", background: "#fff" }} id="info">
@@ -946,357 +374,7 @@ useEffect(() => {
 </div>
       </section>
 
-      {/* ══ CALCULATOR ══ */}
-
-<section style={{ padding: "20px 16px", background: "#f0f4f8" }} id="calculator">
-
-  <div style={{ background: "#fff", borderRadius: 20, overflow: "hidden", maxWidth: 480, margin: "0 auto", boxShadow: "0 4px 24px rgba(0,0,0,.07)" }}>
-
-
-
-    {/* Шапка */}
-
-    <div style={{ background: "#1a3a6e", padding: "16px 20px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-
-      <div>
-
-        <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", letterSpacing: "-0.02em", marginBottom: 5 }}>Калькулятор доставки</div>
-
-        <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.5)" strokeWidth="2" strokeLinecap="round"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>
-
-          <span style={{ fontSize: 12, color: "rgba(255,255,255,.5)", fontWeight: 500 }}>Китай → Бишкек</span>
-
-        </div>
-
-      </div>
-
-      <div style={{ border: "1.5px solid rgba(255,255,255,0.25)", borderRadius: 10, padding: "7px 14px", textAlign: "center" }}>
-
-  <div style={{ fontSize: 15, fontWeight: 900, color: "#fff", letterSpacing: "-0.02em" }}>$2.8/кг</div>
-
-  <div style={{ fontSize: 10, color: "rgba(255,255,255,.4)", fontWeight: 500, marginTop: 2 }}>тариф</div>
-
-</div>
-
-    </div>
-
-
-
-    <div style={{ padding: "20px", display: "flex", flexDirection: "column", gap: 14 }}>
-
-
-
-      {/* Вес */}
-
-      <div>
-
-        <div style={{ fontSize: 13, fontWeight: 700, color: "#4a6080", marginBottom: 8 }}>Вес товара</div>
-
-        <div style={{ position: "relative" }}>
-
-          <input type="number" placeholder="Введите вес" min="0" step="0.1" value={weight}
-
-            onChange={e => setWeight(e.target.value === "" ? "" : +e.target.value)}
-
-            style={{ width: "100%", height: 50, padding: "0 48px 0 16px", border: "1.5px solid #e8edf5", borderRadius: 12, fontSize: 14, fontWeight: 500, color: "#0d1a2e", fontFamily: "inherit", outline: "none", background: "#fff", boxSizing: "border-box" as const }} />
-
-          <span style={{ position: "absolute", right: 16, top: "50%", transform: "translateY(-50%)", fontSize: 13, fontWeight: 600, color: "#9fb3d0" }}>кг</span>
-
-        </div>
-
-      </div>
-
-
-
-      {/* Размеры */}
-
-      <div>
-
-        <div style={{ fontSize: 13, fontWeight: 700, color: "#4a6080", marginBottom: 8 }}>
-
-          Размеры коробки <span style={{ color: "#9fb3d0", fontWeight: 500 }}>(для объёмных товаров)</span>
-
-        </div>
-
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
-
-          {[{ ph: "Длина", val: length, set: setLength }, { ph: "Ширина", val: width, set: setWidth }, { ph: "Высота", val: height, set: setHeight }].map(({ ph, val, set }) => (
-
-            <div key={ph} style={{ position: "relative" }}>
-
-              <input type="number" placeholder={ph} min="0" step="1" value={val}
-
-                onChange={e => set(e.target.value)}
-
-                style={{ width: "100%", height: 50, padding: "0 28px 0 12px", border: "1.5px solid #e8edf5", borderRadius: 12, fontSize: 13, fontWeight: 500, color: "#0d1a2e", fontFamily: "inherit", outline: "none", background: "#fff", boxSizing: "border-box" as const }} />
-
-              <span style={{ position: "absolute", right: 9, top: "50%", transform: "translateY(-50%)", fontSize: 10, fontWeight: 700, color: "#9fb3d0" }}>см</span>
-
-            </div>
-
-          ))}
-
-        </div>
-
-        </div>
-
-
-
-     {/* Результаты */}
-
-{pw > 0 && (
-
-  <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 14 }}>
-
-
-
-    {/* Блок веса */}
-
-    <div style={{ border: "1.5px solid #e8edf5", borderRadius: 14, padding: "12px 14px", background: "#f7faff" }}>
-
-  {isVol ? (
-
-    <>
-
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-
-        <div>
-
-          <div style={{ fontSize: 11, color: "#7a8fa8", fontWeight: 500, marginBottom: 2 }}>Объёмный вес</div>
-
-          <div style={{ fontSize: 18, fontWeight: 800, color:"#0d1a2e" }}>{vw.toFixed(2)} кг</div>
-
-        </div>
-
-        <div style={{ textAlign: "right" }}>
-
-          <div style={{ fontSize: 11, color: "#7a8fa8", fontWeight: 500, marginBottom: 2 }}>Фактический вес</div>
-
-          <div style={{ fontSize: 18, fontWeight: 800, color: "#9fb3d0" }}>{pw.toFixed(2)} кг</div>
-
-        </div>
-
-      </div>
-
-      <div style={{ fontSize: 11, color: "#005eaa", fontWeight: 600, background: "#e8f2fb", borderRadius: 7, padding: "4px 8px", marginBottom: 8, display: "inline-block" }}>
-
-        Расчёт по объёмному весу
-
-      </div>
-
-      <details>
-
-        <summary style={{ fontSize: 12, fontWeight: 600, color: "#4a6080", cursor: "pointer", listStyle: "none", display: "flex", justifyContent: "space-between", alignItems: "center", padding: "7px 10px", background: "#fff", border: "1.5px solid #e8edf5", borderRadius: 10 }}>
-
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
-
-            <span>Почему объёмный вес?</span>
-
-          </div>
-
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9fb3d0" strokeWidth="2.5" strokeLinecap="round"><path d="M6 9l6 6 6-6"/></svg>
-
-        </summary>
-
-        <div style={{ padding: "10px 12px", fontSize: 12, color: "#7a8fa8", lineHeight: 1.6, background: "#fffbeb", border: "1.5px solid #fcd34d", borderTop: "none", borderRadius: "0 0 10px 10px" }}>
-
-          Груз занимает больше места, чем соответствует его весу. По стандарту карго считается объёмный вес:<br/>
-
-          <strong style={{ color: "#92400e" }}>({parseFloat(length)} × {parseFloat(width)} × {parseFloat(height)}) ÷ 6000 = {vw.toFixed(2)} кг</strong><br/>
-
-        </div>
-
-      </details>
-
-    </>
-
-  ) : (
-
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-
-      <span style={{ fontSize: 13, fontWeight: 600, color: "#4a6080" }}>Фактический вес</span>
-
-      <span style={{ fontSize: 20, fontWeight: 900, color: "#0d1a2e" }}>{pw.toFixed(2)} кг</span>
-
-    </div>
-
-  )}
-
-</div>
-
-
-
-    {/* Итого */}
-
-    <div style={{ background: "#1a3a6e", padding: "12px 16px", borderRadius: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-
-      <div>
-
-        <div style={{ fontSize: 12, color: "rgba(255,255,255,.5)", marginBottom: 2 }}>Итого к оплате</div>
-
-        <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
-
-          <span style={{ fontSize: 22, fontWeight: 900, color: "#fff", letterSpacing: "-0.03em" }}>${price}</span>
-
-          <span style={{ fontSize: 11, color: "rgba(255,255,255,.4)" }}>≈ {Math.round(parseFloat(price || "0") * 90).toLocaleString()} сом</span>
-
-        </div>
-
-      </div>
-
-      <div style={{ textAlign: "right" }}>
-
-        <div style={{ fontSize: 10, color: "rgba(255,255,255,.4)", marginBottom: 2 }}>Срок доставки</div>
-
-        <div style={{ fontSize: 15, fontWeight: 800, color: "#fff" }}>7–12 дней</div>
-
-      </div>
-
-    </div>
-
-
-
-  </div>
-
-)}
-
-
-
-      {/* Подсказка */}
-
-      <div style={{ display: "flex", alignItems: "center", gap: 7, padding: "7px 10px", background: "#f0f6ff", border: "1px solid #dce8f5", borderRadius: 8 }}>
-
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4a85c2" strokeWidth="2.5" strokeLinecap="round" style={{ flexShrink: 0 }}><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
-
-  <span style={{ fontSize: 11, color: "#5a7fa8", fontWeight: 500 }}>Точная цена подтверждается на складе в Китае</span>
-
-</div>
-
-    </div>
-
-  </div>
-
-{/* Спец тариф */}
-<div
-  style={{
-    marginTop: 12,
-    border: "1.5px solid #e8edf5",
-    borderRadius: 14,
-    padding: "14px",
-    background: "#f7faff",
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: 14,
-    flexWrap: "wrap"
-  }}
->
-  <div style={{ flex: 1, minWidth: 180 }}>
-    <div
-      style={{
-        display: "inline-block",
-        padding: "4px 8px",
-        borderRadius: 7,
-        background: "#e8f2fb",
-        color: "#005eaa",
-        fontSize: 11,
-        fontWeight: 700,
-        marginBottom: 6
-      }}
-    >
-      Спецпредложение
-    </div>
-
-    <div
-      style={{
-        fontSize: 17,
-        fontWeight: 900,
-        color: "#0d1a2e",
-        marginBottom: 4
-      }}
-    >
-      от <span style={{ color: "#1a3a6e" }}>$0.80/кг</span>
-    </div>
-
-    <div
-      style={{
-        fontSize: 12,
-        color: "#6b7d96",
-        lineHeight: 1.55
-      }}
-    >
-      Для крупных партий и тяжёлых грузов действует индивидуальный тариф.
-      Напишите нам для расчёта стоимости.
-    </div>
-  </div>
-
-  <div
-    style={{
-      display: "flex",
-      gap: 10,
-      alignItems: "center"
-    }}
-  >
-    {/* WhatsApp */}
-    <a
-      href="https://wa.me/996XXXXXXXXX"
-      target="_blank"
-      rel="noopener noreferrer"
-      style={{
-        width: 46,
-        height: 46,
-        borderRadius: 12,
-        background: "#25D366",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        textDecoration: "none",
-        boxShadow: "0 3px 10px rgba(0,0,0,.08)"
-      }}
-    >
-      <svg
-        width="23"
-        height="23"
-        viewBox="0 0 32 32"
-        fill="white"
-      >
-        <path d="M16 3C8.8 3 3 8.7 3 15.8c0 2.5.7 4.8 2 6.8L3 29l6.6-1.9c1.9 1 4.1 1.6 6.4 1.6 7.2 0 13-5.7 13-12.8C29 8.7 23.2 3 16 3zm7.5 18.3c-.3.8-1.7 1.5-2.4 1.6-.6.1-1.3.2-2.2-.1-.5-.2-1.2-.4-2-.8-3.5-1.5-5.8-5.1-6-5.3-.2-.3-1.4-1.9-1.4-3.6s.9-2.5 1.2-2.9c.3-.4.7-.5.9-.5h.7c.2 0 .5 0 .7.6.3.7.9 2.4 1 2.5.1.2.1.4 0 .6-.1.2-.2.4-.4.6l-.5.6c-.2.2-.4.5-.2.9.2.4 1 1.7 2.2 2.7 1.5 1.3 2.7 1.7 3.1 1.9.4.2.6.2.9-.1l1.1-1.3c.3-.4.6-.4 1-.2.4.1 2.4 1.1 2.8 1.3.5.2.8.3.9.5.1.1.1.8-.2 1.6z"/>
-      </svg>
-    </a>
-
-    {/* Telegram */}
-    <a
-      href="https://t.me/USERNAME"
-      target="_blank"
-      rel="noopener noreferrer"
-      style={{
-        width: 46,
-        height: 46,
-        borderRadius: 12,
-        background: "#229ED9",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        textDecoration: "none",
-        boxShadow: "0 3px 10px rgba(0,0,0,.08)"
-      }}
-    >
-      <svg
-        width="22"
-        height="22"
-        viewBox="0 0 24 24"
-        fill="white"
-      >
-        <path d="M22 3.8L18.7 20c-.2 1.1-.8 1.4-1.6.9l-4.5-3.3-2.2 2.1c-.2.2-.4.4-.8.4l.3-4.6 8.4-7.6c.4-.3-.1-.5-.6-.2L7.4 14 3 12.6c-1-.3-1-.9.2-1.4L20.8 4c.8-.3 1.5.2 1.2 1.8z"/>
-      </svg>
-    </a>
-  </div>
-</div>
-</section>
+      
 {/* ══ FAQ ══ */}
 <section style={{ padding: "20px 16px", background: "#f7f9fc" }} id="faq">
   <div className="wrap">
@@ -1362,9 +440,9 @@ useEffect(() => {
           </div>
 
           {/* Кнопка */}
-          <button onClick={handleFormSubmit}
-            style={{ width: "100%", height: 50, border: "none", background: "#1a3a6e", color: "#fff", borderRadius: 14, fontSize: 15, fontWeight: 800, fontFamily: "inherit", cursor: "pointer", boxShadow: "0 4px 18px rgba(26,58,110,.25)", letterSpacing: "-0.01em" }}>
-            Отправить заявку →
+          <button onClick={handleFormSubmit} disabled={formSending}
+            style={{ width: "100%", height: 50, border: "none", background: "#1a3a6e", color: "#fff", borderRadius: 14, fontSize: 15, fontWeight: 800, fontFamily: "inherit", cursor: formSending ? "wait" : "pointer", opacity: formSending ? 0.72 : 1, boxShadow: "0 4px 18px rgba(26,58,110,.25)", letterSpacing: "-0.01em" }}>
+            {formSending ? "Отправляем..." : "Отправить заявку →"}
           </button>
 
           {/* Разделитель */}
@@ -1392,16 +470,6 @@ useEffect(() => {
   </div>
 </section>
 
-{/* ══ ПАРТНЁРЫ ══ */}
-<section style={{ padding: "24px 0", background: "#fff" }}>
-  <div>
-  <h2 style={{ fontSize: 20, fontWeight: 800, letterSpacing: "-0.02em", color: "#0d1a2e", marginBottom: 12, padding: "0 16px" }}>Наши партнёры</h2>
-  <div style={{ overflow: "hidden", aspectRatio: "2.35/1" }}>
-      <img src="https://grrwtedzdbxtkaodfvvd.supabase.co/storage/v1/object/public/hero%201/aaaaa1.webp"
-        style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-    </div>
-  </div>
-</section>
 
      {/* ══ FOOTER ══ */}
 <footer style={{ background: "#f7f9fc", padding: "32px 16px 24px" }}>
@@ -1409,9 +477,8 @@ useEffect(() => {
 
     {/* Лого + время */}
     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
-        <span style={{ fontFamily: "Manrope, sans-serif", fontSize: 26, fontWeight: 800, color: "#052D75", letterSpacing: "-1.2px" }}>3X</span>
-        <span style={{ fontFamily: "Manrope, sans-serif", fontSize: 13, fontWeight: 700, color: "#2A6BC4", letterSpacing: "1.8px", textTransform: "uppercase", marginTop: 5 }}>CARGO</span>
+      <div style={{ display: "flex", alignItems: "center" }}>
+        <span style={{ fontSize: 25, fontWeight: 800, color: "#F47A32", letterSpacing: "-1.1px" }}>Alakel</span>
       </div>
       <div style={{ textAlign: "right" }}>
         <div style={{ fontSize: 10, color: "#9fb3d0", marginBottom: 2 }}>Время работы</div>
@@ -1442,7 +509,7 @@ useEffect(() => {
           { label: "Калькулятор", href: "#calculator" },
           { label: "Важно знать", href: "#info" },
           { label: "Частые вопросы", href: "#faq" },
-          { label: "Обучение", href: "/learn" },
+          { label: "Обучение", href: "/services/education" },
           { label: "Стать партнёром", href: "/register" },
         ].map((l, i) => (
           <a key={i} href={l.href} style={{ fontSize: 13, color: "#0d1a2e", textDecoration: "none", fontWeight: 600 }}>{l.label}</a>
@@ -1483,7 +550,7 @@ useEffect(() => {
 
     {/* Копирайт */}
     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-      <div style={{ fontSize: 11, color: "#7a8fa8" }}>© 2017–2026 3X Cargo</div>
+      <div style={{ fontSize: 11, color: "#7a8fa8" }}>© 2017–2026 Alakel</div>
       <div style={{ fontSize: 11, color: "#7a8fa8" }}>Бишкек, Кыргызстан</div>
     </div>
 

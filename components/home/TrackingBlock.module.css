@@ -1,0 +1,146 @@
+.wrap {
+  width: 100%;
+  border-radius: 24px;
+  background: linear-gradient(180deg, #fcfdff 0%, #f7f9fc 100%);
+  border: 1px solid #e8eef6;
+  box-shadow:
+    0 10px 30px rgba(15, 42, 82, 0.04),
+    0 2px 8px rgba(15, 42, 82, 0.03);
+  padding: 18px 20px 20px;
+}
+
+.title {
+  margin: 0 0 14px;
+  color: #08295b;
+  font-size: 17px;
+  line-height: 1.1;
+  font-weight: 850;
+  letter-spacing: -0.03em;
+}
+
+.form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 140px;
+  gap: 12px;
+  align-items: center;
+}
+
+.inputWrap {
+  position: relative;
+  height: 52px;
+  border-radius: 14px;
+  border: 1px solid #dbe5f1;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.icon {
+  position: absolute;
+  left: 16px;
+  color: #9aa9c1;
+  flex-shrink: 0;
+}
+
+.input {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  outline: none;
+  background: transparent;
+  padding: 0 16px 0 52px;
+  color: #08295b;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.input::placeholder {
+  color: #98a7bf;
+  font-weight: 600;
+}
+
+.button {
+  height: 52px;
+  border: 0;
+  border-radius: 14px;
+  cursor: pointer;
+  background: linear-gradient(180deg, #1657b5 0%, #0f4ca5 100%);
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  box-shadow: 0 8px 18px rgba(22, 87, 181, 0.2);
+  transition:
+    transform 0.15s ease,
+    filter 0.15s ease;
+}
+
+.button:hover {
+  filter: brightness(1.03);
+}
+
+.button:active {
+  transform: scale(0.985);
+}
+
+@media (max-width: 520px) {
+  .wrap {
+    padding: 16px;
+    border-radius: 22px;
+  }
+
+  .title {
+    font-size: 16px;
+    margin-bottom: 12px;
+  }
+
+  .form {
+    grid-template-columns: minmax(0, 1fr) 126px;
+    gap: 10px;
+  }
+
+  .inputWrap,
+  .button {
+    height: 50px;
+    border-radius: 14px;
+  }
+
+  .input {
+    font-size: 14px;
+  }
+
+  .button {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 390px) {
+  .wrap {
+    padding: 14px;
+  }
+
+  .form {
+    grid-template-columns: minmax(0, 1fr) 116px;
+    gap: 8px;
+  }
+
+  .inputWrap,
+  .button {
+    height: 48px;
+  }
+
+  .icon {
+    left: 14px;
+  }
+
+  .input {
+    padding-left: 48px;
+    font-size: 13.5px;
+  }
+
+  .button {
+    font-size: 13.5px;
+  }
+}

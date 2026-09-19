@@ -1,0 +1,190 @@
+.section {
+  width: 100%;
+  padding: 8px 13px 0;
+}
+
+.grid {
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.card {
+  min-width: 0;
+  height: 60px;
+
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) 14px;
+  align-items: center;
+  gap: 9px;
+
+  padding: 0 11px;
+
+  background: #ffffff;
+
+  border: 1px solid #e9edf3;
+  border-radius: 15px;
+
+  text-decoration: none;
+
+  box-shadow:
+    0 2px 7px rgba(13, 38, 76, 0.025);
+
+  -webkit-tap-highlight-color: transparent;
+
+  transition:
+    transform 120ms ease,
+    background 140ms ease,
+    border-color 140ms ease;
+}
+
+.iconBox {
+  width: 34px;
+  height: 34px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 10px;
+
+  background: #f1f5fa;
+  color: #0b438f;
+}
+
+.iconBox svg {
+  width: 19px;
+  height: 19px;
+  stroke-width: 2;
+}
+
+.title {
+  min-width: 0;
+
+  color: #0b2c5c;
+
+  font-size: 14.5px;
+  line-height: 1;
+  font-weight: 750;
+  letter-spacing: -0.025em;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chevron {
+  width: 15px;
+  height: 15px;
+
+  justify-self: end;
+
+  color: #a0aec0;
+  stroke-width: 2;
+}
+
+.card:hover {
+  background: #fbfcfe;
+  border-color: #dde5ee;
+}
+
+.card:hover .chevron {
+  color: #7488a4;
+}
+
+.card:active {
+  transform: scale(0.98);
+  background: #f8fafc;
+}
+
+.card:focus-visible {
+  outline: 3px solid rgba(11, 67, 143, 0.09);
+  outline-offset: 2px;
+}
+
+@media (max-width: 430px) {
+  .section {
+    padding: 8px 12px 0;
+  }
+
+  .grid {
+    gap: 7px;
+  }
+
+  .card {
+    height: 58px;
+
+    grid-template-columns: 32px minmax(0, 1fr) 13px;
+    gap: 8px;
+
+    padding: 0 10px;
+
+    border-radius: 14px;
+  }
+
+  .iconBox {
+    width: 32px;
+    height: 32px;
+
+    border-radius: 9px;
+  }
+
+  .iconBox svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .title {
+    font-size: 14px;
+  }
+
+  .chevron {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+@media (max-width: 360px) {
+  .section {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .grid {
+    gap: 6px;
+  }
+
+  .card {
+    height: 55px;
+
+    grid-template-columns: 30px minmax(0, 1fr) 12px;
+
+    padding: 0 9px;
+    gap: 7px;
+
+    border-radius: 13px;
+  }
+
+  .iconBox {
+    width: 30px;
+    height: 30px;
+  }
+
+  .iconBox svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .title {
+    font-size: 13px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    transition: none;
+  }
+}
