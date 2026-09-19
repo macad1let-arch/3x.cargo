@@ -55,11 +55,10 @@ export default function QuickActions() {
               key={action.title}
               href={action.href}
               className={styles.card}
+              data-tone={action.tone}
             >
               <span
-                className={`${styles.iconBox} ${
-                  styles[action.tone]
-                }`}
+                className={styles.iconBox}
                 aria-hidden="true"
               >
                 <Icon />
@@ -75,10 +74,12 @@ export default function QuickActions() {
                 </span>
               </span>
 
-              <ChevronRight
-                className={styles.chevron}
-                aria-hidden="true"
-              />
+              <span className={styles.arrowBox}>
+                <ChevronRight
+                  className={styles.chevron}
+                  aria-hidden="true"
+                />
+              </span>
             </Link>
           );
         })}
