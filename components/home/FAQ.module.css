@@ -1,244 +1,453 @@
 .section {
+  --blue-main: #12397f;
+  --blue-top: #1a4695;
+  --blue-item: rgba(255, 255, 255, 0.06);
+  --blue-item-open: rgba(255, 255, 255, 0.1);
+  --blue-border: rgba(255, 255, 255, 0.1);
+  --blue-border-open: rgba(255, 171, 97, 0.4);
+
+  --white: #ffffff;
+  --white-soft: rgba(255, 255, 255, 0.8);
+  --white-muted: rgba(255, 255, 255, 0.65);
+
+  --orange: #f47728;
+  --orange-soft: rgba(244, 119, 40, 0.16);
+
   width: 100%;
-  padding: 8px 5px 4px;
+  padding: 18px 12px 28px;
 }
 
-.card {
+.inner {
   width: 100%;
   max-width: 720px;
   margin: 0 auto;
-
-  background: #ffffff;
-  border: 1px solid #e0e8f2;
-  border-radius: 18px;
-
-  overflow: hidden;
 }
 
-/* HEADER */
+/* =========================
+   MAIN CARD
+========================= */
+
+.card {
+  width: 100%;
+
+  padding: 14px;
+
+  background: linear-gradient(
+    180deg,
+    var(--blue-top) 0%,
+    var(--blue-main) 100%
+  );
+
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 24px;
+
+  box-shadow:
+    0 14px 32px rgba(8, 24, 56, 0.22);
+}
+
+/* =========================
+   HEADER
+========================= */
 
 .header {
-  height: 58px;
-
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 
-  padding: 0 13px;
+  margin-bottom: 14px;
+  padding: 2px 2px 0;
 }
 
 .headerIcon {
-  width: 34px;
-  height: 34px;
-  flex: 0 0 34px;
+  width: 42px;
+  height: 42px;
+
+  flex: 0 0 42px;
 
   display: grid;
   place-items: center;
 
   border-radius: 50%;
 
-  background: #fff0e5;
-  color: #ff7600;
+  background: rgba(244, 119, 40, 0.14);
+  color: var(--orange);
 }
 
 .headerIcon svg {
-  width: 18px;
-  height: 18px;
-  stroke-width: 2.25;
+  width: 21px;
+  height: 21px;
+
+  stroke-width: 2.4;
+}
+
+.headerText {
+  min-width: 0;
 }
 
 .heading {
   margin: 0;
 
-  color: #0a2f68;
+  color: var(--white);
 
-  font-size: 16px;
+  font-size: 19px;
   line-height: 1;
-  font-weight: 800;
+  font-weight: 850;
 
-  letter-spacing: -0.03em;
+  letter-spacing: -0.04em;
 }
 
 .subheading {
-  margin: 4px 0 0;
+  margin: 5px 0 0;
 
-  color: #75869f;
+  color: var(--white-soft);
 
-  font-size: 11px;
-  line-height: 1;
+  font-size: 12px;
+  line-height: 1.2;
   font-weight: 600;
 }
 
-/* LIST */
+/* =========================
+   LIST
+========================= */
 
 .list {
-  border-top: 1px solid #edf1f6;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
 }
+
+/* =========================
+   ITEM
+========================= */
 
 .item {
-  background: #ffffff;
+  overflow: hidden;
 
-  border-bottom: 1px solid #edf1f6;
+  background: var(--blue-item);
 
-  transition: background 150ms ease;
-}
+  border: 1px solid var(--blue-border);
+  border-radius: 17px;
 
-.item:last-child {
-  border-bottom: 0;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease;
 }
 
 .itemOpen {
-  background: #fbfcfe;
+  background: var(--blue-item-open);
+  border-color: var(--blue-border-open);
+
+  box-shadow:
+    0 6px 18px rgba(4, 14, 36, 0.16);
 }
 
-/* QUESTION */
+/* =========================
+   QUESTION
+========================= */
 
 .question {
   width: 100%;
-  min-height: 50px;
+  min-height: 62px;
+
+  padding: 0 14px 0 16px;
 
   display: flex;
   align-items: center;
   justify-content: space-between;
 
-  gap: 12px;
-
-  padding: 0 13px;
+  gap: 14px;
 
   border: 0;
-  outline: 0;
-
   background: transparent;
-
-  text-align: left;
+  color: var(--white);
 
   font-family: inherit;
+  text-align: left;
 
   cursor: pointer;
 
   -webkit-tap-highlight-color: transparent;
 }
 
-.question > span:first-child {
+.questionText {
   min-width: 0;
 
-  color: #0a2f68;
+  color: var(--white);
 
-  font-size: 13.5px;
-  line-height: 1.2;
-  font-weight: 700;
+  font-size: 14px;
+  line-height: 1.28;
+  font-weight: 750;
 
-  letter-spacing: -0.015em;
+  letter-spacing: -0.02em;
 }
 
-/* CHEVRON */
+/* =========================
+   CHEVRON
+========================= */
 
 .chevron {
-  width: 27px;
-  height: 27px;
-  flex: 0 0 27px;
+  width: 32px;
+  height: 32px;
+
+  flex: 0 0 32px;
 
   display: grid;
   place-items: center;
 
   border-radius: 50%;
 
-  background: #f2f5f9;
-  color: #8193aa;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.82);
 
   transition:
-    transform 180ms ease,
-    background 180ms ease,
-    color 180ms ease;
+    transform 190ms cubic-bezier(0.22, 1, 0.36, 1),
+    background 150ms ease,
+    color 150ms ease;
 }
 
 .chevron svg {
-  width: 14px;
-  height: 14px;
+  width: 15px;
+  height: 15px;
 
-  stroke-width: 2.3;
+  stroke-width: 2.5;
+}
+
+.itemOpen .chevron {
+  background: var(--orange-soft);
+  color: #ffc08f;
 }
 
 .chevronOpen {
   transform: rotate(180deg);
-
-  background: #fff0e5;
-  color: #ff7600;
 }
 
-/* ANSWER */
+/* =========================
+   ANSWER
+========================= */
 
 .answerWrap {
   display: grid;
   grid-template-rows: 0fr;
 
-  transition: grid-template-rows 200ms ease;
+  opacity: 0;
+
+  transition:
+    grid-template-rows 210ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 150ms ease;
 }
 
 .answerOpen {
   grid-template-rows: 1fr;
+  opacity: 1;
 }
 
 .answerInner {
+  min-height: 0;
   overflow: hidden;
 }
 
 .answer {
   margin: 0;
 
-  padding: 0 13px 13px;
+  padding: 0 52px 16px 16px;
 
-  color: #607592;
+  color: var(--white-soft);
 
   font-size: 12.5px;
-  line-height: 1.45;
-  font-weight: 500;
+  line-height: 1.55;
+  font-weight: 550;
+
+  letter-spacing: -0.01em;
 }
 
-/* MOBILE */
+/* =========================
+   INTERACTION
+========================= */
+
+.question:hover .chevron {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.question:active {
+  opacity: 0.86;
+}
+
+.question:focus-visible {
+  outline: 3px solid rgba(244, 119, 40, 0.24);
+  outline-offset: -3px;
+  border-radius: 16px;
+}
+
+/* =========================
+   <= 430px
+========================= */
 
 @media (max-width: 430px) {
   .section {
-    padding-left: 5px;
-    padding-right: 5px;
+    padding: 18px 12px 26px;
   }
 
   .card {
-    border-radius: 17px;
+    padding: 13px;
+    border-radius: 23px;
   }
 
   .header {
-    height: 56px;
-
-    padding-left: 12px;
-    padding-right: 12px;
+    gap: 11px;
+    margin-bottom: 13px;
   }
 
   .headerIcon {
-    width: 33px;
-    height: 33px;
-    flex-basis: 33px;
+    width: 40px;
+    height: 40px;
+    flex-basis: 40px;
   }
 
   .heading {
-    font-size: 15.5px;
+    font-size: 18px;
+  }
+
+  .subheading {
+    font-size: 11.5px;
+  }
+
+  .list {
+    gap: 8px;
   }
 
   .question {
-    min-height: 49px;
-
-    padding-left: 12px;
-    padding-right: 12px;
+    min-height: 60px;
+    padding: 0 13px 0 15px;
   }
 
-  .question > span:first-child {
-    font-size: 13px;
+  .questionText {
+    font-size: 13.7px;
   }
 
   .answer {
-    padding-left: 12px;
-    padding-right: 12px;
+    padding: 0 48px 15px 15px;
+    font-size: 12.2px;
+  }
+}
 
+/* =========================
+   <= 390px
+========================= */
+
+@media (max-width: 390px) {
+  .section {
+    padding: 17px 10px 24px;
+  }
+
+  .card {
+    padding: 12px;
+    border-radius: 22px;
+  }
+
+  .header {
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .headerIcon {
+    width: 38px;
+    height: 38px;
+    flex-basis: 38px;
+  }
+
+  .headerIcon svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .heading {
+    font-size: 17px;
+  }
+
+  .subheading {
+    font-size: 11px;
+  }
+
+  .item {
+    border-radius: 16px;
+  }
+
+  .question {
+    min-height: 58px;
+    padding: 0 12px 0 14px;
+    gap: 12px;
+  }
+
+  .questionText {
+    font-size: 13.3px;
+  }
+
+  .chevron {
+    width: 30px;
+    height: 30px;
+    flex-basis: 30px;
+  }
+
+  .chevron svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .answer {
+    padding: 0 45px 14px 14px;
     font-size: 12px;
+  }
+}
+
+/* =========================
+   <= 360px
+========================= */
+
+@media (max-width: 360px) {
+  .section {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  .card {
+    padding: 11px;
+    border-radius: 21px;
+  }
+
+  .heading {
+    font-size: 16.5px;
+  }
+
+  .question {
+    min-height: 56px;
+    padding-left: 13px;
+  }
+
+  .questionText {
+    font-size: 12.8px;
+  }
+
+  .chevron {
+    width: 28px;
+    height: 28px;
+    flex-basis: 28px;
+  }
+
+  .answer {
+    padding: 0 42px 13px 13px;
+    font-size: 11.7px;
+  }
+}
+
+/* =========================
+   REDUCED MOTION
+========================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .item,
+  .chevron,
+  .answerWrap {
+    transition: none;
   }
 }

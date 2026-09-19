@@ -1,17 +1,21 @@
 .section {
+  --text-primary: #18243a;
+  --text-secondary: #66758f;
+
   width: 100%;
-  padding: 8px 5px 0;
+  padding: 8px 10px 0;
 }
 
 .grid {
   width: 100%;
   max-width: 720px;
+
   margin: 0 auto;
 
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
 
-  gap: 8px;
+  gap: 10px;
 }
 
 /* =========================
@@ -20,18 +24,18 @@
 
 .card {
   min-width: 0;
-  height: 68px;
+  height: 70px;
 
   display: grid;
-  grid-template-columns: 42px minmax(0, 1fr) 26px;
+  grid-template-columns: 44px minmax(0, 1fr);
   align-items: center;
 
-  gap: 10px;
+  gap: 11px;
 
-  padding: 0 11px;
+  padding: 0 13px;
 
   border: 1px solid;
-  border-radius: 17px;
+  border-radius: 20px;
 
   text-decoration: none;
 
@@ -39,32 +43,33 @@
 
   transition:
     transform 110ms ease,
-    background 130ms ease,
-    border-color 130ms ease;
+    filter 120ms ease,
+    border-color 130ms ease,
+    background 130ms ease;
 }
 
 /* =========================
-   CARD COLORS
+   SURFACES
 ========================= */
 
 .card[data-tone="blue"] {
   background: #f1f6ff;
-  border-color: #d9e7fa;
+  border-color: #d9e6f7;
 }
 
 .card[data-tone="orange"] {
-  background: #fff5ec;
-  border-color: #f4dfcc;
+  background: #fff6ee;
+  border-color: #f2dfcc;
 }
 
 .card[data-tone="purple"] {
-  background: #f5f2ff;
-  border-color: #e4dcff;
+  background: #f7f4ff;
+  border-color: #e6dffd;
 }
 
 .card[data-tone="green"] {
-  background: #effaf5;
-  border-color: #d7eee3;
+  background: #f1faf6;
+  border-color: #dcefe5;
 }
 
 /* =========================
@@ -72,8 +77,8 @@
 ========================= */
 
 .iconBox {
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
 
   display: grid;
   place-items: center;
@@ -82,42 +87,34 @@
 }
 
 .iconBox svg {
-  width: 22px;
-  height: 22px;
+  width: 23px;
+  height: 23px;
 
-  stroke-width: 2.7;
+  stroke-width: 2.5;
 }
-
-/* BLUE */
 
 .card[data-tone="blue"] .iconBox {
-  background: #dcecff;
-  color: #1764c7;
+  background: #dfeafb;
+  color: #2764be;
 }
-
-/* ORANGE */
 
 .card[data-tone="orange"] .iconBox {
-  background: #ffe4cf;
-  color: #f36b16;
+  background: #fde8d7;
+  color: #ed7428;
 }
-
-/* PURPLE */
 
 .card[data-tone="purple"] .iconBox {
-  background: #e5ddff;
-  color: #6952e8;
+  background: #e9e2ff;
+  color: #6855d9;
 }
 
-/* GREEN */
-
 .card[data-tone="green"] .iconBox {
-  background: #d8f4e6;
-  color: #129968;
+  background: #dcf1e7;
+  color: #249668;
 }
 
 /* =========================
-   TEXT
+   CONTENT
 ========================= */
 
 .content {
@@ -131,72 +128,36 @@
 }
 
 .title {
-  color: #0a2f68;
+  margin: 0;
 
-  font-size: 15px;
+  color: var(--text-primary);
+
+  font-size: 15.5px;
   line-height: 1;
-  font-weight: 850;
+  font-weight: 800;
 
-  letter-spacing: -0.03em;
+  letter-spacing: -0.035em;
 
   white-space: nowrap;
 }
 
 .subtitle {
-  color: #637895;
+  margin: 0;
+
+  color: var(--text-secondary);
 
   font-size: 11.5px;
   line-height: 1;
-  font-weight: 650;
+  font-weight: 600;
 
   letter-spacing: -0.015em;
 
   white-space: nowrap;
-}
 
-/* =========================
-   ARROW
-========================= */
-
-.arrowBox {
-  width: 26px;
-  height: 26px;
-
-  display: grid;
-  place-items: center;
-
-  justify-self: end;
-
-  border-radius: 50%;
-}
-
-.chevron {
-  width: 16px;
-  height: 16px;
-
-  stroke-width: 2.6;
-}
-
-/* ARROW COLORS */
-
-.card[data-tone="blue"] .arrowBox {
-  background: #e2edfb;
-  color: #4775ad;
-}
-
-.card[data-tone="orange"] .arrowBox {
-  background: #fbe7d6;
-  color: #cf7138;
-}
-
-.card[data-tone="purple"] .arrowBox {
-  background: #e9e3fb;
-  color: #7563bb;
-}
-
-.card[data-tone="green"] .arrowBox {
-  background: #dff1e8;
-  color: #438b69;
+  /* ВАЖНО:
+     больше никаких ... */
+  overflow: visible;
+  text-overflow: clip;
 }
 
 /* =========================
@@ -204,92 +165,92 @@
 ========================= */
 
 .card:hover {
-  filter: brightness(0.985);
+  filter: brightness(0.988);
 }
 
 .card:active {
-  transform: scale(0.975);
+  transform: scale(0.98);
+}
+
+.card:focus-visible {
+  outline: 3px solid rgba(47, 97, 204, 0.1);
+  outline-offset: 2px;
 }
 
 /* =========================
-   MOBILE
+   <= 430px
 ========================= */
 
 @media (max-width: 430px) {
   .section {
-    padding-left: 5px;
-    padding-right: 5px;
+    padding-left: 10px;
+    padding-right: 10px;
   }
 
   .grid {
-    gap: 7px;
+    gap: 9px;
   }
 
   .card {
-    height: 67px;
+    height: 68px;
 
-    grid-template-columns: 41px minmax(0, 1fr) 25px;
+    grid-template-columns: 42px minmax(0, 1fr);
 
-    gap: 9px;
+    gap: 10px;
 
-    padding: 0 10px;
+    padding: 0 11px;
 
-    border-radius: 16px;
+    border-radius: 19px;
   }
 
   .iconBox {
-    width: 41px;
-    height: 41px;
+    width: 42px;
+    height: 42px;
   }
 
   .iconBox svg {
-    width: 21.5px;
-    height: 21.5px;
-
-    stroke-width: 2.75;
+    width: 22px;
+    height: 22px;
   }
 
   .title {
-    font-size: 14.5px;
+    font-size: 15px;
   }
 
   .subtitle {
     font-size: 11px;
   }
-
-  .arrowBox {
-    width: 25px;
-    height: 25px;
-  }
-
-  .chevron {
-    width: 15px;
-    height: 15px;
-  }
 }
 
 /* =========================
-   SMALL MOBILE
+   <= 390px
 ========================= */
 
 @media (max-width: 390px) {
+  .section {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
   .grid {
-    gap: 6px;
+    gap: 8px;
   }
 
   .card {
-    height: 64px;
+    height: 66px;
 
-    grid-template-columns: 39px minmax(0, 1fr) 23px;
+    grid-template-columns: 40px minmax(0, 1fr);
 
-    gap: 8px;
+    gap: 9px;
 
-    padding: 0 9px;
+    padding: 0 10px;
+
+    border-radius: 18px;
   }
 
   .iconBox {
-    width: 39px;
-    height: 39px;
+    width: 40px;
+    height: 40px;
   }
 
   .iconBox svg {
@@ -298,38 +259,43 @@
   }
 
   .title {
-    font-size: 14px;
+    font-size: 14.5px;
   }
 
   .subtitle {
     font-size: 10.5px;
   }
-
-  .arrowBox {
-    width: 23px;
-    height: 23px;
-  }
 }
+
+/* =========================
+   <= 360px
+========================= */
 
 @media (max-width: 360px) {
   .section {
-    padding-left: 4px;
-    padding-right: 4px;
+    padding-left: 7px;
+    padding-right: 7px;
+  }
+
+  .grid {
+    gap: 7px;
   }
 
   .card {
-    height: 62px;
+    height: 64px;
 
-    grid-template-columns: 37px minmax(0, 1fr) 21px;
+    grid-template-columns: 38px minmax(0, 1fr);
 
-    gap: 7px;
+    gap: 8px;
 
-    padding: 0 8px;
+    padding: 0 9px;
+
+    border-radius: 17px;
   }
 
   .iconBox {
-    width: 37px;
-    height: 37px;
+    width: 38px;
+    height: 38px;
   }
 
   .iconBox svg {

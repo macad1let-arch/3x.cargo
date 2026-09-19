@@ -6,15 +6,17 @@ export default function Header() {
   return (
     <header className={styles.header}>
       <div className={styles.inner}>
-        <Link href="/" className={styles.logo} aria-label="Alakel">
+        <Link
+          href="/"
+          className={styles.logo}
+          aria-label="Alakel — главная"
+        >
           Alakel
         </Link>
 
         <Link href="/login" className={styles.login}>
           <UserRound
             className={styles.loginIcon}
-            size={17}
-            strokeWidth={2.2}
             aria-hidden="true"
           />
 

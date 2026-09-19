@@ -4,7 +4,6 @@ import {
   ShoppingCart,
   CirclePlay,
   Headphones,
-  ChevronRight,
 } from "lucide-react";
 
 import styles from "./QuickActions.module.css";
@@ -52,7 +51,7 @@ export default function QuickActions() {
 
           return (
             <Link
-              key={action.title}
+              key={action.href}
               href={action.href}
               className={styles.card}
               data-tone={action.tone}
@@ -72,13 +71,6 @@ export default function QuickActions() {
                 <span className={styles.subtitle}>
                   {action.subtitle}
                 </span>
-              </span>
-
-              <span className={styles.arrowBox}>
-                <ChevronRight
-                  className={styles.chevron}
-                  aria-hidden="true"
-                />
               </span>
             </Link>
           );

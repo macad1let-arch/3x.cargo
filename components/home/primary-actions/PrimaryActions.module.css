@@ -1,19 +1,24 @@
 .section {
-  --navy: #0a2f68;
-  --orange: #ff7600;
+  /* Brand */
+  --navy: #12366f;
+  --orange: #f47728;
 
-  --blue-action: #1659bd;
+  /* Typography */
+  --text-primary: #18243a;
+  --text-secondary: #66758f;
 
-  --blue-card: #eef5ff;
-  --blue-border: #d5e4f6;
+  /* Actions */
+  --blue-action: #2f61cc;
 
-  --orange-card: #fff3e7;
-  --orange-border: #f1dcc6;
+  /* Surfaces */
+  --blue-card: #f0f6ff;
+  --blue-border: #d7e5f7;
 
-  --muted-blue: #607592;
+  --orange-card: #fff6ed;
+  --orange-border: #f2ddc8;
 
   width: 100%;
-  padding: 7px 5px 0;
+  padding: 8px 10px 0;
 }
 
 .grid {
@@ -21,7 +26,8 @@
 
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
+
+  gap: 10px;
 }
 
 /* =========================
@@ -32,19 +38,18 @@
   position: relative;
 
   min-width: 0;
-  height: 242px;
+  height: 252px;
 
   display: flex;
   flex-direction: column;
 
-  padding: 12px 10px 9px;
+  padding: 14px 11px 10px;
 
   border: 1px solid;
-  border-radius: 18px;
+  border-radius: 22px;
 
   overflow: hidden;
 
-  /* карточки не должны "висеть" */
   box-shadow: none;
 }
 
@@ -59,7 +64,7 @@
 }
 
 /* =========================
-   TYPOGRAPHY
+   HEADER
 ========================= */
 
 .header {
@@ -67,19 +72,32 @@
   z-index: 3;
 
   flex: 0 0 auto;
+
+  width: 100%;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  text-align: center;
 }
+
+/* =========================
+   TYPOGRAPHY
+========================= */
 
 .title {
   margin: 0;
 
-  color: var(--navy);
+  color: var(--text-primary);
 
-  font-size: 18px;
-  line-height: 1;
+  font-size: 20px;
+  line-height: 0.98;
   font-weight: 850;
 
-  letter-spacing: -0.045em;
+  letter-spacing: -0.05em;
 
+  text-align: center;
   white-space: nowrap;
 }
 
@@ -88,16 +106,17 @@
 }
 
 .subtitle {
-  margin: 7px 0 0;
+  margin: 9px 0 0;
 
-  color: var(--muted-blue);
+  color: var(--text-secondary);
 
-  font-size: 12.5px;
-  line-height: 1.15;
-  font-weight: 650;
+  font-size: 13.5px;
+  line-height: 1.08;
+  font-weight: 700;
 
-  letter-spacing: -0.015em;
+  letter-spacing: -0.02em;
 
+  text-align: center;
   white-space: nowrap;
 }
 
@@ -111,12 +130,12 @@
   flex: 1;
   min-height: 0;
 
-  width: calc(100% + 20px);
+  width: calc(100% + 22px);
 
   margin:
-    5px
-    -10px
-    6px;
+    7px
+    -11px
+    5px;
 
   overflow: hidden;
 }
@@ -128,20 +147,28 @@
   user-select: none;
 }
 
-/* Телефон должен быть крупным */
+/* =========================
+   CODE IMAGE
+========================= */
+
 .codeImage {
   object-position: center bottom;
 
   transform:
-    scale(1.13)
-    translateY(5px);
+    scale(1.14)
+    translateY(8px);
 }
 
-/* Иллюстрация обучения */
-.educationImage {
-  object-position: center;
+/* =========================
+   EDUCATION IMAGE
+========================= */
 
-  transform: scale(1.15);
+.educationImage {
+  object-position: center bottom;
+
+  transform:
+    scale(1.16)
+    translateY(6px);
 }
 
 /* =========================
@@ -160,14 +187,14 @@
   align-items: center;
   justify-content: center;
 
-  border-radius: 13px;
+  border-radius: 14px;
 
   color: #ffffff;
   text-decoration: none;
 
   font-size: 14.5px;
   line-height: 1;
-  font-weight: 850;
+  font-weight: 800;
 
   letter-spacing: -0.025em;
 
@@ -194,7 +221,9 @@
 
 .ctaDivider {
   width: 1px;
-  height: 18px;
+  height: 17px;
+
+  flex: 0 0 1px;
 
   background: rgba(255, 255, 255, 0.34);
 }
@@ -208,23 +237,27 @@
 
   font-size: 10.5px;
   line-height: 1;
-  font-weight: 800;
-
-  white-space: nowrap;
+  font-weight: 750;
 
   color: rgba(255, 255, 255, 0.96);
+
+  white-space: nowrap;
 }
 
 .ctaBonus svg {
   flex: 0 0 auto;
 }
 
+/* =========================
+   INTERACTION
+========================= */
+
 .cta:hover {
   filter: brightness(0.98);
 }
 
 .cta:active {
-  transform: scale(0.975);
+  transform: scale(0.98);
 }
 
 /* =========================
@@ -233,44 +266,59 @@
 
 @media (max-width: 390px) {
   .section {
-    padding-left: 4px;
-    padding-right: 4px;
+    padding-left: 8px;
+    padding-right: 8px;
   }
 
   .grid {
-    gap: 7px;
+    gap: 8px;
   }
 
   .card {
-    height: 236px;
+    height: 244px;
 
-    padding: 11px 9px 8px;
+    padding: 13px 10px 9px;
 
-    border-radius: 17px;
+    border-radius: 20px;
   }
 
   .title {
-    font-size: 16.5px;
+    font-size: 18px;
+    line-height: 1;
   }
 
   .subtitle {
-    margin-top: 6px;
+    margin-top: 8px;
 
-    font-size: 11.5px;
+    font-size: 12px;
   }
 
   .visual {
-    width: calc(100% + 18px);
+    width: calc(100% + 20px);
 
-    margin-left: -9px;
-    margin-right: -9px;
+    margin:
+      7px
+      -10px
+      5px;
+  }
+
+  .codeImage {
+    transform:
+      scale(1.12)
+      translateY(7px);
+  }
+
+  .educationImage {
+    transform:
+      scale(1.14)
+      translateY(5px);
   }
 
   .cta {
     height: 42px;
     flex-basis: 42px;
 
-    border-radius: 12px;
+    border-radius: 13px;
 
     font-size: 13.5px;
   }
@@ -285,6 +333,7 @@
 
   .ctaBonus {
     gap: 3px;
+
     font-size: 9.5px;
   }
 
@@ -299,23 +348,59 @@
 ========================= */
 
 @media (max-width: 360px) {
+  .section {
+    padding-left: 7px;
+    padding-right: 7px;
+  }
+
   .grid {
-    gap: 6px;
+    gap: 7px;
   }
 
   .card {
-    height: 230px;
+    height: 238px;
+
+    padding:
+      12px
+      9px
+      8px;
+
+    border-radius: 19px;
   }
 
   .title {
-    font-size: 15.5px;
+    font-size: 16.5px;
   }
 
   .subtitle {
-    font-size: 10.8px;
+    margin-top: 7px;
+
+    font-size: 11px;
+  }
+
+  .visual {
+    width: calc(100% + 18px);
+
+    margin-left: -9px;
+    margin-right: -9px;
+  }
+
+  .codeImage {
+    transform:
+      scale(1.08)
+      translateY(6px);
+  }
+
+  .educationImage {
+    transform:
+      scale(1.1)
+      translateY(4px);
   }
 
   .cta {
+    height: 41px;
+    flex-basis: 41px;
+
     font-size: 13px;
   }
 
@@ -323,6 +408,10 @@
     font-size: 9px;
   }
 }
+
+/* =========================
+   REDUCED MOTION
+========================= */
 
 @media (prefers-reduced-motion: reduce) {
   .cta {
