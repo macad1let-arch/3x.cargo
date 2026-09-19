@@ -1,284 +1,326 @@
 .section {
+  --navy: #0a2f68;
+  --orange: #ff7600;
+
+  --blue-action: #1659bd;
+
+  --blue-card: #eef5ff;
+  --blue-border: #d5e4f6;
+
+  --orange-card: #fff3e7;
+  --orange-border: #f1dcc6;
+
+  --muted-blue: #607592;
+
   width: 100%;
-  padding: 8px 12px 0;
+  padding: 7px 5px 0;
 }
 
 .grid {
   width: 100%;
-  max-width: 760px;
-  margin: 0 auto;
 
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  gap: 8px;
 }
+
+/* =========================
+   CARD
+========================= */
 
 .card {
   position: relative;
+
   min-width: 0;
-  height: 320px;
+  height: 242px;
 
   display: flex;
   flex-direction: column;
 
-  padding: 14px 14px 12px;
+  padding: 12px 10px 9px;
 
-  border: 1px solid #dfe7f1;
-  border-radius: 24px;
+  border: 1px solid;
+  border-radius: 18px;
 
   overflow: hidden;
 
-  box-shadow:
-    0 8px 22px rgba(8, 42, 91, 0.045),
-    0 2px 6px rgba(8, 42, 91, 0.03);
+  /* карточки не должны "висеть" */
+  box-shadow: none;
 }
 
 .codeCard {
-  background: linear-gradient(180deg, #f6faff 0%, #edf4ff 100%);
+  background: var(--blue-card);
+  border-color: var(--blue-border);
 }
 
 .educationCard {
-  background: linear-gradient(180deg, #fffaf6 0%, #fff1e4 100%);
+  background: var(--orange-card);
+  border-color: var(--orange-border);
 }
+
+/* =========================
+   TYPOGRAPHY
+========================= */
 
 .header {
   position: relative;
-  z-index: 4;
-  flex-shrink: 0;
+  z-index: 3;
+
+  flex: 0 0 auto;
 }
 
 .title {
   margin: 0;
-  color: #082a5b;
 
-  font-size: 23px;
-  line-height: 1.02;
-  font-weight: 900;
-  letter-spacing: -0.04em;
+  color: var(--navy);
+
+  font-size: 18px;
+  line-height: 1;
+  font-weight: 850;
+
+  letter-spacing: -0.045em;
 
   white-space: nowrap;
 }
 
 .accent {
-  color: #f46b1b;
+  color: var(--orange);
 }
 
 .subtitle {
-  margin: 8px 0 0;
+  margin: 7px 0 0;
 
-  color: #73839c;
-  font-size: 15px;
+  color: var(--muted-blue);
+
+  font-size: 12.5px;
   line-height: 1.15;
-  font-weight: 700;
+  font-weight: 650;
+
   letter-spacing: -0.015em;
+
+  white-space: nowrap;
 }
+
+/* =========================
+   VISUAL
+========================= */
 
 .visual {
   position: relative;
+
   flex: 1;
   min-height: 0;
 
-  margin-top: 10px;
-  margin-bottom: 12px;
+  width: calc(100% + 20px);
 
-  /* картинка на всю ширину карточки */
-  width: calc(100% + 28px);
-  margin-left: -14px;
-  margin-right: -14px;
+  margin:
+    5px
+    -10px
+    6px;
+
+  overflow: hidden;
 }
 
 .image {
   object-fit: contain;
+
   pointer-events: none;
   user-select: none;
 }
 
+/* Телефон должен быть крупным */
 .codeImage {
   object-position: center bottom;
-  transform: scale(1.08) translateY(4px);
+
+  transform:
+    scale(1.13)
+    translateY(5px);
 }
 
+/* Иллюстрация обучения */
 .educationImage {
-  object-position: center bottom;
-  transform: scale(1.18) translateY(6px);
+  object-position: center;
+
+  transform: scale(1.15);
 }
 
-.giftBadge {
-  position: absolute;
-  z-index: 6;
-  top: 6px;
-  right: 10px;
-
-  height: 31px;
-  padding: 0 11px;
-
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-
-  border-radius: 999px;
-  background: #ff8a2a;
-  color: #fff;
-
-  box-shadow: 0 8px 18px rgba(244, 107, 27, 0.2);
-}
-
-.giftBadge span {
-  font-size: 12px;
-  line-height: 1;
-  font-weight: 800;
-  white-space: nowrap;
-}
+/* =========================
+   CTA
+========================= */
 
 .cta {
+  position: relative;
+  z-index: 5;
+
   width: 100%;
-  height: 56px;
-  flex: 0 0 56px;
+  height: 44px;
+  flex: 0 0 44px;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  border-radius: 17px;
+  border-radius: 13px;
 
-  color: #fff;
+  color: #ffffff;
   text-decoration: none;
 
-  font-size: 17px;
+  font-size: 14.5px;
   line-height: 1;
-  font-weight: 900;
+  font-weight: 850;
+
   letter-spacing: -0.025em;
 
+  -webkit-tap-highlight-color: transparent;
+
   transition:
-    transform 0.15s ease,
-    filter 0.15s ease;
+    transform 110ms ease,
+    filter 120ms ease;
 }
 
 .codeCta {
-  background: #1555b3;
+  background: var(--blue-action);
 }
 
 .educationCta {
-  background: #ff711e;
+  background: var(--orange);
+
+  gap: 8px;
+}
+
+.ctaMain {
+  white-space: nowrap;
+}
+
+.ctaDivider {
+  width: 1px;
+  height: 18px;
+
+  background: rgba(255, 255, 255, 0.34);
+}
+
+.ctaBonus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 4px;
+
+  font-size: 10.5px;
+  line-height: 1;
+  font-weight: 800;
+
+  white-space: nowrap;
+
+  color: rgba(255, 255, 255, 0.96);
+}
+
+.ctaBonus svg {
+  flex: 0 0 auto;
 }
 
 .cta:hover {
-  filter: brightness(1.03);
+  filter: brightness(0.98);
 }
 
 .cta:active {
-  transform: scale(0.985);
+  transform: scale(0.975);
 }
 
-@media (max-width: 430px) {
+/* =========================
+   <= 390px
+========================= */
+
+@media (max-width: 390px) {
   .section {
-    padding-left: 10px;
-    padding-right: 10px;
+    padding-left: 4px;
+    padding-right: 4px;
   }
 
   .grid {
-    gap: 8px;
+    gap: 7px;
   }
 
   .card {
-    height: 300px;
-    padding: 13px 13px 11px;
-    border-radius: 22px;
+    height: 236px;
+
+    padding: 11px 9px 8px;
+
+    border-radius: 17px;
   }
 
   .title {
-    font-size: 21px;
+    font-size: 16.5px;
   }
 
   .subtitle {
-    margin-top: 7px;
-    font-size: 13.5px;
-  }
+    margin-top: 6px;
 
-  .visual {
-    width: calc(100% + 26px);
-    margin-left: -13px;
-    margin-right: -13px;
-  }
-
-  .educationImage {
-    transform: scale(1.14) translateY(4px);
-  }
-
-  .codeImage {
-    transform: scale(1.05) translateY(3px);
-  }
-
-  .giftBadge {
-    top: 4px;
-    right: 8px;
-    height: 29px;
-    padding: 0 10px;
-  }
-
-  .giftBadge span {
-    font-size: 11px;
-  }
-
-  .cta {
-    height: 52px;
-    flex-basis: 52px;
-    font-size: 16px;
-    border-radius: 16px;
-  }
-}
-
-@media (max-width: 390px) {
-  .card {
-    height: 286px;
-    padding: 12px 12px 10px;
-  }
-
-  .title {
-    font-size: 19px;
-  }
-
-  .subtitle {
-    font-size: 12.5px;
-  }
-
-  .visual {
-    width: calc(100% + 24px);
-    margin-left: -12px;
-    margin-right: -12px;
-    margin-top: 8px;
-    margin-bottom: 10px;
-  }
-
-  .giftBadge {
-    height: 27px;
-    padding: 0 9px;
-  }
-
-  .giftBadge span {
-    font-size: 10px;
-  }
-
-  .cta {
-    height: 48px;
-    flex-basis: 48px;
-    font-size: 15px;
-  }
-}
-
-@media (max-width: 360px) {
-  .title {
-    font-size: 18px;
-  }
-
-  .subtitle {
     font-size: 11.5px;
   }
 
+  .visual {
+    width: calc(100% + 18px);
+
+    margin-left: -9px;
+    margin-right: -9px;
+  }
+
   .cta {
-    height: 46px;
-    flex-basis: 46px;
-    font-size: 14px;
+    height: 42px;
+    flex-basis: 42px;
+
+    border-radius: 12px;
+
+    font-size: 13.5px;
+  }
+
+  .educationCta {
+    gap: 6px;
+  }
+
+  .ctaDivider {
+    height: 16px;
+  }
+
+  .ctaBonus {
+    gap: 3px;
+    font-size: 9.5px;
+  }
+
+  .ctaBonus svg {
+    width: 11px;
+    height: 11px;
+  }
+}
+
+/* =========================
+   <= 360px
+========================= */
+
+@media (max-width: 360px) {
+  .grid {
+    gap: 6px;
+  }
+
+  .card {
+    height: 230px;
+  }
+
+  .title {
+    font-size: 15.5px;
+  }
+
+  .subtitle {
+    font-size: 10.8px;
+  }
+
+  .cta {
+    font-size: 13px;
+  }
+
+  .ctaBonus {
+    font-size: 9px;
   }
 }
 

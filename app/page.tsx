@@ -7,17 +7,12 @@ import TrackingBlock from "@/components/home/TrackingBlock";
 import QuickActions from "@/components/home/quick-actions/QuickActions";
 import PrimaryActions from "@/components/home/primary-actions/PrimaryActions";
 import SecondaryActions from "@/components/home/secondary-actions/SecondaryActions";
+import FAQ from "@/components/home/FAQ";
+import styles from "./FAQ.module.css";
+
 // ── DATA ──────────────────────────────────────────────────────────────────────
 
-const FAQS = [
-  { q: "Как получить адрес склада в Китае?", a: "Зарегистрируйтесь на сайте — адрес склада и личный код клиента появятся в личном кабинете сразу после регистрации. Это бесплатно и занимает 1 минуту." },
-  { q: "Как отследить свой груз?", a: "Введите трек-код в форму отслеживания на главной странице. Статус обновляется на каждом этапе — от склада в Китае до выдачи в Бишкеке." },
-  { q: "Есть ли у вас обучение по закупкам из Китая?", a: "Да, проводим оффлайн-обучение в Бишкеке. Вы узнаете как находить поставщиков, делать заказы на Taobao, 1688, Poizon и правильно оформлять доставку. Подробнее на странице Обучение." },
-  { q: "Доставляете ли вы оптовые и крупные партии товаров?", a: "Да, работаем как с физическими лицами, так и с ИП и юридическими лицами. Для оптовых заказов предусмотрены индивидуальные условия — напишите нам в WhatsApp." },
-  { q: "Что такое объёмный вес и когда он применяется?", a: "Если посылка лёгкая но большая, стоимость считается по объёму: Длина × Ширина × Высота ÷ 6000. Берётся большее из двух значений — фактический или объёмный вес." },
-  { q: "Какие товары запрещены к перевозке?", a: "К перевозке не принимаются горючие вещества, химикаты, лекарства, продукты питания, оружие, ноутбуки, смартфоны. Если вы не уверены, можно ли отправить товар, уточните у менеджера." },
-  { q: "Есть ли минимальный вес заказа?", a: "Нет, мы доставляем как небольшие посылки, так и крупные партии товаров. Стоимость от 0.80$ - $2.8 за кг, срок доставки 7–12 дней." },
-];
+
 
 // ── MAIN COMPONENT ────────────────────────────────────────────────────────────
 
@@ -233,17 +228,26 @@ function BonusSlider() {
 export default function HomePage() {
 
   // Other state
-  const [weight, setWeight]           = useState<number | "">("");
-  const [length, setLength]           = useState("");
-  const [width, setWidth]             = useState("");
-  const [height, setHeight]           = useState("");
-  const [openFaq, setOpenFaq]         = useState<number | null>(null);
-  const [formData, setFormData]       = useState({ name: "", phone: "", message: "" });
-  const [formSent, setFormSent]       = useState(false);
-  const [formSending, setFormSending] = useState(false);
-  const [activeTab, setActiveTab]     = useState(0);
-  const [isMobile, setIsMobile]       = useState(false);
-  const handleSetActiveTab = useCallback((i: number) => setActiveTab(i), []);
+const [weight, setWeight] = useState<number | "">("");
+const [length, setLength] = useState("");
+const [width, setWidth] = useState("");
+const [height, setHeight] = useState("");
+
+const [formData, setFormData] = useState({
+  name: "",
+  phone: "",
+  message: "",
+});
+
+const [formSent, setFormSent] = useState(false);
+const [formSending, setFormSending] = useState(false);
+const [activeTab, setActiveTab] = useState(0);
+const [isMobile, setIsMobile] = useState(false);
+
+const handleSetActiveTab = useCallback(
+  (i: number) => setActiveTab(i),
+  []
+);
 
   useEffect(() => {
     const media = window.matchMedia("(max-width: 767px)");
@@ -375,28 +379,7 @@ export default function HomePage() {
       </section>
 
       
-{/* ══ FAQ ══ */}
-<section style={{ padding: "20px 16px", background: "#f7f9fc" }} id="faq">
-  <div className="wrap">
-    <h2 style={{ fontSize: 20, fontWeight: 800, letterSpacing: "-0.02em", color: "#0d1a2e", lineHeight: 1.1, marginBottom: 12 }}>Частые вопросы</h2>
-    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-      {FAQS.map((f, i) => (
-        <div key={i} onClick={() => setOpenFaq(openFaq === i ? null : i)}
-          style={{ borderRadius: 14, overflow: "hidden", transition: "all .15s", background: "#fff", cursor: "pointer", boxShadow: openFaq === i ? "0 2px 12px rgba(59,111,212,0.1)" : "0 1px 4px rgba(0,0,0,0.04)", border: `1.5px solid ${openFaq === i ? "#3b6fd4" : "transparent"}` }}>
-          <div style={{ padding: "13px 14px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-            <span style={{ fontSize: 14, fontWeight: 600, color: "#0d1a2e", lineHeight: 1.3, flex: 1 }}>{f.q}</span>
-            <div style={{ width: 26, height: 26, flexShrink: 0, background: openFaq === i ? "#3b6fd4" : "#f0f4f8", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", transition: "all .2s", transform: openFaq === i ? "rotate(45deg)" : "none" }}>
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke={openFaq === i ? "#fff" : "#7a8fa8"} strokeWidth="2.5" strokeLinecap="round"/></svg>
-            </div>
-          </div>
-          {openFaq === i && (
-            <div style={{ padding: "0 14px 14px", fontSize: 13, color: "#4a6080", lineHeight: 1.7, borderTop: "1px solid #eef2f8" }}><br/>{f.a}</div>
-          )}
-        </div>
-      ))}
-    </div>
-  </div>
-</section>
+<FAQ />
 
 {/* ══ CONTACT ══ */}
 <section style={{ padding: "24px 16px", background: "#fff" }}>

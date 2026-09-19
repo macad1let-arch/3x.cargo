@@ -17,16 +17,19 @@ export default function GetCodeCard() {
 
       <div className={styles.visual}>
         <Image
-          src="/images/get-code-dashboard.png"
+          src="/images/get-code-dashboard.webp"
           alt="Личный кабинет Alakel"
           fill
           priority
-          sizes="(max-width: 768px) 48vw, 340px"
+          sizes="50vw"
           className={`${styles.image} ${styles.codeImage}`}
         />
       </div>
 
-      <Link href="/get-code" className={`${styles.cta} ${styles.codeCta}`}>
+      <Link
+        href="/get-code"
+        className={`${styles.cta} ${styles.codeCta}`}
+      >
         Получить код
       </Link>
     </article>

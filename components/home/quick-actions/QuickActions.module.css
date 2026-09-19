@@ -1,11 +1,11 @@
 .section {
   width: 100%;
-  padding: 8px 13px 0;
+  padding: 8px 5px 0;
 }
 
 .grid {
   width: 100%;
-  max-width: 760px;
+  max-width: 720px;
   margin: 0 auto;
 
   display: grid;
@@ -13,62 +13,112 @@
   gap: 8px;
 }
 
+/* =========================
+   CARD
+========================= */
+
 .card {
   min-width: 0;
-  height: 60px;
+  height: 62px;
 
   display: grid;
-  grid-template-columns: 34px minmax(0, 1fr) 14px;
+  grid-template-columns: 38px minmax(0, 1fr) 16px;
   align-items: center;
-  gap: 9px;
+
+  column-gap: 10px;
 
   padding: 0 11px;
 
   background: #ffffff;
 
-  border: 1px solid #e9edf3;
-  border-radius: 15px;
+  border: 1px solid #e3eaf3;
+  border-radius: 16px;
 
   text-decoration: none;
 
   box-shadow:
-    0 2px 7px rgba(13, 38, 76, 0.025);
+    0 2px 7px rgba(8, 42, 91, 0.025);
 
   -webkit-tap-highlight-color: transparent;
 
   transition:
-    transform 120ms ease,
-    background 140ms ease,
-    border-color 140ms ease;
+    transform 110ms ease,
+    background 130ms ease,
+    border-color 130ms ease;
 }
 
+/* =========================
+   ICON
+========================= */
+
 .iconBox {
-  width: 34px;
-  height: 34px;
+  width: 38px;
+  height: 38px;
 
   display: grid;
   place-items: center;
 
-  border-radius: 10px;
+  border-radius: 50%;
 
-  background: #f1f5fa;
-  color: #0b438f;
+  flex: 0 0 38px;
 }
 
 .iconBox svg {
-  width: 19px;
-  height: 19px;
-  stroke-width: 2;
+  width: 20px;
+  height: 20px;
+
+  stroke-width: 2.25;
+}
+
+/* Тарифы */
+
+.blue {
+  background: #eaf3ff;
+  color: #1764c7;
+}
+
+/* Выкуп */
+
+.orange {
+  background: #fff0e5;
+  color: #f36b16;
+}
+
+/* Инструкции */
+
+.purple {
+  background: #f0ecff;
+  color: #6952e8;
+}
+
+/* Связь */
+
+.green {
+  background: #e8f8f0;
+  color: #129968;
+}
+
+/* =========================
+   TEXT
+========================= */
+
+.content {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  gap: 4px;
 }
 
 .title {
-  min-width: 0;
-
-  color: #0b2c5c;
+  color: #0a2f68;
 
   font-size: 14.5px;
   line-height: 1;
-  font-weight: 750;
+  font-weight: 800;
+
   letter-spacing: -0.025em;
 
   white-space: nowrap;
@@ -76,38 +126,70 @@
   text-overflow: ellipsis;
 }
 
+.subtitle {
+  color: #6b7d97;
+
+  font-size: 11.5px;
+  line-height: 1;
+  font-weight: 600;
+
+  letter-spacing: -0.01em;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* =========================
+   CHEVRON
+========================= */
+
 .chevron {
-  width: 15px;
-  height: 15px;
+  width: 16px;
+  height: 16px;
 
   justify-self: end;
 
-  color: #a0aec0;
-  stroke-width: 2;
+  color: #9aacbf;
+
+  stroke-width: 2.2;
+
+  transition:
+    transform 120ms ease,
+    color 120ms ease;
 }
+
+/* =========================
+   INTERACTION
+========================= */
 
 .card:hover {
   background: #fbfcfe;
-  border-color: #dde5ee;
+  border-color: #d8e2ee;
 }
 
 .card:hover .chevron {
-  color: #7488a4;
+  color: #7489a5;
+  transform: translateX(2px);
 }
 
 .card:active {
   transform: scale(0.98);
-  background: #f8fafc;
 }
 
 .card:focus-visible {
-  outline: 3px solid rgba(11, 67, 143, 0.09);
+  outline: 3px solid rgba(23, 100, 199, 0.1);
   outline-offset: 2px;
 }
 
+/* =========================
+   MOBILE
+========================= */
+
 @media (max-width: 430px) {
   .section {
-    padding: 8px 12px 0;
+    padding-left: 5px;
+    padding-right: 5px;
   }
 
   .grid {
@@ -115,30 +197,33 @@
   }
 
   .card {
-    height: 58px;
+    height: 60px;
 
-    grid-template-columns: 32px minmax(0, 1fr) 13px;
-    gap: 8px;
+    grid-template-columns: 36px minmax(0, 1fr) 14px;
+
+    column-gap: 9px;
 
     padding: 0 10px;
 
-    border-radius: 14px;
+    border-radius: 15px;
   }
 
   .iconBox {
-    width: 32px;
-    height: 32px;
-
-    border-radius: 9px;
+    width: 36px;
+    height: 36px;
   }
 
   .iconBox svg {
-    width: 18px;
-    height: 18px;
+    width: 19px;
+    height: 19px;
   }
 
   .title {
     font-size: 14px;
+  }
+
+  .subtitle {
+    font-size: 11px;
   }
 
   .chevron {
@@ -147,30 +232,74 @@
   }
 }
 
-@media (max-width: 360px) {
-  .section {
-    padding-left: 10px;
-    padding-right: 10px;
-  }
+/* =========================
+   390PX
+========================= */
 
+@media (max-width: 390px) {
   .grid {
     gap: 6px;
   }
 
   .card {
-    height: 55px;
+    height: 58px;
 
-    grid-template-columns: 30px minmax(0, 1fr) 12px;
+    grid-template-columns: 34px minmax(0, 1fr) 13px;
+
+    column-gap: 8px;
 
     padding: 0 9px;
-    gap: 7px;
 
-    border-radius: 13px;
+    border-radius: 14px;
   }
 
   .iconBox {
-    width: 30px;
-    height: 30px;
+    width: 34px;
+    height: 34px;
+  }
+
+  .iconBox svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .title {
+    font-size: 13.5px;
+  }
+
+  .subtitle {
+    font-size: 10.5px;
+  }
+
+  .chevron {
+    width: 13px;
+    height: 13px;
+  }
+}
+
+/* =========================
+   360PX
+========================= */
+
+@media (max-width: 360px) {
+  .section {
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+
+  .card {
+    height: 56px;
+
+    grid-template-columns: 32px minmax(0, 1fr) 12px;
+
+    column-gap: 7px;
+
+    padding: 0 8px;
+  }
+
+  .iconBox {
+    width: 32px;
+    height: 32px;
   }
 
   .iconBox svg {
@@ -181,10 +310,15 @@
   .title {
     font-size: 13px;
   }
+
+  .subtitle {
+    font-size: 10px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .card {
+  .card,
+  .chevron {
     transition: none;
   }
 }

@@ -27,8 +27,8 @@ export default function TopBanner() {
 
   return (
     <section className="topBanner" aria-label="Информация Alakel">
-      <div className="topBannerInner">
-        {/* Статистика */}
+      <div className="inner">
+        {/* ===== СТАТИСТИКА ===== */}
         <div
           className={`slide statsSlide ${
             activeSlide === 0 ? "active" : ""
@@ -36,8 +36,8 @@ export default function TopBanner() {
           aria-hidden={activeSlide !== 0}
         >
           <div className="statItem">
-            <div className="iconBox iconAccent" aria-hidden="true">
-              <Package size={20} strokeWidth={2} />
+            <div className="iconBox packageIcon" aria-hidden="true">
+              <Package />
             </div>
 
             <div className="statText">
@@ -49,8 +49,8 @@ export default function TopBanner() {
           <div className="divider" aria-hidden="true" />
 
           <div className="statItem">
-            <div className="iconBox" aria-hidden="true">
-              <GraduationCap size={20} strokeWidth={2} />
+            <div className="iconBox educationIcon" aria-hidden="true">
+              <GraduationCap />
             </div>
 
             <div className="statText">
@@ -60,33 +60,38 @@ export default function TopBanner() {
           </div>
         </div>
 
-        {/* Бонус */}
+        {/* ===== БОНУС ===== */}
         <div
           className={`slide bonusSlide ${
             activeSlide === 1 ? "active" : ""
           }`}
           aria-hidden={activeSlide !== 1}
         >
-          <div className="bonusContent">
-            <div className="iconBox iconAccent bonusIcon" aria-hidden="true">
-              <Gift size={20} strokeWidth={2} />
-            </div>
-
-            <div className="bonusText">
-              <strong>Получайте бонусы с каждого заказа</strong>
-              <span>+100 сом за приглашённого друга</span>
+          {/* левая колонка */}
+          <div className="bonusSide">
+            <div className="iconBox bonusIcon" aria-hidden="true">
+              <Gift />
             </div>
           </div>
+
+          {/* центр */}
+          <div className="bonusText">
+            <strong>Получайте бонусы с каждого заказа</strong>
+            <span>+100 сом за приглашённого друга</span>
+          </div>
+
+          {/* правая пустая колонка той же ширины */}
+          <div className="bonusSide" aria-hidden="true" />
         </div>
       </div>
 
       <style jsx>{`
         .topBanner {
-          --navy: #07337f;
-          --accent: #f4b51f;
+          --navy: #0a3478;
+          --accent: #ffb31a;
 
           width: 100%;
-          height: 64px;
+          height: 60px;
 
           position: relative;
           overflow: hidden;
@@ -94,13 +99,13 @@ export default function TopBanner() {
           background: var(--navy);
           color: #ffffff;
 
-          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 
           -webkit-font-smoothing: antialiased;
           text-rendering: optimizeLegibility;
         }
 
-        .topBannerInner {
+        .inner {
           width: 100%;
           max-width: 720px;
           height: 100%;
@@ -110,7 +115,9 @@ export default function TopBanner() {
           margin: 0 auto;
         }
 
-        /* ===== SLIDES ===== */
+        /* =========================
+           SLIDES
+        ========================= */
 
         .slide {
           position: absolute;
@@ -120,11 +127,12 @@ export default function TopBanner() {
           visibility: hidden;
           pointer-events: none;
 
-          transform: translate3d(0, 5px, 0);
+          transform: translateY(2px);
 
           transition:
-            opacity 240ms ease,
-            transform 240ms ease;
+            opacity 200ms ease,
+            transform 200ms ease,
+            visibility 200ms ease;
         }
 
         .slide.active {
@@ -132,32 +140,45 @@ export default function TopBanner() {
           visibility: visible;
           pointer-events: auto;
 
-          transform: translate3d(0, 0, 0);
+          transform: translateY(0);
         }
 
-        /* ===== ICON ===== */
+        /* =========================
+           ICON
+        ========================= */
 
         .iconBox {
-          width: 38px;
-          height: 38px;
+          width: 34px;
+          height: 34px;
+          flex: 0 0 34px;
 
-          flex: 0 0 38px;
+          display: grid;
+          place-items: center;
 
-          display: flex;
-          align-items: center;
-          justify-content: center;
+          border-radius: 9px;
 
-          border-radius: 11px;
-
-          background: rgba(255, 255, 255, 0.09);
-          color: rgba(255, 255, 255, 0.95);
+          background: rgba(255, 255, 255, 0.085);
         }
 
-        .iconAccent {
+        .iconBox :global(svg) {
+          width: 18px;
+          height: 18px;
+
+          stroke-width: 2.15;
+        }
+
+        .packageIcon,
+        .bonusIcon {
           color: var(--accent);
         }
 
-        /* ===== STATS ===== */
+        .educationIcon {
+          color: rgba(255, 255, 255, 0.96);
+        }
+
+        /* =========================
+           STATS
+        ========================= */
 
         .statsSlide {
           display: grid;
@@ -169,7 +190,7 @@ export default function TopBanner() {
 
           align-items: center;
 
-          padding: 0 18px;
+          padding: 0 14px;
         }
 
         .statItem {
@@ -179,7 +200,7 @@ export default function TopBanner() {
           align-items: center;
           justify-content: center;
 
-          gap: 11px;
+          gap: 8px;
         }
 
         .statText {
@@ -187,18 +208,21 @@ export default function TopBanner() {
 
           display: flex;
           flex-direction: column;
+          justify-content: center;
 
           text-align: left;
         }
 
         .statText strong {
+          margin: 0;
+
           color: #ffffff;
 
           font-size: 15px;
-          line-height: 1.05;
-          font-weight: 800;
+          line-height: 1;
+          font-weight: 850;
 
-          letter-spacing: -0.02em;
+          letter-spacing: -0.025em;
 
           white-space: nowrap;
         }
@@ -206,40 +230,57 @@ export default function TopBanner() {
         .statText span {
           margin-top: 4px;
 
-          color: rgba(255, 255, 255, 0.66);
+          color: rgba(255, 255, 255, 0.79);
 
-          font-size: 11px;
-          line-height: 1.1;
-          font-weight: 500;
+          font-size: 11.5px;
+          line-height: 1;
+          font-weight: 600;
+
+          letter-spacing: -0.012em;
 
           white-space: nowrap;
         }
 
         .divider {
           width: 1px;
-          height: 30px;
+          height: 27px;
 
-          background: rgba(255, 255, 255, 0.13);
+          background: rgba(255, 255, 255, 0.14);
         }
 
-        /* ===== BONUS ===== */
+        /* =========================
+           BONUS
+        ========================= */
 
+        /*
+          3 симметричные зоны:
+          34px | текст | 34px
+
+          Благодаря пустой правой зоне сам текст
+          находится точно по центру TopBanner.
+        */
         .bonusSlide {
-          display: flex;
+          display: grid;
+
+          grid-template-columns:
+            34px
+            minmax(0, auto)
+            34px;
+
           align-items: center;
           justify-content: center;
 
-          padding: 0 16px;
+          gap: 9px;
+
+          padding: 0 12px;
         }
 
-        .bonusContent {
-          max-width: 100%;
+        .bonusSide {
+          width: 34px;
 
           display: flex;
           align-items: center;
           justify-content: center;
-
-          gap: 11px;
         }
 
         .bonusText {
@@ -254,11 +295,13 @@ export default function TopBanner() {
         }
 
         .bonusText strong {
+          margin: 0;
+
           color: #ffffff;
 
-          font-size: 15px;
-          line-height: 1.08;
-          font-weight: 800;
+          font-size: 14.5px;
+          line-height: 1;
+          font-weight: 820;
 
           letter-spacing: -0.02em;
 
@@ -270,44 +313,26 @@ export default function TopBanner() {
 
           color: var(--accent);
 
-          font-size: 11.5px;
-          line-height: 1.1;
-          font-weight: 700;
+          font-size: 11.2px;
+          line-height: 1;
+          font-weight: 750;
+
+          letter-spacing: -0.01em;
 
           white-space: nowrap;
         }
 
-        /* ===== DESKTOP ===== */
-
-        @media (min-width: 769px) {
-          .topBannerInner {
-            max-width: 680px;
-          }
-
-          .statsSlide {
-            padding: 0 22px;
-          }
-
-          .statText strong,
-          .bonusText strong {
-            font-size: 15.5px;
-          }
-
-          .statText span,
-          .bonusText span {
-            font-size: 11.5px;
-          }
-        }
-
-        /* ===== MOBILE ===== */
+        /* =========================
+           MOBILE 430
+        ========================= */
 
         @media (max-width: 430px) {
           .topBanner {
-            height: 62px;
+            height: 58px;
           }
 
           .statsSlide {
-            padding: 0 10px;
+            padding: 0 9px;
           }
 
           .statItem {
@@ -317,48 +342,65 @@ export default function TopBanner() {
           .iconBox {
             width: 32px;
             height: 32px;
-
             flex-basis: 32px;
 
             border-radius: 9px;
           }
 
+          .iconBox :global(svg) {
+            width: 18px;
+            height: 18px;
+          }
+
           .statText strong {
-            font-size: 13px;
+            font-size: 14.5px;
           }
 
           .statText span {
-            margin-top: 3px;
+            margin-top: 4px;
 
-            font-size: 9.8px;
+            font-size: 11.5px;
           }
 
           .divider {
-            height: 27px;
+            height: 26px;
           }
 
-          .bonusContent {
+          .bonusSlide {
+            grid-template-columns:
+              32px
+              minmax(0, auto)
+              32px;
+
             gap: 8px;
+
+            padding: 0 8px;
+          }
+
+          .bonusSide {
+            width: 32px;
           }
 
           .bonusText strong {
-            font-size: 13px;
+            font-size: 13.5px;
           }
 
           .bonusText span {
-            font-size: 10.5px;
+            font-size: 10.7px;
           }
         }
 
-        /* ===== SMALL MOBILE ===== */
+        /* =========================
+           MOBILE 360
+        ========================= */
 
         @media (max-width: 360px) {
           .topBanner {
-            height: 62px;
+            height: 58px;
           }
 
           .statsSlide {
-            padding: 0 7px;
+            padding: 0 5px;
           }
 
           .statItem {
@@ -366,20 +408,24 @@ export default function TopBanner() {
           }
 
           .iconBox {
-            width: 28px;
-            height: 28px;
-
-            flex-basis: 28px;
+            width: 29px;
+            height: 29px;
+            flex-basis: 29px;
 
             border-radius: 8px;
           }
 
+          .iconBox :global(svg) {
+            width: 16px;
+            height: 16px;
+          }
+
           .statText strong {
-            font-size: 11.5px;
+            font-size: 12.8px;
           }
 
           .statText span {
-            font-size: 8.5px;
+            font-size: 10px;
           }
 
           .divider {
@@ -387,29 +433,36 @@ export default function TopBanner() {
           }
 
           .bonusSlide {
-            padding: 0 8px;
+            grid-template-columns:
+              29px
+              minmax(0, auto)
+              29px;
+
+            gap: 6px;
+
+            padding: 0 6px;
           }
 
-          .bonusContent {
-            gap: 7px;
+          .bonusSide {
+            width: 29px;
           }
 
           .bonusText strong {
-            font-size: 11.5px;
-            white-space: normal;
+            font-size: 12px;
           }
 
           .bonusText span {
-            font-size: 9.5px;
-            white-space: normal;
+            font-size: 9.7px;
           }
         }
 
-        /* ===== VERY SMALL ===== */
+        /* =========================
+           VERY SMALL 320
+        ========================= */
 
         @media (max-width: 320px) {
           .statsSlide {
-            padding: 0 5px;
+            padding: 0 3px;
           }
 
           .statItem {
@@ -417,28 +470,91 @@ export default function TopBanner() {
           }
 
           .iconBox {
-            width: 26px;
-            height: 26px;
+            width: 27px;
+            height: 27px;
+            flex-basis: 27px;
 
-            flex-basis: 26px;
+            border-radius: 7px;
+          }
+
+          .iconBox :global(svg) {
+            width: 15px;
+            height: 15px;
           }
 
           .statText strong {
-            font-size: 10.8px;
+            font-size: 11.5px;
           }
 
           .statText span {
-            font-size: 8px;
+            font-size: 9.2px;
+          }
+
+          .bonusSlide {
+            grid-template-columns:
+              27px
+              minmax(0, 1fr)
+              27px;
+
+            gap: 5px;
+          }
+
+          .bonusSide {
+            width: 27px;
           }
 
           .bonusText strong {
-            font-size: 10.8px;
+            max-width: 220px;
+
+            font-size: 11px;
+            line-height: 1.08;
+
+            white-space: normal;
           }
 
           .bonusText span {
+            max-width: 220px;
+
             font-size: 9px;
+            line-height: 1.08;
+
+            white-space: normal;
           }
         }
+
+        /* =========================
+           DESKTOP
+        ========================= */
+
+        @media (min-width: 769px) {
+          .topBanner {
+            height: 62px;
+          }
+
+          .inner {
+            max-width: 680px;
+          }
+
+          .statText strong {
+            font-size: 15.5px;
+          }
+
+          .statText span {
+            font-size: 11.8px;
+          }
+
+          .bonusText strong {
+            font-size: 15px;
+          }
+
+          .bonusText span {
+            font-size: 11.5px;
+          }
+        }
+
+        /* =========================
+           ACCESSIBILITY
+        ========================= */
 
         @media (prefers-reduced-motion: reduce) {
           .slide {

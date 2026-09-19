@@ -11,29 +11,32 @@ export default function EducationCard() {
           Обучение <span className={styles.accent}>с нуля</span>
         </h2>
 
-        <p className={styles.subtitle}>
-          До первого заказа
-        </p>
+        <p className={styles.subtitle}>До первого заказа</p>
       </div>
 
       <div className={styles.visual}>
-        <div className={styles.giftBadge}>
-          <Gift size={13} strokeWidth={2.4} />
-          <span>1 кг в подарок</span>
-        </div>
-
         <Image
           src="https://grrwtedzdbxtkaodfvvd.supabase.co/storage/v1/object/public/hero%202/ChatGPT%20Image%20Sep%2018,%202026,%2007_06_11%20PM.png"
-          alt="Обучение с нуля"
+          alt="Обучение заказам из Китая"
           fill
           priority
-          sizes="(max-width: 768px) 48vw, 340px"
+          sizes="50vw"
           className={`${styles.image} ${styles.educationImage}`}
         />
       </div>
 
-      <Link href="/training" className={`${styles.cta} ${styles.educationCta}`}>
-        Записаться
+      <Link
+        href="/training"
+        className={`${styles.cta} ${styles.educationCta}`}
+      >
+        <span className={styles.ctaMain}>Записаться</span>
+
+        <span className={styles.ctaDivider} />
+
+        <span className={styles.ctaBonus}>
+          <Gift size={12} strokeWidth={2.4} />
+          1 кг
+        </span>
       </Link>
     </article>
   );
