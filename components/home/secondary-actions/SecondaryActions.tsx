@@ -4,8 +4,8 @@ import styles from "./SecondaryActions.module.css";
 
 export default function SecondaryActions() {
   return (
-    <section className={styles.section} aria-label="Дополнительные услуги">
-      <div className={styles.grid}>
+    <section className={styles.section}>
+      <div className={styles.list}>
         <YuanAction />
         <WholesaleAction />
       </div>

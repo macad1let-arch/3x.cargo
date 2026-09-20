@@ -1,153 +1,104 @@
-.section {
-  --text-primary: #18243a;
-  --text-secondary: #66758f;
-
-  --blue: #2f61cc;
+.header {
   --orange: #f47728;
+  --text-primary: #18243a;
 
   width: 100%;
 
-  padding: 16px 10px 0;
+  background: #f8fafd;
+
+  border-bottom:
+    1px solid rgba(24, 36, 58, 0.07);
+
+  -webkit-font-smoothing: antialiased;
 }
 
 .inner {
   width: 100%;
   max-width: 720px;
 
+  height: 58px;
+
   margin: 0 auto;
-}
-
-/* =========================
-   HEADER
-========================= */
-
-.header {
-  display: flex;
-  align-items: center;
-
-  gap: 9px;
-
-  margin-bottom: 11px;
-  padding: 0 2px;
-}
-
-.headerAccent {
-  width: 5px;
-  height: 23px;
-
-  flex: 0 0 5px;
-
-  border-radius: 999px;
-
-  background: var(--orange);
-}
-
-.heading {
-  margin: 0;
-
-  color: var(--text-primary);
-
-  font-size: 18px;
-  line-height: 1;
-  font-weight: 850;
-
-  letter-spacing: -0.04em;
-}
-
-/* =========================
-   LIST
-========================= */
-
-.list {
-  display: flex;
-  flex-direction: column;
-
-  gap: 7px;
-}
-
-/* =========================
-   ITEM
-========================= */
-
-.item {
-  overflow: hidden;
-
-  background:
-    linear-gradient(
-      145deg,
-      #f8fafd 0%,
-      #fbfcfe 100%
-    );
-
-  border: 1px solid #e1e7ef;
-  border-radius: 16px;
-
-  transition:
-    background 150ms ease,
-    border-color 150ms ease,
-    box-shadow 150ms ease;
-}
-
-.itemOpen {
-  background:
-    linear-gradient(
-      145deg,
-      #f2f6fd 0%,
-      #f8faff 100%
-    );
-
-  border-color: #cedbef;
-
-  box-shadow:
-    0 6px 18px rgba(36, 67, 113, 0.055);
-}
-
-/* =========================
-   QUESTION
-========================= */
-
-.question {
-  width: 100%;
-  min-height: 50px;
-
-  padding: 0 11px 0 14px;
+  padding: 0 12px;
 
   display: flex;
   align-items: center;
   justify-content: space-between;
-
-  gap: 12px;
-
-  border: 0;
-
-  background: transparent;
-
-  color: var(--text-primary);
-
-  font-family: inherit;
-
-  text-align: left;
-
-  cursor: pointer;
-
-  -webkit-tap-highlight-color: transparent;
-}
-
-.questionText {
-  min-width: 0;
-
-  font-size: 13.5px;
-  line-height: 1.25;
-  font-weight: 750;
-
-  letter-spacing: -0.025em;
 }
 
 /* =========================
-   CHEVRON
+   LOGO
 ========================= */
 
-.chevron {
+.logo {
+  display: inline-flex;
+  align-items: center;
+
+  color: var(--orange);
+
+  text-decoration: none;
+
+  font-size: 26px;
+  line-height: 1;
+  font-weight: 850;
+
+  letter-spacing: -0.05em;
+
+  -webkit-tap-highlight-color: transparent;
+
+  transition:
+    transform 110ms ease,
+    opacity 120ms ease;
+}
+
+.logo:hover {
+  opacity: 0.94;
+}
+
+.logo:active {
+  transform: scale(0.98);
+}
+
+/* =========================
+   LOGIN
+========================= */
+
+.login {
+  height: 40px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  padding: 0 13px 0 9px;
+
+  border:
+    1px solid rgba(244, 119, 40, 0.33);
+
+  border-radius: 14px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #fffaf6 0%,
+      #fff7f1 100%
+    );
+
+  color: var(--text-primary);
+
+  text-decoration: none;
+
+  -webkit-tap-highlight-color: transparent;
+
+  transition:
+    transform 110ms ease,
+    background 130ms ease,
+    border-color 130ms ease;
+}
+
+.loginIconWrap {
   width: 28px;
   height: 28px;
 
@@ -158,97 +109,90 @@
 
   border-radius: 50%;
 
-  background: #edf2f8;
+  background:
+    rgba(244, 119, 40, 0.09);
 
-  color: #728298;
-
-  transition:
-    transform 180ms ease,
-    background 150ms ease,
-    color 150ms ease;
+  color: var(--orange);
 }
 
-.chevron svg {
-  width: 14px;
-  height: 14px;
+.loginIcon {
+  width: 16px;
+  height: 16px;
 
-  stroke-width: 2.5;
+  stroke-width: 2.25;
 }
 
-.itemOpen .chevron {
-  background: #dfe9fb;
+.loginText {
+  font-size: 13.5px;
+  line-height: 1;
+  font-weight: 780;
 
-  color: var(--blue);
+  letter-spacing: -0.025em;
 }
 
-.chevronOpen {
-  transform: rotate(180deg);
+.login:hover {
+  background: #fff4ea;
+
+  border-color:
+    rgba(244, 119, 40, 0.46);
 }
 
-/* =========================
-   ANSWER
-========================= */
-
-.answerWrap {
-  display: grid;
-
-  grid-template-rows: 0fr;
-
-  opacity: 0;
-
-  transition:
-    grid-template-rows 190ms
-      cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 140ms ease;
+.login:active {
+  transform: scale(0.975);
 }
 
-.answerOpen {
-  grid-template-rows: 1fr;
+.login:focus-visible {
+  outline:
+    3px solid rgba(244, 119, 40, 0.13);
 
-  opacity: 1;
-}
-
-.answerInner {
-  min-height: 0;
-
-  overflow: hidden;
-}
-
-.answer {
-  margin: 0;
-
-  padding:
-    0
-    48px
-    13px
-    14px;
-
-  color: var(--text-secondary);
-
-  font-size: 12px;
-  line-height: 1.5;
-  font-weight: 550;
-
-  letter-spacing: -0.01em;
+  outline-offset: 2px;
 }
 
 /* =========================
-   INTERACTION
+   <= 430px
 ========================= */
 
-.question:hover .chevron {
-  background: #e5ebf3;
-}
+@media (max-width: 430px) {
+  .inner {
+    height: 56px;
 
-.question:active {
-  opacity: 0.78;
-}
+    padding-left: 11px;
+    padding-right: 11px;
+  }
 
-.question:focus-visible {
-  outline: 3px solid rgba(47, 97, 204, 0.1);
-  outline-offset: -3px;
+  .logo {
+    font-size: 25px;
+  }
 
-  border-radius: 15px;
+  .login {
+    height: 39px;
+
+    padding:
+      0
+      12px
+      0
+      8px;
+
+    gap: 7px;
+
+    border-radius: 13px;
+  }
+
+  .loginIconWrap {
+    width: 27px;
+    height: 27px;
+
+    flex-basis: 27px;
+  }
+
+  .loginIcon {
+    width: 15px;
+    height: 15px;
+  }
+
+  .loginText {
+    font-size: 13px;
+  }
 }
 
 /* =========================
@@ -256,65 +200,38 @@
 ========================= */
 
 @media (max-width: 390px) {
-  .section {
-    padding:
-      14px
-      8px
-      0;
+  .inner {
+    height: 54px;
+
+    padding-left: 10px;
+    padding-right: 10px;
   }
 
-  .header {
-    margin-bottom: 10px;
+  .logo {
+    font-size: 24px;
   }
 
-  .headerAccent {
-    width: 4px;
-    height: 21px;
-
-    flex-basis: 4px;
-  }
-
-  .heading {
-    font-size: 17px;
-  }
-
-  .list {
-    gap: 6px;
-  }
-
-  .item {
-    border-radius: 15px;
-  }
-
-  .question {
-    min-height: 49px;
+  .login {
+    height: 38px;
 
     padding:
       0
-      10px
+      11px
       0
-      13px;
+      8px;
+
+    border-radius: 12px;
   }
 
-  .questionText {
-    font-size: 13px;
+  .loginIconWrap {
+    width: 26px;
+    height: 26px;
+
+    flex-basis: 26px;
   }
 
-  .chevron {
-    width: 27px;
-    height: 27px;
-
-    flex-basis: 27px;
-  }
-
-  .answer {
-    padding:
-      0
-      45px
-      12px
-      13px;
-
-    font-size: 11.7px;
+  .loginText {
+    font-size: 12.5px;
   }
 }
 
@@ -323,56 +240,51 @@
 ========================= */
 
 @media (max-width: 360px) {
-  .section {
-    padding-left: 7px;
-    padding-right: 7px;
+  .inner {
+    height: 52px;
+
+    padding-left: 9px;
+    padding-right: 9px;
   }
 
-  .heading {
-    font-size: 16.5px;
+  .logo {
+    font-size: 23px;
   }
 
-  .question {
-    min-height: 47px;
+  .login {
+    height: 36px;
 
-    padding-left: 12px;
+    padding:
+      0
+      10px
+      0
+      7px;
+
+    gap: 6px;
+
+    border-radius: 11px;
   }
 
-  .questionText {
-    font-size: 12.5px;
-  }
-
-  .chevron {
+  .loginIconWrap {
     width: 25px;
     height: 25px;
 
     flex-basis: 25px;
   }
 
-  .chevron svg {
-    width: 13px;
-    height: 13px;
+  .loginIcon {
+    width: 14px;
+    height: 14px;
   }
 
-  .answer {
-    padding:
-      0
-      41px
-      11px
-      12px;
-
-    font-size: 11.5px;
+  .loginText {
+    font-size: 12px;
   }
 }
 
-/* =========================
-   REDUCED MOTION
-========================= */
-
 @media (prefers-reduced-motion: reduce) {
-  .item,
-  .chevron,
-  .answerWrap {
+  .logo,
+  .login {
     transition: none;
   }
 }

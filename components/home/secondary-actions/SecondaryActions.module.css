@@ -1,177 +1,373 @@
 .section {
   width: 100%;
-  padding: 10px 14px 0;
+  padding: 8px 8px 12px;
 }
 
-.grid {
+.list {
   width: 100%;
-  max-width: 760px;
+  max-width: 720px;
   margin: 0 auto;
-
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.card {
-  position: relative;
-
-  width: 100%;
-  aspect-ratio: 1 / 1;
 
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  gap: 8px;
+}
 
-  gap: 15px;
+/* ========================================
+   CARD
+======================================== */
 
-  padding: 16px;
+.card {
+  position: relative;
+  width: 100%;
+  height: clamp(158px, 42vw, 184px);
 
-  background: #ffffff;
+  display: block;
+  overflow: hidden;
 
-  border: 1px solid #e6ecf4;
-  border-radius: 19px;
-
+  border-radius: 22px;
   text-decoration: none;
-
-  box-shadow:
-    0 6px 20px rgba(10, 30, 61, 0.035),
-    0 1px 2px rgba(10, 30, 61, 0.02);
-
+  isolation: isolate;
   -webkit-tap-highlight-color: transparent;
 
-  transition:
-    transform 120ms ease,
-    border-color 140ms ease,
-    box-shadow 140ms ease;
-}
-
-.iconBox {
-  width: 66px;
-  height: 66px;
-
-  display: grid;
-  place-items: center;
-
-  border-radius: 20px;
-}
-
-/* ЮАНИ */
-
-.yuanIcon {
-  background: #fff2e9;
-  color: #eb6819;
-}
-
-/* ОПТ */
-
-.wholesaleIcon {
-  background: #eef4fc;
-  color: #073b87;
-}
-
-.title {
-  color: #092653;
-
-  font-size: 16px;
-  line-height: 1.1;
-  font-weight: 800;
-  letter-spacing: -0.03em;
-
-  text-align: center;
-
-  white-space: nowrap;
-}
-
-.card:hover {
-  border-color: #dce4ee;
-
-  box-shadow:
-    0 8px 24px rgba(10, 30, 61, 0.055),
-    0 1px 2px rgba(10, 30, 61, 0.025);
+  transition: transform 0.14s ease;
 }
 
 .card:active {
-  transform: scale(0.985);
+  transform: scale(0.988);
 }
 
-.card:focus-visible {
-  outline: 3px solid rgba(5, 45, 117, 0.1);
-  outline-offset: 2px;
+.yuanCard {
+  background: #0c7c6f;
 }
 
-/* MOBILE */
+.wholesaleCard {
+  background: #1568e2;
+}
+
+/* ========================================
+   IMAGE
+======================================== */
+
+.backgroundImage {
+  position: absolute !important;
+  inset: 0;
+
+  width: 100% !important;
+  height: 100% !important;
+
+  object-fit: cover;
+  object-position: right center;
+
+  z-index: 0;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Иллюстрацию делаем меньше и правее */
+.yuanCard .backgroundImage {
+  transform: scale(0.9);
+  transform-origin: right center;
+}
+
+.wholesaleCard .backgroundImage {
+  transform: scale(0.84);
+  transform-origin: right center;
+}
+
+/* ========================================
+   OVERLAY
+======================================== */
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.yuanOverlay {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(5, 101, 88, 0.9) 0%,
+      rgba(5, 101, 88, 0.78) 24%,
+      rgba(5, 101, 88, 0.46) 43%,
+      rgba(5, 101, 88, 0.14) 58%,
+      transparent 72%
+    );
+}
+
+.wholesaleOverlay {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(11, 81, 193, 0.92) 0%,
+      rgba(11, 81, 193, 0.8) 24%,
+      rgba(11, 81, 193, 0.46) 43%,
+      rgba(11, 81, 193, 0.14) 58%,
+      transparent 72%
+    );
+}
+
+/* ========================================
+   CONTENT
+======================================== */
+
+.content {
+  position: relative;
+  z-index: 2;
+
+  width: 47%;
+  height: 100%;
+
+  padding: 16px 0 14px 16px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+
+.copy {
+  width: 100%;
+  min-width: 0;
+}
+
+/* ========================================
+   TEXT
+======================================== */
+
+.title {
+  margin: 0 0 6px 0;
+
+  color: #ffffff;
+  font-size: clamp(22px, 5.6vw, 30px);
+  line-height: 0.98;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.14);
+}
+
+.subtitle {
+  margin: 0;
+
+  color: rgba(255, 255, 255, 0.97);
+  font-size: clamp(12.5px, 3.2vw, 15.5px);
+  line-height: 1.24;
+  font-weight: 750;
+  letter-spacing: -0.015em;
+
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+}
+
+.price {
+  margin-top: 6px;
+
+  display: flex;
+  align-items: baseline;
+
+  color: rgba(255, 255, 255, 0.96);
+  font-size: 12px;
+  line-height: 1;
+  font-weight: 750;
+}
+
+.price strong {
+  margin: 0 2px 0 4px;
+
+  color: #ffb13b;
+  font-size: 20px;
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: -0.045em;
+
+  text-shadow: 0 2px 5px rgba(75, 35, 0, 0.14);
+}
+
+/* ========================================
+   CTA
+======================================== */
+
+.cta {
+  margin-top: 14px;
+
+  height: 40px;
+  min-width: 124px;
+  padding: 0 18px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 14px;
+
+  background: #ff7a00;
+  color: #ffffff;
+
+  font-size: 13.5px;
+  line-height: 1;
+  font-weight: 850;
+  letter-spacing: -0.02em;
+
+  box-shadow:
+    0 8px 18px rgba(120, 53, 0, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+
+  transition:
+    transform 0.14s ease,
+    background 0.14s ease;
+}
+
+.card:hover .cta {
+  background: #ff8414;
+}
+
+.card:active .cta {
+  transform: scale(0.98);
+}
+
+/* ========================================
+   430
+======================================== */
 
 @media (max-width: 430px) {
   .section {
-    padding: 9px 13px 0;
+    padding: 7px 7px 12px;
   }
 
-  .grid {
-    gap: 9px;
-  }
-
-  .card {
-    padding: 14px;
-
-    gap: 13px;
-
-    border-radius: 18px;
-  }
-
-  .iconBox {
-    width: 58px;
-    height: 58px;
-
-    border-radius: 17px;
-  }
-
-  .iconBox svg {
-    width: 30px;
-    height: 30px;
-  }
-
-  .title {
-    font-size: 14px;
-  }
-}
-
-@media (max-width: 360px) {
-  .section {
-    padding-left: 11px;
-    padding-right: 11px;
-  }
-
-  .grid {
+  .list {
     gap: 8px;
   }
 
   .card {
-    padding: 12px;
+    height: 41vw;
+    min-height: 160px;
+    max-height: 178px;
 
-    border-radius: 17px;
+    border-radius: 20px;
   }
 
-  .iconBox {
-    width: 52px;
-    height: 52px;
-
-    border-radius: 15px;
-  }
-
-  .iconBox svg {
-    width: 27px;
-    height: 27px;
+  .content {
+    width: 48%;
+    padding: 15px 0 12px 15px;
   }
 
   .title {
+    margin-bottom: 5px;
+    font-size: 21px;
+  }
+
+  .subtitle {
+    font-size: 12px;
+    line-height: 1.23;
+  }
+
+  .price {
+    margin-top: 5px;
+    font-size: 11px;
+  }
+
+  .price strong {
+    font-size: 18px;
+  }
+
+  .cta {
+    margin-top: 12px;
+
+    height: 38px;
+    min-width: 116px;
+    padding: 0 16px;
+
     font-size: 13px;
+    border-radius: 13px;
+  }
+}
+
+/* ========================================
+   390
+======================================== */
+
+@media (max-width: 390px) {
+  .card {
+    height: 40vw;
+    min-height: 154px;
+    max-height: 168px;
+  }
+
+  .content {
+    width: 49%;
+    padding: 14px 0 11px 14px;
+  }
+
+  .title {
+    font-size: 20px;
+  }
+
+  .subtitle {
+    font-size: 11.5px;
+  }
+
+  .price strong {
+    font-size: 17px;
+  }
+
+  .cta {
+    height: 37px;
+    min-width: 110px;
+    font-size: 12.5px;
+  }
+}
+
+/* ========================================
+   360
+======================================== */
+
+@media (max-width: 360px) {
+  .card {
+    height: 41vw;
+    min-height: 148px;
+    max-height: 160px;
+  }
+
+  .content {
+    width: 50%;
+    padding: 13px 0 10px 13px;
+  }
+
+  .title {
+    font-size: 18.5px;
+  }
+
+  .subtitle {
+    font-size: 10.8px;
+    line-height: 1.22;
+  }
+
+  .price {
+    font-size: 10px;
+  }
+
+  .price strong {
+    font-size: 16px;
+  }
+
+  .cta {
+    margin-top: 10px;
+
+    height: 35px;
+    min-width: 102px;
+    padding: 0 14px;
+
+    font-size: 12px;
+    border-radius: 12px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .card {
+  .card,
+  .cta {
     transition: none;
   }
 }

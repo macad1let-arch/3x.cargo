@@ -14,13 +14,20 @@ export default function Header() {
           Alakel
         </Link>
 
-        <Link href="/login" className={styles.login}>
-          <UserRound
-            className={styles.loginIcon}
+        <Link
+          href="/login"
+          className={styles.login}
+        >
+          <span
+            className={styles.loginIconWrap}
             aria-hidden="true"
-          />
+          >
+            <UserRound className={styles.loginIcon} />
+          </span>
 
-          <span>Войти</span>
+          <span className={styles.loginText}>
+            Войти
+          </span>
         </Link>
       </div>
     </header>
