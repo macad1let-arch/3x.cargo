@@ -1,120 +1,105 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, CircleHelp } from "lucide-react";
+import { HelpCircle, ChevronDown } from "lucide-react";
 import styles from "./FAQ.module.css";
 
 const FAQS = [
   {
     q: "Как получить личный код?",
-    a: "Зарегистрируйтесь — личный код появится в вашем кабинете.",
+    a: "Нажмите «Получить код», зарегистрируйтесь и сразу получите свой личный код для отправки товаров на склад.",
   },
   {
     q: "Сколько идёт доставка?",
-    a: "Обычно доставка из Китая занимает 7–12 дней.",
+    a: "В среднем доставка занимает от 7 до 12 дней после отправки со склада в Китае.",
   },
   {
     q: "Сколько стоит доставка?",
-    a: "Базовый тариф — $2.8 за кг. Для оптовых грузов действуют отдельные условия.",
+    a: "Стандартный тариф — от 2.8$ за кг. Для оптовых грузов действуют специальные условия — от 0.8$ за кг.",
   },
   {
     q: "Как отследить посылку?",
-    a: "Введите трек-код в разделе отслеживания — мы покажем текущий статус.",
+    a: "Введите трек-код в блоке отслеживания на главной странице и сразу увидите текущий статус груза.",
   },
   {
     q: "Можно заказать выкуп товара?",
-    a: "Да. Отправьте ссылку на товар — мы поможем с выкупом.",
+    a: "Да, мы можем выкупить товар у поставщика за вас и помочь с оформлением заказа.",
   },
   {
     q: "Сколько хранится груз?",
-    a: "После прибытия груз хранится бесплатно 7 дней.",
+    a: "Бесплатное хранение на складе — до 7 дней после прибытия груза.",
   },
 ];
 
 export default function FAQ() {
-  const [open, setOpen] = useState<number | null>(null);
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+
+  const toggleFAQ = (index: number) => {
+    setOpenIndex((current) => (current === index ? null : index));
+  };
 
   return (
-    <section
-      id="faq"
-      className={styles.section}
-      aria-labelledby="faq-title"
-    >
-      <div className={styles.inner}>
-        <div className={styles.card}>
-          <div className={styles.header}>
-            <span
-              className={styles.headerIcon}
-              aria-hidden="true"
-            >
-              <CircleHelp />
-            </span>
-
-            <div className={styles.headerText}>
-              <h2
-                id="faq-title"
-                className={styles.heading}
-              >
-                Частые вопросы
-              </h2>
-
-              <p className={styles.subheading}>
-                Всё самое важное
-              </p>
-            </div>
+    <section className={styles.section} id="faq">
+      <div className={styles.card}>
+        <div className={styles.header}>
+          <div className={styles.iconWrap}>
+            <HelpCircle size={22} strokeWidth={2.4} />
           </div>
 
-          <div className={styles.list}>
-            {FAQS.map((item, index) => {
-              const isOpen = open === index;
-              const answerId = `faq-answer-${index}`;
+          <div className={styles.headerText}>
+            <h2 className={styles.title}>Частые вопросы</h2>
+            <p className={styles.subtitle}>Всё самое важное</p>
+          </div>
+        </div>
 
-              return (
+        <div className={styles.list}>
+          {FAQS.map((item, index) => {
+            const isOpen = openIndex === index;
+
+            return (
+              <div
+                key={item.q}
+                className={`${styles.item} ${
+                  isOpen ? styles.itemOpen : ""
+                }`}
+              >
+                <button
+                  type="button"
+                  className={styles.question}
+                  onClick={() => toggleFAQ(index)}
+                  aria-expanded={isOpen}
+                >
+                  <span className={styles.questionText}>
+                    {item.q}
+                  </span>
+
+                  <span
+                    className={`${styles.toggle} ${
+                      isOpen ? styles.toggleOpen : ""
+                    }`}
+                    aria-hidden="true"
+                  >
+                    <ChevronDown
+                      size={18}
+                      strokeWidth={2.6}
+                    />
+                  </span>
+                </button>
+
                 <div
-                  key={item.q}
-                  className={`${styles.item} ${
-                    isOpen ? styles.itemOpen : ""
+                  className={`${styles.answerWrap} ${
+                    isOpen ? styles.answerWrapOpen : ""
                   }`}
                 >
-                  <button
-                    type="button"
-                    className={styles.question}
-                    onClick={() =>
-                      setOpen(isOpen ? null : index)
-                    }
-                    aria-expanded={isOpen}
-                    aria-controls={answerId}
-                  >
-                    <span className={styles.questionText}>
-                      {item.q}
-                    </span>
-
-                    <span
-                      className={`${styles.chevron} ${
-                        isOpen ? styles.chevronOpen : ""
-                      }`}
-                      aria-hidden="true"
-                    >
-                      <ChevronDown />
-                    </span>
-                  </button>
-
-                  <div
-                    id={answerId}
-                    className={`${styles.answerWrap} ${
-                      isOpen ? styles.answerOpen : ""
-                    }`}
-                  >
-                    <div className={styles.answerInner}>
-                      <p className={styles.answer}>
-                        {item.a}
-                      </p>
-                    </div>
+                  <div className={styles.answerInner}>
+                    <p className={styles.answer}>
+                      {item.a}
+                    </p>
                   </div>
                 </div>
-              );
-            })}
-          </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>

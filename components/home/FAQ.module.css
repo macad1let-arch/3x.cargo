@@ -1,48 +1,27 @@
 .section {
-  --blue-main: #12397f;
-  --blue-top: #1a4695;
-  --blue-item: rgba(255, 255, 255, 0.06);
-  --blue-item-open: rgba(255, 255, 255, 0.1);
-  --blue-border: rgba(255, 255, 255, 0.1);
-  --blue-border-open: rgba(255, 171, 97, 0.4);
-
-  --white: #ffffff;
-  --white-soft: rgba(255, 255, 255, 0.8);
-  --white-muted: rgba(255, 255, 255, 0.65);
-
-  --orange: #f47728;
-  --orange-soft: rgba(244, 119, 40, 0.16);
-
   width: 100%;
-  padding: 18px 12px 28px;
+  padding: 10px 8px 16px;
 }
-
-.inner {
-  width: 100%;
-  max-width: 720px;
-  margin: 0 auto;
-}
-
-/* =========================
-   MAIN CARD
-========================= */
 
 .card {
   width: 100%;
 
-  padding: 14px;
+  overflow: hidden;
 
-  background: linear-gradient(
-    180deg,
-    var(--blue-top) 0%,
-    var(--blue-main) 100%
-  );
-
-  border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 24px;
 
+  background:
+    linear-gradient(
+      180deg,
+      #123a82 0%,
+      #0d2f6a 100%
+    );
+
+  border: 1px solid rgba(255, 255, 255, 0.07);
+
   box-shadow:
-    0 14px 32px rgba(8, 24, 56, 0.22);
+    0 10px 24px rgba(10, 28, 66, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 /* =========================
@@ -52,58 +31,61 @@
 .header {
   display: flex;
   align-items: center;
+
   gap: 12px;
 
-  margin-bottom: 14px;
-  padding: 2px 2px 0;
+  padding: 16px 16px 14px;
+
+  border-bottom:
+    1px solid rgba(255, 255, 255, 0.07);
 }
 
-.headerIcon {
-  width: 42px;
-  height: 42px;
+.iconWrap {
+  width: 48px;
+  height: 48px;
 
-  flex: 0 0 42px;
+  flex: 0 0 48px;
 
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-  border-radius: 50%;
+  border-radius: 16px;
 
-  background: rgba(244, 119, 40, 0.14);
-  color: var(--orange);
-}
+  background: rgba(255, 255, 255, 0.07);
 
-.headerIcon svg {
-  width: 21px;
-  height: 21px;
+  color: #ff8a1f;
 
-  stroke-width: 2.4;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .headerText {
   min-width: 0;
 }
 
-.heading {
+.title {
   margin: 0;
 
-  color: var(--white);
+  color: #ffffff;
 
-  font-size: 19px;
+  font-size: 18px;
   line-height: 1;
-  font-weight: 850;
+  font-weight: 900;
 
   letter-spacing: -0.04em;
 }
 
-.subheading {
+.subtitle {
   margin: 5px 0 0;
 
-  color: var(--white-soft);
+  color: #ff8a1f;
 
-  font-size: 12px;
-  line-height: 1.2;
-  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.15;
+  font-weight: 800;
+
+  letter-spacing: -0.02em;
 }
 
 /* =========================
@@ -113,7 +95,10 @@
 .list {
   display: flex;
   flex-direction: column;
-  gap: 9px;
+
+  gap: 8px;
+
+  padding: 10px;
 }
 
 /* =========================
@@ -123,23 +108,25 @@
 .item {
   overflow: hidden;
 
-  background: var(--blue-item);
+  border-radius: 18px;
 
-  border: 1px solid var(--blue-border);
-  border-radius: 17px;
+  background:
+    rgba(255, 255, 255, 0.035);
+
+  border:
+    1px solid rgba(255, 255, 255, 0.06);
 
   transition:
-    background 160ms ease,
-    border-color 160ms ease,
-    box-shadow 160ms ease;
+    background 180ms ease,
+    border-color 180ms ease;
 }
 
 .itemOpen {
-  background: var(--blue-item-open);
-  border-color: var(--blue-border-open);
+  background:
+    rgba(255, 255, 255, 0.055);
 
-  box-shadow:
-    0 6px 18px rgba(4, 14, 36, 0.16);
+  border-color:
+    rgba(255, 138, 31, 0.26);
 }
 
 /* =========================
@@ -148,21 +135,21 @@
 
 .question {
   width: 100%;
-  min-height: 62px;
-
-  padding: 0 14px 0 16px;
 
   display: flex;
   align-items: center;
   justify-content: space-between;
 
-  gap: 14px;
+  gap: 12px;
+
+  padding: 15px 14px;
 
   border: 0;
-  background: transparent;
-  color: var(--white);
 
-  font-family: inherit;
+  background: transparent;
+
+  color: inherit;
+
   text-align: left;
 
   cursor: pointer;
@@ -173,53 +160,49 @@
 .questionText {
   min-width: 0;
 
-  color: var(--white);
+  color: #ffffff;
 
-  font-size: 14px;
-  line-height: 1.28;
-  font-weight: 750;
+  font-size: 16px;
+  line-height: 1.2;
+  font-weight: 850;
 
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
 }
 
 /* =========================
-   CHEVRON
+   TOGGLE
 ========================= */
 
-.chevron {
-  width: 32px;
-  height: 32px;
+.toggle {
+  width: 38px;
+  height: 38px;
 
-  flex: 0 0 32px;
+  flex: 0 0 38px;
 
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-  border-radius: 50%;
+  border-radius: 12px;
 
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.82);
+  background:
+    rgba(255, 255, 255, 0.06);
+
+  color: #ff8a1f;
 
   transition:
-    transform 190ms cubic-bezier(0.22, 1, 0.36, 1),
-    background 150ms ease,
-    color 150ms ease;
+    transform 220ms ease,
+    background 180ms ease,
+    color 180ms ease;
 }
 
-.chevron svg {
-  width: 15px;
-  height: 15px;
-
-  stroke-width: 2.5;
-}
-
-.itemOpen .chevron {
-  background: var(--orange-soft);
-  color: #ffc08f;
-}
-
-.chevronOpen {
+.toggleOpen {
   transform: rotate(180deg);
+
+  background:
+    rgba(255, 138, 31, 0.14);
+
+  color: #ff9b3d;
 }
 
 /* =========================
@@ -228,18 +211,30 @@
 
 .answerWrap {
   display: grid;
+
   grid-template-rows: 0fr;
 
   opacity: 0;
 
+  visibility: hidden;
+
   transition:
-    grid-template-rows 210ms cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 150ms ease;
+    grid-template-rows 240ms ease,
+    opacity 180ms ease,
+    visibility 0s linear 240ms;
 }
 
-.answerOpen {
+.answerWrapOpen {
   grid-template-rows: 1fr;
+
   opacity: 1;
+
+  visibility: visible;
+
+  transition:
+    grid-template-rows 240ms ease,
+    opacity 180ms ease,
+    visibility 0s linear 0s;
 }
 
 .answerInner {
@@ -250,13 +245,17 @@
 .answer {
   margin: 0;
 
-  padding: 0 52px 16px 16px;
+  padding:
+    0
+    14px
+    15px;
 
-  color: var(--white-soft);
+  color:
+    rgba(255, 255, 255, 0.80);
 
-  font-size: 12.5px;
-  line-height: 1.55;
-  font-weight: 550;
+  font-size: 14px;
+  line-height: 1.45;
+  font-weight: 600;
 
   letter-spacing: -0.01em;
 }
@@ -265,18 +264,19 @@
    INTERACTION
 ========================= */
 
-.question:hover .chevron {
-  background: rgba(255, 255, 255, 0.14);
+.item:hover {
+  background:
+    rgba(255, 255, 255, 0.045);
 }
 
-.question:active {
-  opacity: 0.86;
+.question:active .toggle {
+  transform: scale(0.96);
 }
 
-.question:focus-visible {
-  outline: 3px solid rgba(244, 119, 40, 0.24);
-  outline-offset: -3px;
-  border-radius: 16px;
+.itemOpen .question:active .toggle {
+  transform:
+    rotate(180deg)
+    scale(0.96);
 }
 
 /* =========================
@@ -285,88 +285,46 @@
 
 @media (max-width: 430px) {
   .section {
-    padding: 18px 12px 26px;
+    padding:
+      10px
+      8px
+      14px;
   }
 
   .card {
-    padding: 13px;
-    border-radius: 23px;
-  }
-
-  .header {
-    gap: 11px;
-    margin-bottom: 13px;
-  }
-
-  .headerIcon {
-    width: 40px;
-    height: 40px;
-    flex-basis: 40px;
-  }
-
-  .heading {
-    font-size: 18px;
-  }
-
-  .subheading {
-    font-size: 11.5px;
-  }
-
-  .list {
-    gap: 8px;
-  }
-
-  .question {
-    min-height: 60px;
-    padding: 0 13px 0 15px;
-  }
-
-  .questionText {
-    font-size: 13.7px;
-  }
-
-  .answer {
-    padding: 0 48px 15px 15px;
-    font-size: 12.2px;
-  }
-}
-
-/* =========================
-   <= 390px
-========================= */
-
-@media (max-width: 390px) {
-  .section {
-    padding: 17px 10px 24px;
-  }
-
-  .card {
-    padding: 12px;
     border-radius: 22px;
   }
 
   .header {
     gap: 10px;
-    margin-bottom: 12px;
+
+    padding:
+      15px
+      14px
+      13px;
   }
 
-  .headerIcon {
-    width: 38px;
-    height: 38px;
-    flex-basis: 38px;
+  .iconWrap {
+    width: 44px;
+    height: 44px;
+
+    flex-basis: 44px;
+
+    border-radius: 15px;
   }
 
-  .headerIcon svg {
-    width: 20px;
-    height: 20px;
-  }
-
-  .heading {
+  .title {
     font-size: 17px;
   }
 
-  .subheading {
-    font-size: 11px;
+  .subtitle {
+    font-size: 13px;
+  }
+
+  .list {
+    gap: 7px;
+
+    padding: 8px;
   }
 
   .item {
@@ -374,29 +332,31 @@
   }
 
   .question {
-    min-height: 58px;
-    padding: 0 12px 0 14px;
-    gap: 12px;
+    padding:
+      14px
+      13px;
   }
 
   .questionText {
-    font-size: 13.3px;
+    font-size: 15px;
   }
 
-  .chevron {
-    width: 30px;
-    height: 30px;
-    flex-basis: 30px;
-  }
+  .toggle {
+    width: 36px;
+    height: 36px;
 
-  .chevron svg {
-    width: 14px;
-    height: 14px;
+    flex-basis: 36px;
+
+    border-radius: 11px;
   }
 
   .answer {
-    padding: 0 45px 14px 14px;
-    font-size: 12px;
+    padding:
+      0
+      13px
+      14px;
+
+    font-size: 13.5px;
   }
 }
 
@@ -405,38 +365,28 @@
 ========================= */
 
 @media (max-width: 360px) {
-  .section {
-    padding-left: 8px;
-    padding-right: 8px;
+  .title {
+    font-size: 16px;
   }
 
-  .card {
-    padding: 11px;
-    border-radius: 21px;
-  }
-
-  .heading {
-    font-size: 16.5px;
-  }
-
-  .question {
-    min-height: 56px;
-    padding-left: 13px;
+  .subtitle {
+    font-size: 12.5px;
   }
 
   .questionText {
-    font-size: 12.8px;
+    font-size: 14px;
   }
 
-  .chevron {
-    width: 28px;
-    height: 28px;
-    flex-basis: 28px;
+  .toggle {
+    width: 34px;
+    height: 34px;
+
+    flex-basis: 34px;
   }
 
   .answer {
-    padding: 0 42px 13px 13px;
-    font-size: 11.7px;
+    font-size: 13px;
+    line-height: 1.4;
   }
 }
 
@@ -446,7 +396,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .item,
-  .chevron,
+  .toggle,
   .answerWrap {
     transition: none;
   }

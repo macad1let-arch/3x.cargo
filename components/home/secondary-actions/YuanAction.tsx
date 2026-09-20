@@ -24,7 +24,11 @@ export default function YuanAction() {
 
       <div className={styles.content}>
         <div className={styles.copy}>
-          <h3 className={styles.title}>Обменяйте юани</h3>
+          <h3 className={styles.title}>
+  Обменяйте
+  <br />
+  юани
+</h3>
 
           <p className={styles.subtitle}>
             Всегда в наличии

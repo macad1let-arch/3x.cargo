@@ -172,7 +172,7 @@
 }
 
 /* =========================
-   CTA
+   CTA BASE
 ========================= */
 
 .cta {
@@ -186,6 +186,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
+
+  overflow: hidden;
+  isolation: isolate;
 
   border-radius: 14px;
 
@@ -201,25 +204,92 @@
   -webkit-tap-highlight-color: transparent;
 
   transition:
-    transform 110ms ease,
-    filter 120ms ease;
+    transform 180ms ease,
+    filter 180ms ease,
+    box-shadow 220ms ease;
 }
+
+/* =========================
+   BLUE CTA
+========================= */
 
 .codeCta {
   background: var(--blue-action);
+
+  box-shadow:
+    0 7px 18px rgba(47, 97, 204, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+
+  animation:
+    codeGlow 1.8s ease-in-out infinite;
 }
+
+/* =========================
+   ORANGE CTA
+========================= */
 
 .educationCta {
   background: var(--orange);
 
   gap: 8px;
+
+  box-shadow:
+    0 7px 18px rgba(244, 119, 40, 0.23),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16);
+
+  animation:
+    educationGlow 3.8s ease-in-out infinite;
 }
 
+/* =========================
+   CTA SHINE
+========================= */
+
+.cta::before {
+  content: "";
+
+  position: absolute;
+  z-index: 1;
+
+  top: 0;
+  left: -42%;
+
+  width: 34%;
+  height: 100%;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.04) 20%,
+      rgba(255, 255, 255, 0.24) 50%,
+      rgba(255, 255, 255, 0.04) 80%,
+      transparent 100%
+    );
+
+  transform: skewX(-20deg);
+
+  pointer-events: none;
+
+  animation:
+    ctaShine 5s ease-in-out infinite;
+}
+
+/* =========================
+   CTA CONTENT
+========================= */
+
 .ctaMain {
+  position: relative;
+  z-index: 2;
+
   white-space: nowrap;
 }
 
 .ctaDivider {
+  position: relative;
+  z-index: 2;
+
   width: 1px;
   height: 17px;
 
@@ -229,6 +299,9 @@
 }
 
 .ctaBonus {
+  position: relative;
+  z-index: 2;
+
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -253,11 +326,95 @@
 ========================= */
 
 .cta:hover {
-  filter: brightness(0.98);
+  filter: brightness(1.025);
+
+  transform: translateY(-1px);
+}
+
+.codeCta:hover {
+  box-shadow:
+    0 10px 24px rgba(47, 97, 204, 0.31),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.educationCta:hover {
+  box-shadow:
+    0 10px 24px rgba(244, 119, 40, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
 }
 
 .cta:active {
   transform: scale(0.98);
+
+  filter: brightness(0.98);
+}
+
+/* =========================
+   KEYFRAMES — BLUE
+========================= */
+
+@keyframes codeGlow {
+  0%,
+  100% {
+    box-shadow:
+      0 7px 18px rgba(47, 97, 204, 0.18),
+      inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  }
+
+  50% {
+    box-shadow:
+      0 10px 25px rgba(47, 97, 204, 0.33),
+      inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  }
+}
+
+/* =========================
+   KEYFRAMES — ORANGE
+========================= */
+
+@keyframes educationGlow {
+  0%,
+  100% {
+    box-shadow:
+      0 7px 18px rgba(244, 119, 40, 0.19),
+      inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  }
+
+  50% {
+    box-shadow:
+      0 10px 25px rgba(244, 119, 40, 0.34),
+      inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  }
+}
+
+/* =========================
+   KEYFRAMES — SHINE
+========================= */
+
+@keyframes ctaShine {
+  0% {
+    left: -42%;
+    opacity: 0;
+  }
+
+  8% {
+    left: -42%;
+    opacity: 0;
+  }
+
+  14% {
+    opacity: 1;
+  }
+
+  30% {
+    left: 118%;
+    opacity: 0;
+  }
+
+  100% {
+    left: 118%;
+    opacity: 0;
+  }
 }
 
 /* =========================
@@ -414,7 +571,11 @@
 ========================= */
 
 @media (prefers-reduced-motion: reduce) {
-  .cta {
+  .cta,
+  .codeCta,
+  .educationCta,
+  .cta::before {
     transition: none;
+    animation: none;
   }
 }
