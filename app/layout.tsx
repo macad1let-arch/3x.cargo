@@ -1,8 +1,20 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import type {
+  Metadata,
+  Viewport,
+} from "next";
+
+import {
+  Geist,
+  Geist_Mono,
+} from "next/font/google";
+
 import "./globals.css";
-import Navigation from "@/components/Navigation";
+
 import ChatWidget from "@/components/ChatWidget";
+
+/* ========================================
+   FONTS
+======================================== */
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,10 +26,56 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "3X Cargo",
-  description: "Cargo CRM and delivery platform",
+/* ========================================
+   VIEWPORT
+======================================== */
+
+export const viewport: Viewport = {
+  width: "device-width",
+
+  initialScale: 1,
+  minimumScale: 1,
+  maximumScale: 1,
+
+  userScalable: false,
+
+  viewportFit: "cover",
+
+  themeColor: "#0A3478",
 };
+
+/* ========================================
+   METADATA
+======================================== */
+
+export const metadata: Metadata = {
+  title: {
+    default: "Alakel",
+    template: "%s | Alakel",
+  },
+
+  description:
+    "Доставка товаров из Китая в Кыргызстан",
+
+  appleWebApp: {
+    capable: true,
+    title: "Alakel",
+
+    /*
+      На iPhone верхняя системная область
+      визуально лучше сливается с TopBar.
+    */
+    statusBarStyle: "black-translucent",
+  },
+
+  formatDetection: {
+    telephone: false,
+  },
+};
+
+/* ========================================
+   ROOT
+======================================== */
 
 export default function RootLayout({
   children,
@@ -31,6 +89,7 @@ export default function RootLayout({
     >
       <body suppressHydrationWarning>
         {children}
+
         <ChatWidget />
       </body>
     </html>

@@ -1,192 +1,216 @@
 .section {
-  --text-primary: #18243a;
-  --text-secondary: #66758f;
-
+  --navy: #102f66;
   --blue: #2f61cc;
-  --blue-deep: #2858bf;
-
-  --orange: #f47728;
+  --orange: #ff7a00;
 
   width: 100%;
-  padding: 16px 10px 22px;
+
+  padding:
+    16px
+    8px
+    10px;
 }
 
-.inner {
+/* ========================================
+   CARD
+======================================== */
+
+.card {
   width: 100%;
-  max-width: 720px;
 
-  margin: 0 auto;
+  padding:
+    16px
+    16px
+    17px;
+
+  border:
+    1px solid #dce6f2;
+
+  border-radius: 24px;
+
+  background: #f8faff;
+
+  box-shadow:
+    0 8px 24px
+    rgba(16, 47, 102, 0.045);
 }
 
-/* =========================
+/* ========================================
    HEADER
-========================= */
+======================================== */
 
 .header {
   display: flex;
   align-items: center;
 
-  gap: 9px;
+  gap: 12px;
 
-  margin-bottom: 11px;
-  padding: 0 2px;
+  margin-bottom: 17px;
 }
 
-.headerAccent {
-  width: 5px;
-  height: 23px;
+.headerIcon {
+  width: 48px;
+  height: 48px;
 
-  flex: 0 0 5px;
+  flex: 0 0 48px;
 
-  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-  background: var(--orange);
+  border-radius: 15px;
+
+  background: #eaf2ff;
+
+  color: #1f5bc4;
 }
 
-.heading {
+.headerText {
+  min-width: 0;
+}
+
+.title {
   margin: 0;
 
-  color: var(--text-primary);
+  color: var(--navy);
 
-  font-size: 18px;
+  font-size: 21px;
   line-height: 1;
-  font-weight: 850;
+  font-weight: 900;
 
-  letter-spacing: -0.04em;
+  letter-spacing: -0.045em;
 }
 
-/* =========================
-   CARD
-========================= */
+.subtitle {
+  margin: 5px 0 0;
 
-.card {
-  width: 100%;
+  color: #7889a4;
 
-  padding: 13px;
+  font-size: 12.5px;
+  line-height: 1.2;
+  font-weight: 600;
 
-  background:
-    linear-gradient(
-      145deg,
-      #f5f9ff 0%,
-      #fbfcfe 100%
-    );
-
-  border: 1px solid #dfe7f1;
-  border-radius: 22px;
-
-  box-shadow:
-    0 8px 28px rgba(28, 55, 96, 0.055);
+  letter-spacing: -0.015em;
 }
 
-/* =========================
+/* ========================================
    FORM
-========================= */
+======================================== */
 
 .form {
   display: flex;
   flex-direction: column;
 
-  gap: 10px;
+  gap: 13px;
 }
 
 .field {
   display: flex;
   flex-direction: column;
 
-  gap: 6px;
+  gap: 7px;
 }
 
 .label {
-  padding-left: 2px;
+  color: #405777;
 
-  color: #506078;
-
-  font-size: 11.5px;
+  font-size: 13px;
   line-height: 1;
   font-weight: 700;
+
+  letter-spacing: -0.015em;
 }
 
 .required {
-  margin-left: 3px;
+  margin-left: 4px;
 
-  color: #e46767;
+  color: #f0694b;
 }
 
-/* =========================
+/* ========================================
    INPUTS
-========================= */
+======================================== */
 
 .input,
 .textarea {
   width: 100%;
 
-  border: 1px solid #d9e3ef;
-  border-radius: 14px;
-
   outline: none;
 
-  background: rgba(255, 255, 255, 0.92);
+  border:
+    1px solid #d6e1ef;
 
-  color: var(--text-primary);
+  background: #ffffff;
+
+  color: #162845;
 
   font-family: inherit;
 
-  font-size: 13.5px;
-  font-weight: 600;
-
-  letter-spacing: -0.015em;
-
   transition:
-    border-color 130ms ease,
-    box-shadow 130ms ease,
-    background 130ms ease;
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    background 160ms ease;
 }
 
 .input {
-  height: 46px;
+  height: 54px;
 
-  padding: 0 14px;
-}
+  padding:
+    0
+    17px;
 
-.textarea {
-  min-height: 78px;
+  border-radius: 17px;
 
-  padding: 12px 14px;
-
-  line-height: 1.4;
-
-  resize: none;
-}
-
-.input::placeholder,
-.textarea::placeholder {
-  color: #98a5b7;
-
+  font-size: 16px;
+  line-height: 1;
   font-weight: 550;
 }
 
-.input:hover,
-.textarea:hover {
-  border-color: #ccd8e8;
+.textarea {
+  min-height: 112px;
+
+  padding:
+    15px
+    17px;
+
+  border-radius: 18px;
+
+  resize: none;
+
+  font-size: 16px;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+/* PLACEHOLDER — специально легче */
+
+.input::placeholder,
+.textarea::placeholder {
+  color: #9aa8bb;
+
+  opacity: 1;
+
+  font-weight: 400;
 }
 
 .input:focus,
 .textarea:focus {
-  border-color: #7da1de;
+  border-color: #8dafe8;
 
   background: #ffffff;
 
   box-shadow:
-    0 0 0 3px rgba(47, 97, 204, 0.07);
+    0 0 0 3px
+    rgba(47, 97, 204, 0.07);
 }
 
-/* =========================
+/* ========================================
    SUBMIT
-========================= */
+======================================== */
 
 .submit {
   width: 100%;
-  height: 48px;
+  height: 54px;
 
   margin-top: 2px;
 
@@ -194,21 +218,187 @@
   align-items: center;
   justify-content: center;
 
-  gap: 8px;
+  gap: 9px;
 
   border: 0;
-  border-radius: 14px;
 
-  background:
-    linear-gradient(
-      180deg,
-      #386bd4 0%,
-      var(--blue-deep) 100%
-    );
+  border-radius: 17px;
+
+  background: #2f61cc;
 
   color: #ffffff;
 
   font-family: inherit;
+
+  font-size: 16px;
+  line-height: 1;
+  font-weight: 850;
+
+  letter-spacing: -0.025em;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 8px 18px
+    rgba(47, 97, 204, 0.18),
+    inset 0 1px 0
+    rgba(255, 255, 255, 0.15);
+
+  -webkit-tap-highlight-color:
+    transparent;
+
+  transition:
+    transform 120ms ease,
+    background 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.submit:hover {
+  background: #295ac1;
+
+  box-shadow:
+    0 10px 22px
+    rgba(47, 97, 204, 0.23),
+    inset 0 1px 0
+    rgba(255, 255, 255, 0.16);
+}
+
+.submit:active {
+  transform: scale(0.985);
+}
+
+/* ========================================
+   DIVIDER
+======================================== */
+
+.divider {
+  width: 100%;
+
+  margin:
+    16px
+    0
+    13px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+
+  height: 1px;
+
+  flex: 1;
+
+  background: #dce5f0;
+}
+
+.divider span {
+  color: #909eb2;
+
+  font-size: 11.5px;
+  line-height: 1;
+  font-weight: 650;
+
+  white-space: nowrap;
+}
+
+/* ========================================
+   DIRECT CONTACTS
+======================================== */
+
+.directGrid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 9px;
+}
+
+.directButton {
+  min-width: 0;
+  min-height: 64px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 11px;
+
+  padding:
+    10px
+    13px;
+
+  border:
+    1px solid transparent;
+
+  border-radius: 17px;
+
+  text-decoration: none;
+
+  -webkit-tap-highlight-color:
+    transparent;
+
+  transition:
+    transform 120ms ease,
+    border-color 160ms ease,
+    background 160ms ease;
+}
+
+.directButton:active {
+  transform: scale(0.985);
+}
+
+/* ========================================
+   WHATSAPP
+======================================== */
+
+.whatsapp {
+  background: #f2faf5;
+
+  border-color: #d6ecdd;
+}
+
+.whatsappIcon {
+  flex: 0 0 auto;
+
+  color: #16ad55;
+}
+
+/* ========================================
+   TELEGRAM
+======================================== */
+
+.telegram {
+  background: #f2f6fd;
+
+  border-color: #d8e4f4;
+}
+
+.telegramIcon {
+  flex: 0 0 auto;
+
+  color: #229ed9;
+}
+
+/* ========================================
+   DIRECT TEXT
+======================================== */
+
+.directCopy {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 4px;
+}
+
+.directCopy strong {
+  color: #15325b;
 
   font-size: 14px;
   line-height: 1;
@@ -216,351 +406,179 @@
 
   letter-spacing: -0.02em;
 
-  cursor: pointer;
-
-  box-shadow:
-    0 8px 18px rgba(47, 97, 204, 0.18);
-
-  -webkit-tap-highlight-color: transparent;
-
-  transition:
-    transform 110ms ease,
-    filter 120ms ease,
-    opacity 120ms ease;
+  white-space: nowrap;
 }
 
-.submit svg {
-  width: 15px;
-  height: 15px;
-
-  stroke-width: 2.4;
-}
-
-.submit:hover {
-  filter: brightness(1.025);
-}
-
-.submit:active {
-  transform: scale(0.985);
-}
-
-.submit:disabled {
-  opacity: 0.68;
-
-  cursor: wait;
-}
-
-/* =========================
-   DIVIDER
-========================= */
-
-.divider {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-
-  align-items: center;
-
-  gap: 9px;
-
-  margin: 12px 0 10px;
-}
-
-.divider span {
-  height: 1px;
-
-  background: #dfe6ef;
-}
-
-.divider p {
-  margin: 0;
-
-  color: #8e9bad;
+.directCopy small {
+  color: #8090a7;
 
   font-size: 10.5px;
-  line-height: 1;
-  font-weight: 600;
+  line-height: 1.1;
+  font-weight: 550;
 
   white-space: nowrap;
 }
 
-/* =========================
-   SOCIAL
-========================= */
+/* ========================================
+   <= 430px
+======================================== */
 
-.socials {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-
-  gap: 8px;
-}
-
-.social {
-  min-width: 0;
-  height: 44px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  gap: 7px;
-
-  border: 1px solid;
-  border-radius: 13px;
-
-  text-decoration: none;
-
-  font-size: 12px;
-  line-height: 1;
-  font-weight: 750;
-
-  letter-spacing: -0.01em;
-
-  transition:
-    transform 110ms ease,
-    filter 120ms ease;
-}
-
-.social:active {
-  transform: scale(0.98);
-}
-
-.socialIcon {
-  width: 24px;
-  height: 24px;
-
-  flex: 0 0 24px;
-
-  display: grid;
-  place-items: center;
-
-  border-radius: 50%;
-}
-
-.socialIcon svg {
-  width: 15px;
-  height: 15px;
-}
-
-.whatsappButton {
-  background: #f1faf5;
-
-  border-color: #d7ebdf;
-
-  color: #19724c;
-}
-
-.whatsappButton .socialIcon {
-  background: #def4e7;
-}
-
-.whatsappButton svg {
-  fill: #24c968;
-}
-
-.telegramButton {
-  background: #f1f6fd;
-
-  border-color: #d9e5f4;
-
-  color: #276799;
-}
-
-.telegramButton .socialIcon {
-  background: #deedfc;
-}
-
-.telegramButton svg {
-  fill: #2aabee;
-}
-
-/* =========================
-   SUCCESS
-========================= */
-
-.success {
-  min-height: 180px;
-
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-
-  padding: 20px;
-
-  text-align: center;
-}
-
-.successIcon {
-  width: 46px;
-  height: 46px;
-
-  margin-bottom: 12px;
-
-  display: grid;
-  place-items: center;
-
-  border-radius: 50%;
-
-  background: #e0f3e7;
-
-  color: #258b58;
-}
-
-.successIcon svg {
-  width: 21px;
-  height: 21px;
-
-  stroke-width: 2.5;
-}
-
-.successTitle {
-  color: var(--text-primary);
-
-  font-size: 15.5px;
-  line-height: 1.1;
-  font-weight: 850;
-}
-
-.successText {
-  margin: 6px 0 0;
-
-  color: var(--text-secondary);
-
-  font-size: 11.5px;
-  line-height: 1.35;
-  font-weight: 550;
-}
-
-/* =========================
-   <= 390px
-========================= */
-
-@media (max-width: 390px) {
+@media (max-width: 430px) {
   .section {
     padding:
       14px
-      8px
-      20px;
+      7px
+      9px;
+  }
+
+  .card {
+    padding:
+      15px
+      14px
+      15px;
+
+    border-radius: 22px;
   }
 
   .header {
-    margin-bottom: 10px;
+    gap: 10px;
+
+    margin-bottom: 15px;
   }
 
-  .heading {
-    font-size: 17px;
+  .headerIcon {
+    width: 44px;
+    height: 44px;
+
+    flex-basis: 44px;
+
+    border-radius: 14px;
   }
 
-  .headerAccent {
-    width: 4px;
-    height: 21px;
-
-    flex-basis: 4px;
+  .title {
+    font-size: 20px;
   }
 
-  .card {
-    padding: 12px;
-
-    border-radius: 20px;
+  .subtitle {
+    font-size: 11.5px;
   }
 
   .form {
-    gap: 9px;
+    gap: 12px;
   }
 
   .input {
-    height: 45px;
+    height: 52px;
+
+    padding:
+      0
+      16px;
+
+    font-size: 15px;
   }
 
   .textarea {
-    min-height: 74px;
+    min-height: 105px;
+
+    padding:
+      14px
+      16px;
+
+    font-size: 15px;
   }
 
   .submit {
-    height: 47px;
+    height: 52px;
 
-    border-radius: 13px;
+    border-radius: 16px;
 
-    font-size: 13.5px;
+    font-size: 15px;
   }
 
-  .social {
-    height: 43px;
+  .divider {
+    margin:
+      14px
+      0
+      12px;
+  }
 
-    font-size: 11.5px;
+  .directGrid {
+    gap: 8px;
+  }
+
+  .directButton {
+    min-height: 60px;
+
+    gap: 9px;
+
+    padding:
+      9px
+      11px;
+
+    border-radius: 15px;
+  }
+
+  .directCopy strong {
+    font-size: 13px;
+  }
+
+  .directCopy small {
+    font-size: 9.5px;
   }
 }
 
-/* =========================
+/* ========================================
    <= 360px
-========================= */
+======================================== */
 
 @media (max-width: 360px) {
-  .section {
-    padding-left: 7px;
-    padding-right: 7px;
-  }
-
-  .heading {
-    font-size: 16.5px;
-  }
-
   .card {
-    padding: 11px;
+    padding: 13px;
   }
 
-  .input {
-    height: 44px;
-
-    font-size: 13px;
+  .title {
+    font-size: 18.5px;
   }
 
-  .textarea {
-    min-height: 72px;
-
-    font-size: 13px;
-  }
-
-  .submit {
-    height: 46px;
-
-    font-size: 13px;
-  }
-
-  .socials {
-    gap: 7px;
-  }
-
-  .social {
-    height: 42px;
-
-    gap: 6px;
-
+  .subtitle {
     font-size: 11px;
   }
 
-  .socialIcon {
-    width: 22px;
-    height: 22px;
-
-    flex-basis: 22px;
+  .directGrid {
+    gap: 6px;
   }
 
-  .socialIcon svg {
-    width: 14px;
-    height: 14px;
+  .directButton {
+    gap: 7px;
+
+    padding:
+      9px
+      8px;
+  }
+
+  .directButton svg {
+    width: 23px;
+    height: 23px;
+  }
+
+  .directCopy strong {
+    font-size: 12.5px;
+  }
+
+  .directCopy small {
+    display: none;
   }
 }
 
-/* =========================
+/* ========================================
    REDUCED MOTION
-========================= */
+======================================== */
 
 @media (prefers-reduced-motion: reduce) {
   .input,
   .textarea,
   .submit,
-  .social {
+  .directButton {
     transition: none;
   }
 }

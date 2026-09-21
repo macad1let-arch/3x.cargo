@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import {
   Clock,
   MapPin,
@@ -10,32 +12,35 @@ import styles from "./Footer.module.css";
 
 export default function Footer() {
   return (
-    <footer className={styles.footer} id="contact">
+    <footer
+      className={styles.footer}
+      id="contact"
+    >
       <div className={styles.inner}>
-        {/* BRAND + WORK TIME */}
+        {/* TOP */}
         <div className={styles.top}>
-          <div>
-            <div className={styles.logo}>
+          <div className={styles.brand}>
+            <Link
+              href="/"
+              className={styles.logo}
+            >
               Alakel
-            </div>
+            </Link>
 
-            <div className={styles.tagline}>
+            <span className={styles.tagline}>
               Доставка из Китая
-            </div>
+            </span>
           </div>
 
-          <div className={styles.work}>
+          <div className={styles.schedule}>
             <Clock
-              size={17}
+              size={18}
               strokeWidth={2.2}
             />
 
-            <div className={styles.workText}>
+            <div>
               <span>Ежедневно</span>
-
-              <strong>
-                09:00 – 20:00
-              </strong>
+              <strong>09:00 – 20:00</strong>
             </div>
           </div>
         </div>
@@ -48,18 +53,13 @@ export default function Footer() {
             rel="noopener noreferrer"
             className={styles.contact}
           >
-            <span className={styles.contactIcon}>
-              <MapPin
-                size={19}
-                strokeWidth={2.2}
-              />
-            </span>
+            <MapPin
+              size={19}
+              strokeWidth={2.2}
+            />
 
-            <span className={styles.contactText}>
-              <small>
-                Адрес
-              </small>
-
+            <span>
+              <small>Адрес</small>
               <strong>
                 ул. Логвиненко 55а, Бишкек
               </strong>
@@ -70,18 +70,13 @@ export default function Footer() {
             href="tel:+996220343053"
             className={styles.contact}
           >
-            <span className={styles.contactIcon}>
-              <Phone
-                size={18}
-                strokeWidth={2.2}
-              />
-            </span>
+            <Phone
+              size={18}
+              strokeWidth={2.2}
+            />
 
-            <span className={styles.contactText}>
-              <small>
-                Телефон
-              </small>
-
+            <span>
+              <small>Телефон</small>
               <strong>
                 +996 220 343 053
               </strong>
@@ -96,7 +91,6 @@ export default function Footer() {
           </span>
 
           <div className={styles.socials}>
-            {/* WhatsApp */}
             <a
               href="https://wa.me/996220343053"
               target="_blank"
@@ -105,12 +99,11 @@ export default function Footer() {
               aria-label="WhatsApp"
             >
               <MessageCircle
-                size={20}
-                strokeWidth={2}
+                size={21}
+                strokeWidth={2.1}
               />
             </a>
 
-            {/* Telegram */}
             <a
               href="https://t.me/3xcargo"
               target="_blank"
@@ -119,12 +112,11 @@ export default function Footer() {
               aria-label="Telegram"
             >
               <Send
-                size={19}
-                strokeWidth={2}
+                size={20}
+                strokeWidth={2.1}
               />
             </a>
 
-            {/* Instagram */}
             <a
               href="https://www.instagram.com/3x.cargo"
               target="_blank"
@@ -133,15 +125,9 @@ export default function Footer() {
               aria-label="Instagram"
             >
               <svg
-                width="20"
-                height="20"
                 viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
                 aria-hidden="true"
+                className={styles.instagram}
               >
                 <rect
                   x="3"
@@ -158,11 +144,10 @@ export default function Footer() {
                 />
 
                 <circle
-                  cx="17.5"
-                  cy="6.5"
-                  r="0.75"
-                  fill="currentColor"
-                  stroke="none"
+                  cx="17.4"
+                  cy="6.6"
+                  r="0.8"
+                  className={styles.instagramDot}
                 />
               </svg>
             </a>
@@ -171,13 +156,8 @@ export default function Footer() {
 
         {/* BOTTOM */}
         <div className={styles.bottom}>
-          <span>
-            © 2017–2026 Alakel
-          </span>
-
-          <span>
-            Бишкек, Кыргызстан
-          </span>
+          <span>© 2017–2026 Alakel</span>
+          <span>Бишкек, Кыргызстан</span>
         </div>
       </div>
     </footer>

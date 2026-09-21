@@ -1,245 +1,218 @@
 "use client";
 
-import { useState } from "react";
-import { Check, Send } from "lucide-react";
+import {
+  type FormEvent,
+  useState,
+} from "react";
+
+import {
+  Headphones,
+  MessageCircle,
+  Send,
+} from "lucide-react";
+
 import styles from "./ContactForm.module.css";
 
 export default function ContactForm() {
-  const [formData, setFormData] = useState({
-    name: "",
-    phone: "",
-    message: "",
-  });
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [message, setMessage] = useState("");
 
-  const [sending, setSending] = useState(false);
-  const [sent, setSent] = useState(false);
-
-  const handleSubmit = async (
-    e: React.FormEvent<HTMLFormElement>
+  const handleSubmit = (
+    event: FormEvent<HTMLFormElement>
   ) => {
-    e.preventDefault();
+    event.preventDefault();
 
-    if (!formData.phone.trim() || sending) return;
+    if (!phone.trim()) return;
 
-    setSending(true);
+    const text = [
+      "Здравствуйте! Заявка с сайта Alakel.",
+      "",
+      name.trim()
+        ? `Имя: ${name.trim()}`
+        : null,
+      `Телефон: ${phone.trim()}`,
+      message.trim()
+        ? `Сообщение: ${message.trim()}`
+        : null,
+    ]
+      .filter(Boolean)
+      .join("\n");
 
-    try {
-      const res = await fetch("/api/telegram", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
+    const url =
+      `https://wa.me/996220343053?text=${encodeURIComponent(text)}`;
 
-      if (!res.ok) {
-        console.error(
-          "Ошибка отправки:",
-          await res.text()
-        );
-
-        return;
-      }
-
-      setSent(true);
-    } catch (error) {
-      console.error(
-        "Ошибка отправки заявки:",
-        error
-      );
-    } finally {
-      setSending(false);
-    }
+    window.open(
+      url,
+      "_blank",
+      "noopener,noreferrer"
+    );
   };
 
   return (
     <section
-      id="contacts"
+      id="contact"
       className={styles.section}
       aria-labelledby="contact-title"
     >
-      <div className={styles.inner}>
+      <div className={styles.card}>
+        {/* HEADER */}
         <div className={styles.header}>
-          <span
-            className={styles.headerAccent}
-            aria-hidden="true"
-          />
+          <div className={styles.headerIcon}>
+            <Headphones
+              size={25}
+              strokeWidth={2.2}
+            />
+          </div>
 
-          <h2
-            id="contact-title"
-            className={styles.heading}
-          >
-            Связаться с нами
-          </h2>
+          <div className={styles.headerText}>
+            <h2
+              id="contact-title"
+              className={styles.title}
+            >
+              Связаться с нами
+            </h2>
+
+            <p className={styles.subtitle}>
+              Оставьте заявку — мы свяжемся с вами
+            </p>
+          </div>
         </div>
 
-        <div className={styles.card}>
-          {sent ? (
-            <div
-              className={styles.success}
-              role="status"
+        {/* FORM */}
+        <form
+          className={styles.form}
+          onSubmit={handleSubmit}
+        >
+          <div className={styles.field}>
+            <label
+              htmlFor="contact-name"
+              className={styles.label}
             >
-              <span
-                className={styles.successIcon}
-                aria-hidden="true"
-              >
-                <Check />
+              Имя
+            </label>
+
+            <input
+              id="contact-name"
+              type="text"
+              name="name"
+              autoComplete="name"
+              value={name}
+              onChange={(event) =>
+                setName(event.target.value)
+              }
+              placeholder="Ваше имя"
+              className={styles.input}
+            />
+          </div>
+
+          <div className={styles.field}>
+            <label
+              htmlFor="contact-phone"
+              className={styles.label}
+            >
+              Телефон
+              <span className={styles.required}>
+                *
               </span>
+            </label>
 
-              <strong className={styles.successTitle}>
-                Заявка отправлена
-              </strong>
+            <input
+              id="contact-phone"
+              type="tel"
+              name="phone"
+              inputMode="tel"
+              autoComplete="tel"
+              required
+              value={phone}
+              onChange={(event) =>
+                setPhone(event.target.value)
+              }
+              placeholder="+996 700 000 000"
+              className={styles.input}
+            />
+          </div>
 
-              <p className={styles.successText}>
-                Менеджер скоро свяжется с вами
-              </p>
-            </div>
-          ) : (
-            <form
-              className={styles.form}
-              onSubmit={handleSubmit}
+          <div className={styles.field}>
+            <label
+              htmlFor="contact-message"
+              className={styles.label}
             >
-              <div className={styles.field}>
-                <label
-                  className={styles.label}
-                  htmlFor="contact-name"
-                >
-                  Имя
-                </label>
+              Сообщение
+            </label>
 
-                <input
-                  id="contact-name"
-                  className={styles.input}
-                  type="text"
-                  autoComplete="name"
-                  placeholder="Ваше имя"
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      name: e.target.value,
-                    }))
-                  }
-                />
-              </div>
+            <textarea
+              id="contact-message"
+              name="message"
+              value={message}
+              onChange={(event) =>
+                setMessage(event.target.value)
+              }
+              placeholder="Ваш вопрос или заявка"
+              rows={4}
+              className={styles.textarea}
+            />
+          </div>
 
-              <div className={styles.field}>
-                <label
-                  className={styles.label}
-                  htmlFor="contact-phone"
-                >
-                  Телефон
-                  <span className={styles.required}>
-                    *
-                  </span>
-                </label>
+          <button
+            type="submit"
+            className={styles.submit}
+          >
+            <span>Отправить</span>
 
-                <input
-                  id="contact-phone"
-                  className={styles.input}
-                  type="tel"
-                  inputMode="tel"
-                  autoComplete="tel"
-                  required
-                  placeholder="+996 700 000 000"
-                  value={formData.phone}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      phone: e.target.value,
-                    }))
-                  }
-                />
-              </div>
+            <Send
+              size={18}
+              strokeWidth={2.3}
+            />
+          </button>
+        </form>
 
-              <div className={styles.field}>
-                <label
-                  className={styles.label}
-                  htmlFor="contact-message"
-                >
-                  Сообщение
-                </label>
+        {/* DIVIDER */}
+        <div className={styles.divider}>
+          <span>
+            или напишите напрямую
+          </span>
+        </div>
 
-                <textarea
-                  id="contact-message"
-                  className={styles.textarea}
-                  rows={3}
-                  placeholder="Ваш вопрос или заявка"
-                  value={formData.message}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      message: e.target.value,
-                    }))
-                  }
-                />
-              </div>
+        {/* DIRECT CONTACTS */}
+        <div className={styles.directGrid}>
+          <a
+            href="https://wa.me/996220343053"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`${styles.directButton} ${styles.whatsapp}`}
+            aria-label="Написать в WhatsApp"
+          >
+            <MessageCircle
+              className={styles.whatsappIcon}
+              size={27}
+              strokeWidth={2.15}
+            />
 
-              <button
-                type="submit"
-                className={styles.submit}
-                disabled={sending}
-              >
-                <span>
-                  {sending
-                    ? "Отправляем..."
-                    : "Отправить"}
-                </span>
+            <span className={styles.directCopy}>
+              <strong>WhatsApp</strong>
+              <small>Быстрый ответ</small>
+            </span>
+          </a>
 
-                {!sending && (
-                  <Send aria-hidden="true" />
-                )}
-              </button>
-            </form>
-          )}
+          <a
+            href="https://t.me/3xcargo"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`${styles.directButton} ${styles.telegram}`}
+            aria-label="Написать в Telegram"
+          >
+            <Send
+              className={styles.telegramIcon}
+              size={26}
+              strokeWidth={2.15}
+            />
 
-          {!sent && (
-            <>
-              <div className={styles.divider}>
-                <span />
-                <p>или написать напрямую</p>
-                <span />
-              </div>
-
-              <div className={styles.socials}>
-                <a
-                  href="https://wa.me/996220343053"
-                  target="_blank"
-                  rel="noreferrer"
-                  className={`${styles.social} ${styles.whatsappButton}`}
-                >
-                  <span className={styles.socialIcon}>
-                    <svg
-                      viewBox="0 0 24 24"
-                      aria-hidden="true"
-                    >
-                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-                    </svg>
-                  </span>
-
-                  <span>WhatsApp</span>
-                </a>
-
-                <a
-                  href="https://t.me/3xcargo"
-                  target="_blank"
-                  rel="noreferrer"
-                  className={`${styles.social} ${styles.telegramButton}`}
-                >
-                  <span className={styles.socialIcon}>
-                    <svg
-                      viewBox="0 0 24 24"
-                      aria-hidden="true"
-                    >
-                      <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z" />
-                    </svg>
-                  </span>
-
-                  <span>Telegram</span>
-                </a>
-              </div>
-            </>
-          )}
+            <span className={styles.directCopy}>
+              <strong>Telegram</strong>
+              <small>Написать в чат</small>
+            </span>
+          </a>
         </div>
       </div>
     </section>
