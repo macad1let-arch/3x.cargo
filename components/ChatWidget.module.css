@@ -1,0 +1,990 @@
+/* ========================================
+   VARIABLES
+======================================== */
+
+.window,
+.floatingButton {
+  --navy: #0a3478;
+  --navy-dark: #082a62;
+  --blue: #215fc7;
+  --orange: #ff7a00;
+
+  --page: #f5f7fb;
+  --line: #e3eaf3;
+
+  --text: #10233f;
+  --muted: #8291a7;
+}
+
+/* ========================================
+   FLOATING BUTTON
+======================================== */
+
+.floatingButton {
+  position: fixed;
+
+  right: 18px;
+
+  bottom:
+    calc(
+      18px +
+      env(safe-area-inset-bottom)
+    );
+
+  z-index: 1100;
+
+  width: 60px;
+  height: 60px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: 0;
+  border-radius: 20px;
+
+  background: var(--navy);
+
+  color: #ffffff;
+
+  cursor: pointer;
+
+  -webkit-tap-highlight-color:
+    transparent;
+
+  box-shadow:
+    0 12px 28px
+      rgba(10, 52, 120, 0.26),
+    0 3px 8px
+      rgba(10, 52, 120, 0.12),
+    inset 0 1px 0
+      rgba(255, 255, 255, 0.12);
+
+  transition:
+    transform 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease;
+
+  animation:
+    widgetEnter
+    420ms
+    cubic-bezier(
+      0.22,
+      1,
+      0.36,
+      1
+    )
+    both;
+}
+
+.floatingButton::before {
+  content: "";
+
+  position: absolute;
+
+  inset: 5px;
+
+  border-radius: 16px;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.08);
+
+  pointer-events: none;
+}
+
+.floatingButton:hover {
+  background:
+    var(--navy-dark);
+
+  transform:
+    translateY(-2px);
+
+  box-shadow:
+    0 15px 32px
+      rgba(10, 52, 120, 0.3),
+    0 4px 10px
+      rgba(10, 52, 120, 0.14);
+}
+
+.floatingButton:active {
+  transform: scale(0.96);
+}
+
+.floatingButtonOpen {
+  background: #143c78;
+}
+
+.buttonStatus {
+  position: absolute;
+
+  top: 8px;
+  right: 8px;
+
+  width: 10px;
+  height: 10px;
+
+  border:
+    2px solid var(--navy);
+
+  border-radius: 50%;
+
+  background: #35cf73;
+
+  box-shadow:
+    0 0 0 2px
+    rgba(53, 207, 115, 0.12);
+}
+
+/* ========================================
+   CHAT WINDOW
+======================================== */
+
+.window {
+  position: fixed;
+
+  right: 18px;
+
+  bottom:
+    calc(
+      90px +
+      env(safe-area-inset-bottom)
+    );
+
+  z-index: 1090;
+
+  width:
+    min(
+      380px,
+      calc(100vw - 36px)
+    );
+
+  height:
+    min(
+      590px,
+      calc(100dvh - 125px)
+    );
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+
+  border:
+    1px solid
+    rgba(15, 47, 102, 0.1);
+
+  border-radius: 24px;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 24px 60px
+      rgba(10, 32, 72, 0.18),
+    0 5px 18px
+      rgba(10, 32, 72, 0.08);
+
+  transform-origin:
+    bottom right;
+
+  animation:
+    windowEnter
+    260ms
+    cubic-bezier(
+      0.22,
+      1,
+      0.36,
+      1
+    )
+    both;
+}
+
+/* ========================================
+   HEADER
+======================================== */
+
+.header {
+  min-height: 76px;
+
+  display: flex;
+  align-items: center;
+  justify-content:
+    space-between;
+
+  gap: 12px;
+
+  padding:
+    13px
+    14px
+    13px
+    15px;
+
+  background: var(--navy);
+
+  color: #ffffff;
+
+  border-bottom:
+    1px solid
+    rgba(255, 255, 255, 0.06);
+}
+
+.headerLeft {
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+
+  gap: 11px;
+}
+
+.avatar {
+  position: relative;
+
+  width: 44px;
+  height: 44px;
+
+  flex: 0 0 44px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 15px;
+
+  background:
+    rgba(255, 255, 255, 0.1);
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.1);
+
+  color: #ffffff;
+}
+
+.onlineDot {
+  position: absolute;
+
+  right: -1px;
+  bottom: -1px;
+
+  width: 11px;
+  height: 11px;
+
+  border:
+    2px solid var(--navy);
+
+  border-radius: 50%;
+
+  background: #39d879;
+}
+
+.headerCopy {
+  min-width: 0;
+}
+
+.headerTitle {
+  color: #ffffff;
+
+  font-size: 16px;
+  line-height: 1.1;
+
+  font-weight: 850;
+
+  letter-spacing: -0.025em;
+}
+
+.status {
+  margin-top: 4px;
+
+  color:
+    rgba(255, 255, 255, 0.62);
+
+  font-size: 11px;
+  line-height: 1;
+
+  font-weight: 550;
+}
+
+.closeButton {
+  width: 40px;
+  height: 40px;
+
+  flex: 0 0 40px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: 0;
+
+  border-radius: 13px;
+
+  background:
+    rgba(255, 255, 255, 0.07);
+
+  color:
+    rgba(255, 255, 255, 0.85);
+
+  cursor: pointer;
+
+  transition:
+    background 150ms ease,
+    transform 120ms ease;
+
+  -webkit-tap-highlight-color:
+    transparent;
+}
+
+.closeButton:hover {
+  background:
+    rgba(255, 255, 255, 0.12);
+}
+
+.closeButton:active {
+  transform: scale(0.94);
+}
+
+/* ========================================
+   MESSAGES
+======================================== */
+
+.messages {
+  flex: 1;
+
+  min-height: 0;
+
+  overflow-y: auto;
+  overscroll-behavior:
+    contain;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 8px;
+
+  padding:
+    15px
+    13px
+    18px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #f9fbfe 0%,
+      #f6f8fc 100%
+    );
+
+  scrollbar-width: none;
+}
+
+.messages::-webkit-scrollbar {
+  display: none;
+}
+
+.messageRow {
+  width: 100%;
+
+  display: flex;
+
+  animation:
+    messageEnter
+    220ms
+    ease
+    both;
+}
+
+.aiRow {
+  justify-content:
+    flex-start;
+}
+
+.userRow {
+  justify-content:
+    flex-end;
+}
+
+.messageBubble {
+  max-width: 84%;
+
+  padding:
+    10px
+    13px;
+
+  font-size: 14px;
+  line-height: 1.42;
+
+  font-weight: 500;
+
+  letter-spacing:
+    -0.01em;
+
+  white-space: pre-wrap;
+
+  overflow-wrap: anywhere;
+}
+
+.aiBubble {
+  border-radius:
+    6px
+    17px
+    17px
+    17px;
+
+  border:
+    1px solid #e4eaf2;
+
+  background: #ffffff;
+
+  color: var(--text);
+
+  box-shadow:
+    0 3px 10px
+    rgba(20, 48, 92, 0.035);
+}
+
+.userBubble {
+  border-radius:
+    17px
+    17px
+    6px
+    17px;
+
+  background:
+    var(--blue);
+
+  color: #ffffff;
+
+  box-shadow:
+    0 5px 14px
+    rgba(33, 95, 199, 0.16);
+}
+
+/* ========================================
+   QUICK QUESTIONS
+======================================== */
+
+.quickWrap {
+  display: flex;
+  flex-wrap: wrap;
+
+  gap: 7px;
+
+  margin-top: 4px;
+
+  padding:
+    2px
+    0
+    4px;
+}
+
+.quickButton {
+  min-height: 38px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding:
+    0
+    13px;
+
+  border:
+    1px solid #dce7f5;
+
+  border-radius: 13px;
+
+  background: #ffffff;
+
+  color: #315c9e;
+
+  font-family: inherit;
+
+  font-size: 12px;
+  line-height: 1;
+
+  font-weight: 650;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 2px 7px
+    rgba(15, 47, 102, 0.035);
+
+  transition:
+    transform 120ms ease,
+    border-color 150ms ease,
+    background 150ms ease;
+
+  -webkit-tap-highlight-color:
+    transparent;
+}
+
+.quickButton:hover {
+  background: #f2f6fc;
+
+  border-color: #c8d8ed;
+}
+
+.quickButton:active {
+  transform: scale(0.97);
+}
+
+/* ========================================
+   TYPING
+======================================== */
+
+.typing {
+  min-width: 53px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 4px;
+
+  padding:
+    13px
+    15px;
+}
+
+.typing span {
+  width: 5px;
+  height: 5px;
+
+  border-radius: 50%;
+
+  background: #8b9bb0;
+
+  animation:
+    typingDot
+    1.2s
+    infinite
+    ease-in-out;
+}
+
+.typing span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.typing span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+/* ========================================
+   INPUT
+======================================== */
+
+.inputArea {
+  padding:
+    10px
+    11px
+    8px;
+
+  background: #ffffff;
+
+  border-top:
+    1px solid #e9edf3;
+}
+
+.inputShell {
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+
+  padding:
+    5px
+    5px
+    5px
+    15px;
+
+  border:
+    1px solid #dde5ef;
+
+  border-radius: 18px;
+
+  background: #f6f8fb;
+
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    background 160ms ease;
+}
+
+.inputShell:focus-within {
+  border-color:
+    #a8c2ea;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(47, 97, 204, 0.07);
+}
+
+.input {
+  min-width: 0;
+
+  flex: 1;
+
+  height: 40px;
+
+  padding: 0;
+
+  border: 0;
+  outline: 0;
+
+  background:
+    transparent;
+
+  color: var(--text);
+
+  font-family: inherit;
+
+  /*
+    16px:
+    Safari не зумит страницу
+    при фокусе.
+  */
+  font-size: 16px;
+
+  line-height: 1;
+
+  font-weight: 500;
+}
+
+.input::placeholder {
+  color: #9aa7b8;
+
+  opacity: 1;
+
+  font-weight: 450;
+}
+
+.sendButton {
+  width: 42px;
+  height: 42px;
+
+  flex: 0 0 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: 0;
+  border-radius: 14px;
+
+  background:
+    var(--blue);
+
+  color: #ffffff;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 4px 11px
+    rgba(33, 95, 199, 0.18);
+
+  transition:
+    transform 120ms ease,
+    opacity 150ms ease,
+    background 150ms ease;
+
+  -webkit-tap-highlight-color:
+    transparent;
+}
+
+.sendButton:not(
+    :disabled
+  ):hover {
+  background: #1954b7;
+}
+
+.sendButton:not(
+    :disabled
+  ):active {
+  transform: scale(0.94);
+}
+
+.sendButton:disabled {
+  background: #d9e0ea;
+
+  color: #a9b4c2;
+
+  cursor: default;
+
+  box-shadow: none;
+}
+
+/* ========================================
+   CAPTION
+======================================== */
+
+.caption {
+  display: block;
+
+  margin-top: 6px;
+
+  color: #a0aabc;
+
+  text-align: center;
+
+  font-size: 9.5px;
+  line-height: 1;
+
+  font-weight: 550;
+}
+
+/* ========================================
+   ANIMATIONS
+======================================== */
+
+@keyframes windowEnter {
+  from {
+    opacity: 0;
+
+    transform:
+      translateY(10px)
+      scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      translateY(0)
+      scale(1);
+  }
+}
+
+@keyframes widgetEnter {
+  from {
+    opacity: 0;
+
+    transform:
+      translateY(8px)
+      scale(0.9);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      translateY(0)
+      scale(1);
+  }
+}
+
+@keyframes messageEnter {
+  from {
+    opacity: 0;
+
+    transform:
+      translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      translateY(0);
+  }
+}
+
+@keyframes typingDot {
+  0%,
+  60%,
+  100% {
+    transform:
+      translateY(0);
+
+    opacity: 0.45;
+  }
+
+  30% {
+    transform:
+      translateY(-4px);
+
+    opacity: 1;
+  }
+}
+
+/* ========================================
+   MOBILE
+======================================== */
+
+@media (
+  max-width: 480px
+) {
+  .floatingButton {
+    right: 14px;
+
+    bottom:
+      calc(
+        14px +
+        env(
+          safe-area-inset-bottom
+        )
+      );
+
+    width: 58px;
+    height: 58px;
+
+    border-radius: 19px;
+  }
+
+  .window {
+    right: 8px;
+
+    bottom:
+      calc(
+        82px +
+        env(
+          safe-area-inset-bottom
+        )
+      );
+
+    width:
+      calc(
+        100vw - 16px
+      );
+
+    height:
+      min(
+        600px,
+        calc(
+          100dvh -
+          102px -
+          env(
+            safe-area-inset-top
+          )
+        )
+      );
+
+    border-radius: 22px;
+  }
+
+  .header {
+    min-height: 70px;
+
+    padding:
+      11px
+      12px
+      11px
+      13px;
+  }
+
+  .avatar {
+    width: 42px;
+    height: 42px;
+
+    flex-basis: 42px;
+
+    border-radius: 14px;
+  }
+
+  .headerTitle {
+    font-size: 15px;
+  }
+
+  .messages {
+    padding:
+      13px
+      11px
+      15px;
+  }
+
+  .messageBubble {
+    max-width: 87%;
+
+    padding:
+      10px
+      12px;
+
+    font-size: 13.5px;
+  }
+
+  .quickButton {
+    min-height: 37px;
+
+    padding:
+      0
+      12px;
+
+    font-size: 11.5px;
+  }
+
+  .inputArea {
+    padding:
+      8px
+      9px
+      7px;
+  }
+
+  .inputShell {
+    padding-left: 13px;
+
+    border-radius: 17px;
+  }
+}
+
+/* ========================================
+   VERY SMALL MOBILE
+======================================== */
+
+@media (
+  max-width: 350px
+) {
+  .window {
+    right: 5px;
+
+    width:
+      calc(
+        100vw - 10px
+      );
+
+    border-radius: 19px;
+  }
+
+  .quickWrap {
+    gap: 6px;
+  }
+
+  .quickButton {
+    font-size: 11px;
+
+    padding:
+      0
+      10px;
+  }
+}
+
+/* ========================================
+   REDUCED MOTION
+======================================== */
+
+@media (
+  prefers-reduced-motion:
+    reduce
+) {
+  .window,
+  .floatingButton,
+  .messageRow,
+  .typing span {
+    animation: none;
+  }
+
+  .floatingButton,
+  .closeButton,
+  .quickButton,
+  .sendButton {
+    transition: none;
+  }
+}

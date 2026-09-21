@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
-import ChatWidget from "@/components/ChatWidget";
 import TopBanner from "@/components/home/TopBanner";
 import Header from "@/components/home/Header";
 import PrimaryActions from "@/components/home/primary-actions/PrimaryActions";
@@ -141,8 +139,6 @@ export default function HomePage() {
       <ImportantInfo />
       <ContactForm />
       <FAQ />
-
-      <ChatWidget />
       <Footer />
     </main>
   );
